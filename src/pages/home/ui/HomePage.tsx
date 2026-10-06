@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { cycleApi } from '@entities/cycle';
 import { indentLineApi } from '@entities/indent-line';
@@ -16,8 +16,6 @@ import { TopBar } from '@widgets/topbar';
 const routePaths = routes as typeof routes & { workbook?: string };
 const CYCLE_SUMMARY_QUERY = {} as const;
 const EXPORT_LINES_QUERY = { size: 50, includeReference: true } as const;
-const selectCycleSummary = cycleApi.endpoints.getDealerCycleSummary.select(CYCLE_SUMMARY_QUERY);
-const selectExportLines = indentLineApi.endpoints.listDealerIndentLines.select(EXPORT_LINES_QUERY);
 
 export function HomePage() {
   const navigate = useNavigate();
@@ -50,12 +48,14 @@ export function HomePage() {
 
         <DashboardContent onNavigateToWorkbook={navigateToWorkbook} />
       </main>
-      <HomeExportModal open={exportOpen} onClose={() => setExportOpen(false)} />
+      {exportOpen ? <HomeExportModal open={exportOpen} onClose={() => setExportOpen(false)} /> : null}
     </div>
   );
 }
 
 function HomeExportModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const selectCycleSummary = useMemo(() => cycleApi.endpoints.getDealerCycleSummary.select(CYCLE_SUMMARY_QUERY), []);
+  const selectExportLines = useMemo(() => indentLineApi.endpoints.listDealerIndentLines.select(EXPORT_LINES_QUERY), []);
   const cycleResult = useAppSelector(selectCycleSummary);
   const linesResult = useAppSelector(selectExportLines);
   const cycle = cycleResult.data;
