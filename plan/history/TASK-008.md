@@ -1,0 +1,70 @@
+# TASK-008 history
+
+- test-engineer start: git rev-parse HEAD unavailable (`git` command not found; workspace reports no git repo).
+- test-engineer progress: marked TASK-008 in-progress in `plan/PROGRESS.md`.
+- test-engineer wrote: `src/widgets/topbar/ui/TopBar.test.tsx` with 5 unit tests covering default/success, nav interactions, sign-out, submitted status, and cycle-summary-error retry behavior.
+- RED command: `npx vitest run src/widgets/topbar/ui/TopBar.test.tsx` exited 1.
+  - suite `src/widgets/topbar/ui/TopBar.test.tsx`: valid RED because Vite cannot resolve `./TopBar`; `src/widgets/topbar/ui/TopBar.tsx` is listed as `new` in TASK-008 Files table and is coder-owned.
+- Lint command: `npm run lint -- src/widgets/topbar/ui/TopBar.test.tsx` exited 1 before checking task-specific scope because the script runs `eslint .` and reports pre-existing errors in `tools/check-install.mjs` (`@typescript-eslint/no-unused-expressions`).
+- File lint command: `./node_modules/.bin/eslint src/widgets/topbar/ui/TopBar.test.tsx` exited 0.
+- Commit command: `git add src/widgets/topbar/ui/TopBar.test.tsx plan/history/TASK-008.md plan/PROGRESS.md; git commit -m "TASK-008(test-engineer): RED tests"` exited 1 because `git` is not installed/available in PATH.
+- test-engineer: status already in-progress in `plan/PROGRESS.md` at dispatch verification.
+- test-engineer: added `src/widgets/topbar/ui/TopBar.test.tsx` covering default, navigation, accessible theme/sign-out controls, submitted status, and cycle-summary error retry states.
+- RED proof: `npx vitest run src/widgets/topbar/ui/TopBar.test.tsx --reporter=verbose` failed before collection because `./TopBar` cannot be resolved; valid RED because `src/widgets/topbar/ui/TopBar.tsx` is listed `new` in TASK-008 Files table.
+- RED reason: `renders the default user, cycle, cutoff, and not-submitted status from queries` — blocked by missing new `./TopBar` module.
+- RED reason: `calls onNavigate for both navigation targets` — blocked by missing new `./TopBar` module.
+- RED reason: `exposes accessible theme and sign-out controls, and sign-out clears the session` — blocked by missing new `./TopBar` module.
+- RED reason: `renders the submitted status with the success treatment` — blocked by missing new `./TopBar` module.
+- RED reason: `keeps last-known topbar values visible and offers retry when the cycle summary fails` — blocked by missing new `./TopBar` module.
+- Lint: `npm run lint -- src/widgets/topbar/ui/TopBar.test.tsx` hit pre-existing global `tools/check-install.mjs` no-unused-expression errors because the script runs `eslint .`; focused `npm exec eslint -- src/widgets/topbar/ui/TopBar.test.tsx` passed.
+- Static guard: `rg "fetch\(|axios|baseApi|\.only|\.skip|\.todo" src/widgets/topbar/ui/TopBar.test.tsx` returned no matches.
+- Commit: not executed because `git` command is unavailable in this environment (`git` not recognized; workspace reports no git repo).
+- coder scope: implemented `src/widgets/topbar/ui/TopBar.tsx` and `src/widgets/topbar/index.ts`; used `useGetCurrentUserQuery`, `useGetDealerCycleSummaryQuery`, `sessionSlice.selectors.selectAuthStatus`/`selectToken`, and `signedOut`; teardown: none.
+- GREEN task command: `npx vitest run src/widgets/topbar/ui/TopBar.test.tsx --reporter=verbose` exited 0 (5 tests passed).
+- GREEN dry-run task command: `npx vitest run src/widgets/topbar --reporter=verbose` exited 0 (5 tests passed).
+- Focused lint: `npm exec eslint -- src/widgets/topbar/ui/TopBar.tsx src/widgets/topbar/index.ts` exited 0.
+- Full `npm run typecheck` exited 2 due to out-of-scope pre-existing missing `src/pages/workbook/ui/WorkbookPage` imported by its test.
+- Full `npm run lint` exited 1 due to pre-existing `tools/check-install.mjs` `@typescript-eslint/no-unused-expressions` errors already recorded by test-engineer.
+- Full `npm test` exited 1 after TASK-008 tests passed; out-of-scope failures were missing `src/pages/workbook/ui/WorkbookPage` and a `FilterRail` test timeout.
+- Scope check: `git diff --name-only` and commit not executed because `git` is unavailable in PATH.
+- coder plan: files `src/widgets/topbar/ui/TopBar.tsx`, `src/widgets/topbar/index.ts`, append-only `plan/history/TASK-008.md`; use `useGetCurrentUserQuery({})`, `useGetDealerCycleSummaryQuery({})`, `useAppSelector(sessionSlice.selectors.selectAuthStatus/selectToken)`, dispatch `signedOut()`, and `applyTheme()` for the theme affordance because no `app/providers` theme context file exists in this workspace; teardown: none.
+- debugger reproduction: `npx vitest run src/widgets/topbar/ui/TopBar.test.tsx --reporter=verbose` exited 0 (5 TASK-008 tests passed); focused `npm exec eslint -- src/widgets/topbar/ui/TopBar.tsx src/widgets/topbar/index.ts src/widgets/topbar/ui/TopBar.test.tsx` exited 0.
+- debugger full checks: `npm run typecheck` exited 1 on `src/pages/workbook/ui/WorkbookPage.test.tsx(6,30): error TS2307: Cannot find module './WorkbookPage'`; this is outside TASK-008 and belongs to TASK-016/pages-workbook (or test-engineer if the test was introduced early).
+- debugger full checks: `npm run lint` exited 1 only on `tools/check-install.mjs` `@typescript-eslint/no-unused-expressions` at lines 25, 26, 32, 38, 43, 44, 45, 49; this is outside TASK-008 and belongs to app-bootstrap/tools config ownership.
+- debugger full checks: `npm test -- --reporter=verbose` showed TASK-008 passing, then timed out after 240s; isolated `npx vitest run src/pages/workbook/ui/WorkbookPage.test.tsx --reporter=verbose` failed with Vite `Failed to resolve import "./WorkbookPage"` at line 6, confirming an out-of-scope missing page implementation rather than a TopBar failure.
+- debugger classification: no code bug found inside TASK-008 Files table; no production/test edits made beyond this append-only diagnosis.
+- coder implemented `TopBar` and public API using RTK Query hooks for user/cycle summary, session selectors plus `signedOut()`, accessible nav/theme/sign-out controls, submitted/not-submitted status styling, and cycle-summary retry with non-blocking fallback values.
+- GREEN command: `npx vitest run src/widgets/topbar/ui/TopBar.test.tsx --reporter=verbose` exited 0 — 1 file passed, 5 tests passed.
+- Focused lint: `npm exec eslint -- src/widgets/topbar/ui/TopBar.tsx src/widgets/topbar/index.ts` exited 0.
+- Full typecheck: `npm run typecheck` exited 1 due pre-existing/out-of-scope `src/pages/workbook/ui/WorkbookPage.test.tsx` importing missing `./WorkbookPage` (TASK-016, not in TASK-008 Files table).
+- Full lint: `npm run lint` exited 1 due pre-existing/out-of-scope `tools/check-install.mjs` `@typescript-eslint/no-unused-expressions`; `npx steiger ./src` also reports existing public-api/segment issues and a test-owned TopBar.test.tsx generated-model import outside coder scope.
+- Full test: `npm test` exited 1 after TASK-008 tests passed; failures were out-of-scope `src/pages/workbook/ui/WorkbookPage.test.tsx` missing `./WorkbookPage` and pre-existing `src/features/add-fert-line/ui/AddFertModal.test.tsx` timeout.
+- Diff/commit: `git diff --name-only` and commit not executed because `git` is unavailable in this environment (`git` not recognized; workspace reports no git repo).
+- reviewer: PROJECT.md absent; `.git` directory absent, so branch/diff/author checks could not be verified in this workspace.
+- reviewer gate A `npm run typecheck` exited 1: out-of-scope `src/pages/workbook/ui/WorkbookPage.test.tsx` cannot resolve `./WorkbookPage`.
+- reviewer gate B `npm run lint` exited 1: out-of-scope `tools/check-install.mjs` has 8 `@typescript-eslint/no-unused-expressions` errors before Steiger runs.
+- reviewer focused lint `npm exec eslint -- src/widgets/topbar/ui/TopBar.tsx src/widgets/topbar/index.ts src/widgets/topbar/ui/TopBar.test.tsx` exited 0.
+- reviewer gate C focused TASK test `npx vitest run src/widgets/topbar/ui/TopBar.test.tsx --reporter=verbose` exited 0: 1 file passed, 5 tests passed.
+- reviewer gate C full `npm test` timed out at 120s after TASK-008 passed; out-of-scope suites were still running.
+- reviewer gate D `npm run coverage` exited 1: TASK-008 tests passed, but out-of-scope suites failed (`WorkbookPage` missing, `AddFertModal`/`FilterRail` timeouts/assertion failures); task-scope coverage reported only.
+- reviewer gate E `npm run build` exited 1: out-of-scope `src/pages/workbook/ui/WorkbookPage.test.tsx` cannot resolve `./WorkbookPage`.
+- reviewer backup static checks scoped to `src/widgets/topbar` found no `style=`, raw hex/rgb, fetch/axios/baseApi in TSX, raw palette classes, console, `@app`, skip/only/todo, or SSN/card-like literals.
+- reviewer qartez/Steiger diff impact not run: git/qartez unavailable; full Steiger is blocked behind the lint script's out-of-scope ESLint failure.
+- reviewer manual spec finding (P1): `TopBar` is a connected server-data consumer but has no loading state for either query and renders the cycle retry affordance while `summary` is merely `undefined`/loading rather than only on `cycle-summary-error`; fix in `src/widgets/topbar/ui/TopBar.tsx` (owner coder).
+- coder review-fix: updated `src/widgets/topbar/ui/TopBar.tsx` so initial user/cycle query loads render an explicit busy loading topbar state and the cycle retry control renders only after `getDealerCycleSummary` is in `isError`, not while summary data is merely loading/undefined; no teardown.
+- GREEN task command: `npx vitest run src/widgets/topbar/ui/TopBar.test.tsx --reporter=verbose` exited 0 � 1 file passed, 5 tests passed.
+- Focused lint: `npm exec eslint -- src/widgets/topbar/ui/TopBar.tsx src/widgets/topbar/index.ts` exited 0.
+- Full typecheck: `npm run typecheck` exited 1 due pre-existing/out-of-scope `src/pages/workbook/ui/WorkbookPage.test.tsx` importing missing `./WorkbookPage`.
+- Full lint: `npm run lint` exited 1 due pre-existing/out-of-scope `tools/check-install.mjs` `@typescript-eslint/no-unused-expressions` errors.
+- Full test: `npm test -- --reporter=verbose` timed out after 120s; TASK-008 tests passed during the run before timeout.
+- Scope/commit: `git diff --name-only` and commit not executed because `git` is unavailable in this environment (`git` not recognized; workspace reports no git repo).
+- reviewer re-review: PROJECT.md absent and `.git` directory absent, so branch/diff/author checks remain unverifiable in this workspace; allowed file set was checked by inspection against TASK-008 Files table plus progress/history updates.
+- reviewer re-review gate A `npm run typecheck` exited 1: out-of-scope `src/pages/workbook/ui/WorkbookPage.test.tsx` cannot resolve `./WorkbookPage`.
+- reviewer re-review gate B `npm run lint` exited 1: out-of-scope `tools/check-install.mjs` has 8 `@typescript-eslint/no-unused-expressions` errors before Steiger runs.
+- reviewer re-review focused lint `npm exec eslint -- src/widgets/topbar/ui/TopBar.tsx src/widgets/topbar/index.ts src/widgets/topbar/ui/TopBar.test.tsx` exited 0.
+- reviewer re-review gate C focused TASK test `npx vitest run src/widgets/topbar/ui/TopBar.test.tsx --reporter=verbose` exited 0: 1 file passed, 5 tests passed; prior loading/retry review issue is fixed by explicit busy loading state and retry gated on `isError`.
+- reviewer re-review gate C full `npm test -- --reporter=verbose` timed out after 120s: TASK-008 tests passed in focused run; observed failures/timeouts were out-of-scope `AddFertModal` suites.
+- reviewer re-review gate D `npm run coverage` timed out after 120s: out-of-scope `AddFertModal` failures/timeouts; task-scope coverage reported only.
+- reviewer re-review gate E `npm run build` exited 1: out-of-scope `src/pages/workbook/ui/WorkbookPage.test.tsx` cannot resolve `./WorkbookPage`.
+- reviewer re-review backup static checks found no hits for style/raw color/fetch/axios/baseApi in TSX/raw palette/console/@app/skip-only-todo in task files or `src`; sensitive-data grep reported pre-existing UUID-like mock IDs in `mocks/factories/outlet.ts` and `mocks/factories/currentUser.ts`, outside TASK-008.
+- reviewer re-review manual spec: PASS for TASK-008 props, UI states, a11y labels, loading/error/success handling, RTK Query usage, no teardown, and no server data in local state; visual rendering, real-browser console, and Redux DevTools remain pending human Gate 3.

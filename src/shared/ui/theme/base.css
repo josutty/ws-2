@@ -1,0 +1,27 @@
+/* src/shared/ui/theme/base.css — imported once by app/main.tsx and .storybook/preview.ts */
+@import './tokens.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply bg-canvas text-fg font-sans antialiased;
+  }
+  body {
+    @apply min-h-screen bg-canvas text-body text-fg;
+  }
+  :focus-visible {
+    @apply outline-none ring-2 ring-focus ring-offset-2 ring-offset-canvas;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

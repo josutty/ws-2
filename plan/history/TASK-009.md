@@ -1,0 +1,42 @@
+# TASK-009 history
+
+- test-engineer start: git rev-parse HEAD unavailable (`git` command not found; workspace reports no git repo). start-sha: unavailable
+- test-engineer progress: marked TASK-009 in-progress in `plan/PROGRESS.md`.
+- test-engineer wrote: 17 unit tests across `IndentProgressCard.test.tsx`, `VerticalsSummaryCard.test.tsx`, and `NeedsAttentionCard.test.tsx`; no e2e required for this widget TASK.
+- RED command: `npx vitest run src/widgets/home-summary --reporter=verbose` exited 1.
+- RED suite `IndentProgressCard.test.tsx`: valid RED because Vite cannot resolve `./IndentProgressCard`; `src/widgets/home-summary/ui/IndentProgressCard.tsx` is listed as `new` in TASK-009 Files table and is coder-owned.
+  - `shows a labelled loading skeleton while the cycle summary loads` — blocked by missing new `./IndentProgressCard` module.
+  - `renders entered total, July units, not-submitted status, and progressbar values from the query` — blocked by missing new `./IndentProgressCard` module.
+  - `renders the submitted status when the summary is submitted` — blocked by missing new `./IndentProgressCard` module.
+  - `shows an error banner with a working retry when the cycle summary fails` — blocked by missing new `./IndentProgressCard` module.
+  - `calls Continue and Review submit callbacks` — blocked by missing new `./IndentProgressCard` module.
+- RED suite `VerticalsSummaryCard.test.tsx`: valid RED because Vite cannot resolve `./VerticalsSummaryCard`; `src/widgets/home-summary/ui/VerticalsSummaryCard.tsx` is listed as `new` in TASK-009 Files table and is coder-owned.
+  - `shows a labelled loading skeleton while the cycle summary loads` — blocked by missing new `./VerticalsSummaryCard` module.
+  - `renders the in-progress row for the current vertical with the entered fraction` — blocked by missing new `./VerticalsSummaryCard` module.
+  - `renders a not-started status when no lines are entered` — blocked by missing new `./VerticalsSummaryCard` module.
+  - `renders a submitted status when the summary is submitted` — blocked by missing new `./VerticalsSummaryCard` module.
+  - `shows an error banner with a working retry when the cycle summary fails` — blocked by missing new `./VerticalsSummaryCard` module.
+  - `calls onOpen with the vertical name` — blocked by missing new `./VerticalsSummaryCard` module.
+- RED suite `NeedsAttentionCard.test.tsx`: valid RED because Vite cannot resolve `./NeedsAttentionCard`; `src/widgets/home-summary/ui/NeedsAttentionCard.tsx` is listed as `new` in TASK-009 Files table and is coder-owned.
+  - `shows a labelled loading skeleton while indent lines load` — blocked by missing new `./NeedsAttentionCard` module.
+  - `renders the empty attention state when there are no flags` — blocked by missing new `./NeedsAttentionCard` module.
+  - `renders populated flag rows derived from indent lines` — blocked by missing new `./NeedsAttentionCard` module.
+  - `shows an error banner with a working retry when indent lines fail` — blocked by missing new `./NeedsAttentionCard` module.
+  - `calls onShow with the flag key when Show is clicked` — blocked by missing new `./NeedsAttentionCard` module.
+  - `still loads the cycle summary so attention context matches the current cycle` — blocked by missing new `./NeedsAttentionCard` module.
+- Lint command: `npm run lint -- src/widgets/home-summary/ui/IndentProgressCard.test.tsx src/widgets/home-summary/ui/VerticalsSummaryCard.test.tsx src/widgets/home-summary/ui/NeedsAttentionCard.test.tsx` exited 1 before checking task-specific scope because the script runs `eslint .` and reports pre-existing `tools/check-install.mjs` `@typescript-eslint/no-unused-expressions` errors.
+- Focused lint command: `npm exec eslint -- src/widgets/home-summary/ui/IndentProgressCard.test.tsx src/widgets/home-summary/ui/VerticalsSummaryCard.test.tsx src/widgets/home-summary/ui/NeedsAttentionCard.test.tsx` exited 0.
+- Static guard: `rg "\.only|\.skip|\.todo|vi\.mock|fireEvent|fetch\(|axios" src/widgets/home-summary/ui --glob "*.test.tsx"` returned no matches.
+- Commit command: `git add src/widgets/home-summary/ui/IndentProgressCard.test.tsx src/widgets/home-summary/ui/VerticalsSummaryCard.test.tsx src/widgets/home-summary/ui/NeedsAttentionCard.test.tsx plan/history/TASK-009.md plan/PROGRESS.md; git commit -m "TASK-009(test-engineer): RED tests"` exited 1 because `git` is not installed/available in PATH.
+- coder plan: implement `src/widgets/home-summary/ui/IndentProgressCard.tsx`, `VerticalsSummaryCard.tsx`, `NeedsAttentionCard.tsx`, and `src/widgets/home-summary/index.ts`; use `useGetDealerCycleSummaryQuery`, `useListDealerIndentLinesQuery`, `getErrorMessage`, `Button`, and `Badge`; teardown: none because RTK Query hook subscriptions clean up automatically.
+- coder implementation: connected all three home-summary cards to RTK Query; rendered loading, error-with-retry, empty, and success states; derived entered lines and attention-flag counts client-side from loaded summaries/indent lines.
+- GREEN command: `npx vitest run src/widgets/home-summary --reporter=verbose` exited 0 — 3 files passed, 17 tests passed.
+- Focused lint command: `npx eslint src/widgets/home-summary/ui/IndentProgressCard.tsx src/widgets/home-summary/ui/VerticalsSummaryCard.tsx src/widgets/home-summary/ui/NeedsAttentionCard.tsx src/widgets/home-summary/index.ts` exited 0.
+- Full gate notes: `npm run typecheck` fails before TASK-009 scope on pre-existing missing `src/pages/workbook/ui/WorkbookPage` imported by `WorkbookPage.test.tsx`; `npm run lint` fails on pre-existing `tools/check-install.mjs` no-unused-expressions; `npm test` runs 112 tests green then fails on the same missing `WorkbookPage` module. `git diff --name-only` and commit could not run because `git` is not installed/available in PATH.
+- reviewer command A: `npm run typecheck` exited 1 on outside-TASK `src/pages/workbook/ui/WorkbookPage.test.tsx` missing `./WorkbookPage`.
+- reviewer command B: `npm run lint` exited 1 on outside-TASK `tools/check-install.mjs` `@typescript-eslint/no-unused-expressions`; focused `npm exec eslint -- <TASK-009 files>` exited 0.
+- reviewer command C: `npm test -- --run src/widgets/home-summary` exited 0 — 3 files passed, 17 tests passed.
+- reviewer command D: `npm run coverage -- --run src/widgets/home-summary` exited 1 on global/project thresholds from unrelated untested slices; TASK-009 widget files report 94.73%+ lines/statements.
+- reviewer command E: `npm run build` exited 1 because its typecheck phase hits the outside-TASK missing `WorkbookPage` module.
+- reviewer scope: `PROJECT.md` absent; git/scope/branch/author checks could not be performed in this workspace (no `.git` and git command access unavailable/rejected). Allowed TASK files were present and static guards over `src/widgets/home-summary` found no `style=`, raw colors, fetch/axios/baseApi-in-tsx, raw palette classes, console, @app imports, skipped/focused/todo tests, or sensitive-number patterns.
+- reviewer manual spec: connected loading/error/empty/success states and callbacks are covered; P2 concerns only: `VerticalsSummaryCard`/`NeedsAttentionCard` action labels render `Open FERT` and `Show <flag>` instead of the TASK's `Open →`/`Show →` wording, and the indent cutoff uses direct `toLocaleString` rather than a shared formatter. Accepted with CONCERNS; visual rendering, real-browser console, and Redux DevTools remain pending Gate 3.

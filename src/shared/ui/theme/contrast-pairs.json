@@ -1,0 +1,29 @@
+{
+  "text": [
+    ["fg", "surface"],
+    ["fg-muted", "surface"],
+    ["fg-subtle", "surface"],
+    ["fg", "surface-muted"],
+    ["fg-muted", "surface-muted"],
+    ["primary", "surface"],
+    ["danger", "surface"],
+    ["success", "surface"],
+    ["warning", "surface"],
+    ["add", "surface"],
+    ["primary-fg", "primary"],
+    ["danger-fg", "danger"],
+    ["success-fg", "success"],
+    ["warning-fg", "warning"],
+    ["add-fg", "add"],
+    ["success", "success-soft"],
+    ["warning", "warning-soft"],
+    ["danger", "danger-soft"],
+    ["add", "add-soft"],
+    ["topbar-fg", "topbar"]
+  ],
+  "nonText": [
+    ["border-strong", "surface"],
+    ["focus", "surface"],
+    ["warning-strong", "surface"]
+  ]
+}

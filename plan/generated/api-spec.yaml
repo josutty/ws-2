@@ -1,0 +1,1197 @@
+openapi: 3.0.3
+info:
+  title: VECVplan Dealer Indent API
+  version: 1.0.0
+  description: |
+    Dealer-facing APIs required by the VECVplan indent workbook, Add FERT flow,
+    and Review & submit dialog. Import this file into Swagger UI or Swagger
+    Editor. Internal audit and security fields are intentionally omitted.
+
+    Merged spec: backend-provided operations are marked `x-mock: false` and
+    copied verbatim from `inputs/api/backend-api.yaml`. Operations needed by
+    the UX but not yet built by the backend are marked `x-mock: true` and
+    `x-proposed: true` — see `plan/generated/backend-gaps.md` for the full
+    rationale and open questions.
+servers:
+  - url: https://api.vecvplan.example.com/api/v1
+    description: VECVplan API
+tags:
+  - name: Identity
+    description: Signed-in dealer identity used by the workbook shell
+  - name: Dealer indent
+    description: Dealer workbook rows, cell edits, and FERT additions
+  - name: Submission
+    description: Completeness review and dealer submission
+  - name: Dealer profile
+    description: Dealer outlet and vertical reference data (proposed)
+  - name: Accuracy
+    description: Indent-vs-offtake accuracy history (proposed)
+paths:
+  /auth/login:
+    post:
+      tags: [Identity]
+      summary: Authenticate a dealer
+      description: |
+        Proposed. LoginForm (dealer.html) posts dealer code/email + password
+        and expects field-level errors for unrecognised identifier / wrong
+        password. No app-level login endpoint exists in the backend spec —
+        see backend-gaps.md.
+      operationId: login
+      x-mock: true
+      x-proposed: true
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Signed in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResult'
+        '401':
+          description: Unrecognised identifier or incorrect password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          $ref: '#/components/responses/Error'
+
+  /cycles/current:
+    get:
+      tags: [Identity]
+      summary: Preview the active cycle before sign-in
+      description: |
+        Proposed. LoginForm shows the current cycle name and cutoff countdown
+        on the page background before authentication. Open question in
+        backend-gaps.md — confirm this is intended to be public data.
+      operationId: getCurrentCyclePreview
+      x-mock: true
+      x-proposed: true
+      security: []
+      responses:
+        '200':
+          description: Current cycle preview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentCyclePreview'
+        default:
+          $ref: '#/components/responses/Error'
+
+  /users/me:
+    get:
+      tags: [Identity]
+      summary: Get the signed-in dealer
+      operationId: getCurrentUser
+      x-mock: false
+      responses:
+        '200':
+          description: Current user and dealer scope
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUser'
+        default:
+          $ref: '#/components/responses/Error'
+
+  /dealers/{dealerId}/outlets:
+    parameters:
+      - $ref: '#/components/parameters/DealerId'
+    get:
+      tags: [Dealer profile]
+      summary: List the dealer's outlets
+      description: |
+        Proposed. AccuracyReportPanel's "By outlet" view needs outlet
+        name/code; not returned by any backend operation.
+      operationId: listDealerOutlets
+      x-mock: true
+      x-proposed: true
+      responses:
+        '200':
+          description: Dealer outlets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutletList'
+        default:
+          $ref: '#/components/responses/Error'
+
+  /dealers/{dealerId}/cycles/{cycleId}/summary:
+    parameters:
+      - $ref: '#/components/parameters/DealerId'
+      - $ref: '#/components/parameters/CycleId'
+    get:
+      tags: [Dealer indent]
+      summary: Load the dealer workbook header and totals
+      description: Returns the cycle status, edit window, visible line count, and month totals shown by the workbook shell.
+      operationId: getDealerCycleSummary
+      x-mock: false
+      responses:
+        '200':
+          description: Dealer cycle summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealerCycleSummary'
+        default:
+          $ref: '#/components/responses/Error'
+
+  /dealers/{dealerId}/cycles/{cycleId}/indent-lines:
+    parameters:
+      - $ref: '#/components/parameters/DealerId'
+      - $ref: '#/components/parameters/CycleId'
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      - $ref: '#/components/parameters/Sort'
+      - name: search
+        in: query
+        description: Search by FERT code or vehicle description.
+        schema:
+          type: string
+      - name: includeReference
+        in: query
+        description: Include prior-cycle values and weekly was-values used by the workbook.
+        schema:
+          type: boolean
+          default: true
+      - name: collapsedGroups
+        in: query
+        description: Optional table groups collapsed by the client. Pipeline is the only supported group in this flow.
+        style: form
+        explode: false
+        schema:
+          type: array
+          items:
+            type: string
+            enum: [pipeline]
+    get:
+      tags: [Dealer indent]
+      summary: List dealer indent rows
+      description: Returns the editable July-to-September planning grid, references, stock, and pipeline values.
+      operationId: listDealerIndentLines
+      x-mock: false
+      x-backend-gaps:
+        - "query param `vertical` — needed by WorkbookToolbar (LMD/HD selector), FilterRail"
+        - "query param `subVertical` — needed by FilterRail"
+        - "query param `demandSegment` — needed by FilterRail (dealer's own Runner/Repeater/Stranger segment; ProductReference only exposes eicherSegment)"
+        - "query param `mpg` — needed by FilterRail"
+        - "query param `tonnage` — needed by FilterRail"
+        - "query param `fuel` — needed by FilterRail"
+        - "query param `acType` — needed by FilterRail (Cabin filter)"
+        - "query param `fertHistoryRange` — needed by FilterRail (FERT History filter; semantics unclear, see Open questions)"
+        - "query param `statusFlag` — needed by NeedsAttentionCard / FilterRail Status filter (no-entry, aged180, delta-vs-last-cycle, added-by-me)"
+      responses:
+        '200':
+          description: Paginated dealer indent rows
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IndentLinePage'
+        default:
+          $ref: '#/components/responses/Error'
+    post:
+      tags: [Dealer indent]
+      summary: Add a FERT line to the dealer indent
+      description: Adds an active product/dealer planning combination and creates zero-valued editable cells for the cycle horizon.
+      operationId: addDealerIndentLine
+      x-mock: false
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddIndentLineRequest'
+      responses:
+        '201':
+          description: FERT line added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IndentLine'
+        '409':
+          description: Combination already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          $ref: '#/components/responses/Error'
+
+  /dealers/{dealerId}/catalogue/available-products:
+    parameters:
+      - $ref: '#/components/parameters/DealerId'
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      - name: vertical
+        in: query
+        description: Restrict the catalogue to one vertical (LMD or HD).
+        schema:
+          type: string
+      - name: search
+        in: query
+        description: Search by FERT code or description.
+        schema:
+          type: string
+    get:
+      tags: [Dealer indent]
+      summary: List FERT codes not currently in the dealer's indent
+      description: |
+        Proposed. Backs AddFertModal. Excludes codes the dealer already
+        carries (i.e. already has an IndentLine for the current cycle).
+      operationId: listAvailableProducts
+      x-mock: true
+      x-proposed: true
+      responses:
+        '200':
+          description: Catalogue of addable products
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailableProductPage'
+        default:
+          $ref: '#/components/responses/Error'
+
+  /dealers/{dealerId}/cycles/{cycleId}/indent-lines/{lineId}:
+    parameters:
+      - $ref: '#/components/parameters/DealerId'
+      - $ref: '#/components/parameters/CycleId'
+      - $ref: '#/components/parameters/LineId'
+    put:
+      tags: [Dealer indent]
+      summary: Save one indent cell
+      description: Upserts one DomDealerIndent fact and rejects stale, locked, inactive, or out-of-horizon cells.
+      operationId: updateDealerIndentCell
+      x-mock: false
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IndentCellUpdate'
+      responses:
+        '200':
+          description: Saved cell
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IndentCell'
+        '409':
+          description: Task is locked or expectedVersion is stale
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          $ref: '#/components/responses/Error'
+
+  /dealers/{dealerId}/cycles/{cycleId}/indent-lines/batch:
+    parameters:
+      - $ref: '#/components/parameters/DealerId'
+      - $ref: '#/components/parameters/CycleId'
+    put:
+      tags: [Dealer indent]
+      summary: Save multiple indent cells
+      description: Saves edited workbook cells as one command. A locked task rejects the complete batch.
+      operationId: batchUpdateDealerIndentCells
+      x-mock: false
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IndentBatchUpdate'
+      responses:
+        '200':
+          description: All cells saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IndentBatchResult'
+        '207':
+          description: Some cells were rejected; inspect item errors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IndentBatchResult'
+        default:
+          $ref: '#/components/responses/Error'
+
+  /dealers/{dealerId}/accuracy-history:
+    parameters:
+      - $ref: '#/components/parameters/DealerId'
+      - name: groupBy
+        in: query
+        required: true
+        description: Group accuracy rows by outlet or by FERT.
+        schema:
+          type: string
+          enum: [outlet, fert]
+      - name: cycles
+        in: query
+        description: Number of trailing cycles to include.
+        schema:
+          type: integer
+          minimum: 1
+          default: 4
+    get:
+      tags: [Accuracy]
+      summary: Get indent-vs-offtake accuracy history
+      description: |
+        Proposed. Backs IndentAccuracyCard and AccuracyReportPanel (both
+        outlet and FERT views) with the last 4 cycles' indented vs offtake
+        quantities.
+      operationId: getDealerAccuracyHistory
+      x-mock: true
+      x-proposed: true
+      responses:
+        '200':
+          description: Accuracy history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccuracyHistoryResponse'
+        default:
+          $ref: '#/components/responses/Error'
+
+  /dealers/{dealerId}/cycles/{cycleId}/submit-preview:
+    parameters:
+      - $ref: '#/components/parameters/DealerId'
+      - $ref: '#/components/parameters/CycleId'
+    get:
+      tags: [Submission]
+      summary: Preview dealer submission
+      description: Returns totals, blank-line warnings, and the recipient/reopen details shown in Review & submit.
+      operationId: getDealerSubmitPreview
+      x-mock: false
+      responses:
+        '200':
+          description: Submission preview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmitPreview'
+        default:
+          $ref: '#/components/responses/Error'
+
+  /dealers/{dealerId}/cycles/{cycleId}/submit:
+    parameters:
+      - $ref: '#/components/parameters/DealerId'
+      - $ref: '#/components/parameters/CycleId'
+    post:
+      tags: [Submission]
+      summary: Submit the dealer indent
+      description: Locks dealer-writable facts and submits the dealer workflow task. The command is idempotent.
+      operationId: submitDealerIndent
+      x-mock: false
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitRequest'
+      responses:
+        '200':
+          description: Indent submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmitResult'
+        '409':
+          description: Indent cannot be submitted in its current state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          $ref: '#/components/responses/Error'
+
+  /dealers/{dealerId}/cycles/{cycleId}/reopen:
+    parameters:
+      - $ref: '#/components/parameters/DealerId'
+      - $ref: '#/components/parameters/CycleId'
+    post:
+      tags: [Submission]
+      summary: Reopen a submitted dealer indent
+      description: |
+        Proposed. CommitBar's "Reopen" button resubmits a locked indent
+        before cutoff. Not documented in the backend spec — flagged as an
+        open question (is this a real business rule or a UX-only
+        affordance?) in backend-gaps.md.
+      operationId: reopenDealerIndent
+      x-mock: true
+      x-proposed: true
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitRequest'
+      responses:
+        '200':
+          description: Indent reopened
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReopenResult'
+        '409':
+          description: Indent cannot be reopened in its current state (e.g. past cutoff)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          $ref: '#/components/responses/Error'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    DealerId:
+      name: dealerId
+      in: path
+      required: true
+      description: Dealer member UUID or display code resolved within the tenant.
+      schema:
+        type: string
+        example: D-DLR-SHARMA
+    CycleId:
+      name: cycleId
+      in: path
+      required: true
+      description: Workflow run UUID or display code.
+      schema:
+        type: string
+        example: RUN-JUL-2026-DOM
+    LineId:
+      name: lineId
+      in: path
+      required: true
+      schema:
+        type: string
+        example: line-V4141LPG
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    Size:
+      name: size
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 500
+        default: 50
+    Sort:
+      name: sort
+      in: query
+      description: Stable sort in the form field,direction.
+      schema:
+        type: string
+        example: vehicleDescription,asc
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Unique key for this consequential command.
+      schema:
+        type: string
+        format: uuid
+  responses:
+    Error:
+      description: Standard VECVplan error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    CurrentUser:
+      type: object
+      required: [userId, displayName, dealerMemberId, dealerCode, dealerName, roles]
+      properties:
+        userId:
+          type: string
+          format: uuid
+        displayName:
+          type: string
+          example: R. Khanna
+        dealerMemberId:
+          type: string
+          example: D-DLR-SHARMA
+        dealerCode:
+          type: string
+          example: DLR-1002
+        dealerName:
+          type: string
+          example: Sharma Motors
+        roles:
+          type: array
+          items:
+            type: string
+            enum: [DEALER]
+
+    DealerCycleSummary:
+      type: object
+      required: [cycleId, cycleLabel, dealer, status, closesAt, lines, totals, permissions]
+      properties:
+        cycleId:
+          type: string
+          example: RUN-JUL-2026-DOM
+        cycleLabel:
+          type: string
+          example: S&OP-1A · July 2026
+        dealer:
+          $ref: '#/components/schemas/DealerReference'
+        status:
+          type: string
+          enum: [DRAFT, SUBMITTED, LOCKED, CLOSED]
+          example: DRAFT
+        closesAt:
+          type: string
+          format: date-time
+          example: 2026-07-15T23:59:00+05:30
+        lines:
+          type: integer
+          example: 52
+        totals:
+          $ref: '#/components/schemas/CycleTotals'
+        permissions:
+          type: object
+          required: [canEdit, canAddFert, canSubmit]
+          properties:
+            canEdit:
+              type: boolean
+            canAddFert:
+              type: boolean
+            canSubmit:
+              type: boolean
+
+    DealerReference:
+      type: object
+      required: [code, name]
+      properties:
+        code:
+          type: string
+          example: DLR-1002
+        name:
+          type: string
+          example: Sharma Motors
+
+    CycleTotals:
+      type: object
+      required: [months, blankLines]
+      properties:
+        months:
+          type: array
+          items:
+            $ref: '#/components/schemas/MonthTotal'
+        blankLines:
+          type: integer
+          description: Number of lines with no dealer entry; displayed as zero in totals.
+          example: 6
+
+    MonthTotal:
+      type: object
+      required: [label, value]
+      properties:
+        periodId:
+          type: string
+          example: 2026-07
+        label:
+          type: string
+          example: July (W1-W4)
+        value:
+          type: integer
+          minimum: 0
+          example: 1070
+
+    IndentLinePage:
+      type: object
+      required: [page, size, totalElements, items]
+      properties:
+        page:
+          type: integer
+          example: 0
+        size:
+          type: integer
+          example: 50
+        totalElements:
+          type: integer
+          example: 52
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/IndentLine'
+
+    IndentLine:
+      type: object
+      required: [lineId, product, stock, stockBreakdown, livePos, livePosBreakdown, pipeline, offTakeL3, offTakeTrend, retailL3, retailTrend, lastCycle, periods, version]
+      properties:
+        lineId:
+          type: string
+          example: line-V4141LPG
+        product:
+          $ref: '#/components/schemas/ProductReference'
+        stock:
+          type: integer
+          minimum: 0
+          example: 8
+          description: Total current dealer stock. The age buckets are in stockBreakdown.
+        stockBreakdown:
+          $ref: '#/components/schemas/DealerStockBreakdown'
+        livePos:
+          type: integer
+          minimum: 0
+          example: 1
+          description: Total live purchase orders. The opening-stock context is in livePosBreakdown.
+        livePosBreakdown:
+          $ref: '#/components/schemas/LivePosBreakdown'
+        pipeline:
+          $ref: '#/components/schemas/PipelineBreakdown'
+        offTakeL3:
+          type: integer
+          minimum: 0
+          example: 84
+          description: Latest three-month off-take total.
+        offTakeTrend:
+          $ref: '#/components/schemas/TrendBreakdown'
+        retailL3:
+          type: integer
+          minimum: 0
+          example: 35
+          description: Latest three-month retail total.
+        retailTrend:
+          $ref: '#/components/schemas/TrendBreakdown'
+        lastCycle:
+          type: integer
+          minimum: 0
+          example: 95
+        periods:
+          type: array
+          description: Editable weekly cells and their prior-cycle was-values.
+          items:
+            $ref: '#/components/schemas/IndentPeriodCell'
+        version:
+          type: integer
+          minimum: 0
+          example: 3
+
+    ProductReference:
+      type: object
+      required: [memberId, fertCode, description, model, tonnage, fuel, application]
+      properties:
+        memberId:
+          type: string
+          example: P-FERT-TIP
+        fertCode:
+          type: string
+          example: V4141LPG
+        description:
+          type: string
+          example: Pro 4140 LPG Flatbed 16FT BSVI
+        model:
+          type: string
+          example: Pro 2110
+        mpg:
+          type: string
+          description: Mileage/product model shown by the MPG dropdown column.
+          example: Pro 2110
+        eicherSegment:
+          type: string
+          enum: [Repeater, Runner, Stranger]
+          example: Repeater
+        subVertical:
+          type: string
+          example: 5-16T
+        tonnage:
+          type: string
+          example: 14T
+        fuel:
+          type: string
+          example: CNG
+        application:
+          type: string
+          example: Repeater
+        acType:
+          type: string
+          enum: [AC, Non-AC]
+          example: AC
+
+    DealerStockBreakdown:
+      type: object
+      description: Current dealer stock grouped by vehicle age bucket. Total equals stock.
+      required: [under60Days, days60To90, days90To180, over180Days, total]
+      properties:
+        under60Days:
+          type: integer
+          minimum: 0
+          example: 4
+        days60To90:
+          type: integer
+          minimum: 0
+          example: 2
+        days90To180:
+          type: integer
+          minimum: 0
+          example: 1
+        over180Days:
+          type: integer
+          minimum: 0
+          example: 1
+        total:
+          type: integer
+          minimum: 0
+          example: 8
+
+    LivePosBreakdown:
+      type: object
+      description: Opening stock and live purchase-order values shown under Opening & live POs.
+      required: [monthOpeningStock, livePos]
+      properties:
+        monthOpeningStock:
+          type: integer
+          minimum: 0
+          example: 4
+        livePos:
+          type: integer
+          minimum: 0
+          example: 1
+
+    PipelineBreakdown:
+      type: object
+      description: Pipeline group. The UI may collapse this group while the API continues to return its values.
+      required: [confirmed, fa, fc, hotInquiry]
+      properties:
+        confirmed:
+          type: integer
+          minimum: 0
+          example: 34
+        fa:
+          type: integer
+          minimum: 0
+          example: 29
+        fc:
+          type: integer
+          minimum: 0
+          example: 21
+        hotInquiry:
+          type: integer
+          minimum: 0
+          example: 103
+
+    TrendBreakdown:
+      type: object
+      description: Trend values used by the L3, L6, L12, and LYSM dropdown columns.
+      required: [l3, l6, l12, lysm]
+      properties:
+        l3:
+          type: integer
+          minimum: 0
+          example: 84
+        l6:
+          type: integer
+          minimum: 0
+          example: 146
+        l12:
+          type: integer
+          minimum: 0
+          example: 291
+        lysm:
+          type: integer
+          minimum: 0
+          example: 256
+
+    IndentPeriodCell:
+      type: object
+      required: [periodId, label, value, wasValue, editable]
+      properties:
+        periodId:
+          type: string
+          example: 2026-07-W1
+        label:
+          type: string
+          example: W1
+        value:
+          type: integer
+          minimum: 0
+          example: 24
+        wasValue:
+          type: integer
+          minimum: 0
+          example: 25
+        editable:
+          type: boolean
+          example: true
+
+    IndentCellUpdate:
+      type: object
+      required: [taskId, measure, periodId, productMemberId, orgMemberId, value, expectedVersion]
+      properties:
+        taskId:
+          type: string
+          format: uuid
+        measure:
+          type: string
+          enum: [DomDealerIndent]
+        periodId:
+          type: string
+          example: 2026-07-W1
+        productMemberId:
+          type: string
+          example: P-FERT-TIP
+        orgMemberId:
+          type: string
+          example: D-DLR-SHARMA
+        value:
+          type: integer
+          minimum: 0
+          example: 5
+        expectedVersion:
+          type: integer
+          minimum: 0
+          example: 3
+
+    IndentBatchUpdate:
+      type: object
+      required: [taskId, cells]
+      properties:
+        taskId:
+          type: string
+          format: uuid
+        cells:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/IndentCellUpdate'
+
+    IndentBatchResult:
+      type: object
+      required: [saved, rejected]
+      properties:
+        saved:
+          type: array
+          items:
+            $ref: '#/components/schemas/IndentCell'
+        rejected:
+          type: array
+          items:
+            type: object
+            required: [periodId, error]
+            properties:
+              periodId:
+                type: string
+              error:
+                $ref: '#/components/schemas/Error'
+
+    IndentCell:
+      type: object
+      required: [factId, measure, periodId, productMemberId, orgMemberId, value, version, updatedAt]
+      properties:
+        factId:
+          type: string
+          format: uuid
+        measure:
+          type: string
+          enum: [DomDealerIndent]
+        periodId:
+          type: string
+        productMemberId:
+          type: string
+        orgMemberId:
+          type: string
+        value:
+          type: integer
+          minimum: 0
+        version:
+          type: integer
+          minimum: 0
+        updatedAt:
+          type: string
+          format: date-time
+
+    AddIndentLineRequest:
+      type: object
+      required: [productMemberId]
+      properties:
+        productMemberId:
+          type: string
+          description: Active FERT/product member selected in the Add FERT dialog.
+          example: P-FERT-TIP
+
+    SubmitPreview:
+      type: object
+      required: [status, lines, totals, warnings, recipient, reopenUntil]
+      properties:
+        status:
+          type: string
+          enum: [READY, HAS_WARNINGS, BLOCKED]
+          example: HAS_WARNINGS
+        lines:
+          type: integer
+          example: 52
+        totals:
+          $ref: '#/components/schemas/CycleTotals'
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubmissionWarning'
+        recipient:
+          type: string
+          example: R. Khanna, ASM North Cluster
+        reopenUntil:
+          type: string
+          format: date-time
+          example: 2026-07-15T23:59:00+05:30
+
+    SubmissionWarning:
+      type: object
+      required: [code, message, lineCount]
+      properties:
+        code:
+          type: string
+          enum: [LINES_WITHOUT_ENTRY]
+        message:
+          type: string
+          example: 6 lines have no entry. They go up as zero.
+        lineCount:
+          type: integer
+          minimum: 0
+          example: 6
+
+    SubmitRequest:
+      type: object
+      required: [taskId, expectedVersion]
+      properties:
+        taskId:
+          type: string
+          format: uuid
+        expectedVersion:
+          type: integer
+          minimum: 0
+          example: 3
+
+    SubmitResult:
+      type: object
+      required: [taskId, status, submittedAt, recipient, reopenUntil]
+      properties:
+        taskId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [SUBMITTED]
+        submittedAt:
+          type: string
+          format: date-time
+        recipient:
+          type: string
+          example: R. Khanna, ASM North Cluster
+        reopenUntil:
+          type: string
+          format: date-time
+
+    Error:
+      type: object
+      required: [errorCode, category, retryable, message, requestId]
+      properties:
+        errorCode:
+          type: string
+          example: ERR_OPTIMISTIC_LOCK
+        category:
+          type: string
+          enum: [CLIENT_FAULT, AUTHENTICATION, AUTHORIZATION, CONFLICT, DOMAIN_FAULT, SERVER_FAULT]
+        retryable:
+          type: boolean
+        message:
+          type: string
+        requestId:
+          type: string
+          format: uuid
+        fieldErrors:
+          type: array
+          items:
+            type: object
+            required: [field, code, message]
+            properties:
+              field:
+                type: string
+              code:
+                type: string
+              message:
+                type: string
+
+    LoginRequest:
+      type: object
+      description: Proposed — backs LoginForm.
+      x-proposed: true
+      required: [identifier, password]
+      properties:
+        identifier:
+          type: string
+          description: Dealer code or email.
+          example: DLR-1002
+        password:
+          type: string
+          format: password
+
+    LoginResult:
+      type: object
+      description: Proposed — backs LoginForm.
+      x-proposed: true
+      required: [accessToken, user]
+      properties:
+        accessToken:
+          type: string
+          description: Bearer token for subsequent requests (see bearerAuth).
+        user:
+          $ref: '#/components/schemas/CurrentUser'
+
+    CurrentCyclePreview:
+      type: object
+      description: Proposed — minimal pre-auth cycle metadata shown on the login screen.
+      x-proposed: true
+      required: [cycleLabel, closesAt]
+      properties:
+        cycleLabel:
+          type: string
+          example: S&OP-1A · Jul 2026
+        closesAt:
+          type: string
+          format: date-time
+          example: 2026-07-15T23:59:00+05:30
+
+    Outlet:
+      type: object
+      description: Proposed — backs AccuracyReportPanel's "By outlet" view.
+      x-proposed: true
+      required: [outletId, code, name]
+      properties:
+        outletId:
+          type: string
+          format: uuid
+        code:
+          type: string
+          example: OUT-3
+        name:
+          type: string
+          example: Sharma Motors — Ring Road
+
+    OutletList:
+      type: object
+      description: Proposed.
+      x-proposed: true
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Outlet'
+
+    AvailableProductPage:
+      type: object
+      description: Proposed — backs AddFertModal. Reuses ProductReference rather than redefining a catalogue-line schema.
+      x-proposed: true
+      required: [page, size, totalElements, items]
+      properties:
+        page:
+          type: integer
+          example: 0
+        size:
+          type: integer
+          example: 50
+        totalElements:
+          type: integer
+          example: 12
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductReference'
+
+    AccuracyHistoryResponse:
+      type: object
+      description: Proposed — backs IndentAccuracyCard and AccuracyReportPanel.
+      x-proposed: true
+      required: [groupBy, rows]
+      properties:
+        groupBy:
+          type: string
+          enum: [outlet, fert]
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccuracyRow'
+
+    AccuracyRow:
+      type: object
+      description: Proposed.
+      x-proposed: true
+      required: [name, history]
+      properties:
+        name:
+          type: string
+          example: Sharma Motors — Ring Road
+        code:
+          type: string
+          description: FERT code, present only when groupBy=fert.
+          example: V4141LPG
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccuracyMonth'
+
+    AccuracyMonth:
+      type: object
+      description: Proposed.
+      x-proposed: true
+      required: [month, indented, offtake]
+      properties:
+        month:
+          type: string
+          example: 2026-06
+        indented:
+          type: integer
+          minimum: 0
+          example: 95
+        offtake:
+          type: integer
+          minimum: 0
+          example: 88
+
+    ReopenResult:
+      type: object
+      description: Proposed — mirrors SubmitResult for the reopen command.
+      x-proposed: true
+      required: [taskId, status, reopenedAt, reopenUntil]
+      properties:
+        taskId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [REOPENED]
+        reopenedAt:
+          type: string
+          format: date-time
+        reopenUntil:
+          type: string
+          format: date-time
+
+security:
+  - bearerAuth: []

@@ -1,0 +1,1976 @@
+{
+  "app-bootstrap": {
+    "edit": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "package.json",
+        "allow"
+      ],
+      [
+        "vite.config.ts",
+        "allow"
+      ],
+      [
+        "tsconfig.json",
+        "allow"
+      ],
+      [
+        "tsconfig.*.json",
+        "allow"
+      ],
+      [
+        "eslint.config.js",
+        "allow"
+      ],
+      [
+        "steiger.config.ts",
+        "allow"
+      ],
+      [
+        "postcss.config.js",
+        "allow"
+      ],
+      [
+        "index.html",
+        "allow"
+      ],
+      [
+        ".env.example",
+        "allow"
+      ],
+      [
+        ".gitignore",
+        "allow"
+      ],
+      [
+        ".storybook/**",
+        "allow"
+      ],
+      [
+        "src/vite-env.d.ts",
+        "allow"
+      ],
+      [
+        "src/app/main.tsx",
+        "allow"
+      ],
+      [
+        "src/app/App.tsx",
+        "allow"
+      ],
+      [
+        "src/app/router.tsx",
+        "allow"
+      ],
+      [
+        "src/app/providers/**",
+        "allow"
+      ],
+      [
+        "src/shared/config/**",
+        "allow"
+      ],
+      [
+        "src/shared/lib/logger/**",
+        "allow"
+      ],
+      [
+        "tools/**",
+        "allow"
+      ],
+      [
+        "playwright.config.ts",
+        "allow"
+      ],
+      [
+        ".nvmrc",
+        "allow"
+      ]
+    ],
+    "bash": [
+      [
+        "*",
+        "allow"
+      ],
+      [
+        "git push*",
+        "deny"
+      ],
+      [
+        "git reset --hard*",
+        "deny"
+      ],
+      [
+        "git rebase*",
+        "deny"
+      ],
+      [
+        "git clean*",
+        "deny"
+      ],
+      [
+        "git checkout --*",
+        "deny"
+      ],
+      [
+        "git commit --amend*",
+        "deny"
+      ],
+      [
+        "rm *",
+        "deny"
+      ],
+      [
+        "sed -i*",
+        "deny"
+      ],
+      [
+        "perl -i*",
+        "deny"
+      ],
+      [
+        "perl -pi*",
+        "deny"
+      ],
+      [
+        "git add -A*",
+        "deny"
+      ],
+      [
+        "git add .",
+        "deny"
+      ],
+      [
+        "git add --all*",
+        "deny"
+      ],
+      [
+        "git commit -a*",
+        "deny"
+      ],
+      [
+        "git push*",
+        "deny"
+      ],
+      [
+        "*--no-verify*",
+        "deny"
+      ],
+      [
+        "git config*",
+        "deny"
+      ],
+      [
+        "git add -A*",
+        "deny"
+      ],
+      [
+        "git add .",
+        "deny"
+      ],
+      [
+        "git add --all*",
+        "deny"
+      ],
+      [
+        "git commit -a*",
+        "deny"
+      ]
+    ]
+  },
+  "architect": {
+    "edit": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "plan/tasks/**",
+        "allow"
+      ],
+      [
+        "plan/PROGRESS.md",
+        "allow"
+      ]
+    ],
+    "bash": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "git push*",
+        "deny"
+      ],
+      [
+        "*--no-verify*",
+        "deny"
+      ],
+      [
+        "git config*",
+        "deny"
+      ],
+      [
+        "git add -A*",
+        "deny"
+      ],
+      [
+        "git add .",
+        "deny"
+      ],
+      [
+        "git add --all*",
+        "deny"
+      ],
+      [
+        "git commit -a*",
+        "deny"
+      ]
+    ]
+  },
+  "codebase-scanner": {
+    "edit": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "PROJECT.md",
+        "allow"
+      ],
+      [
+        "notes/research/codebase-map.md",
+        "allow"
+      ]
+    ],
+    "bash": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "ls*",
+        "allow"
+      ],
+      [
+        "find *",
+        "allow"
+      ],
+      [
+        "grep *",
+        "allow"
+      ],
+      [
+        "cat *",
+        "allow"
+      ],
+      [
+        "head *",
+        "allow"
+      ],
+      [
+        "wc *",
+        "allow"
+      ],
+      [
+        "git log*",
+        "allow"
+      ],
+      [
+        "git rev-parse*",
+        "allow"
+      ],
+      [
+        "git diff --stat*",
+        "allow"
+      ],
+      [
+        "git status*",
+        "allow"
+      ],
+      [
+        "git symbolic-ref*",
+        "allow"
+      ],
+      [
+        "git branch --show-current*",
+        "allow"
+      ],
+      [
+        "git branch -r*",
+        "allow"
+      ],
+      [
+        "npm ls*",
+        "allow"
+      ],
+      [
+        "npm test*",
+        "allow"
+      ],
+      [
+        "npm run test*",
+        "allow"
+      ],
+      [
+        "npm run lint*",
+        "allow"
+      ],
+      [
+        "npm run typecheck*",
+        "allow"
+      ],
+      [
+        "npm run type-check*",
+        "allow"
+      ],
+      [
+        "npm run build",
+        "allow"
+      ],
+      [
+        "npx tsc --noEmit*",
+        "allow"
+      ],
+      [
+        "npx eslint*",
+        "allow"
+      ],
+      [
+        "npx vitest run*",
+        "allow"
+      ],
+      [
+        "npx jest*",
+        "allow"
+      ],
+      [
+        "CI=true npm test*",
+        "allow"
+      ],
+      [
+        "CI=true npm run test*",
+        "allow"
+      ],
+      [
+        "CI=true npx jest*",
+        "allow"
+      ],
+      [
+        "CI=true npx vitest run*",
+        "allow"
+      ],
+      [
+        "*--fix*",
+        "deny"
+      ],
+      [
+        "*-delete*",
+        "deny"
+      ],
+      [
+        "*-exec*",
+        "deny"
+      ],
+      [
+        "* -u",
+        "deny"
+      ],
+      [
+        "* -u *",
+        "deny"
+      ],
+      [
+        "*--update*",
+        "deny"
+      ],
+      [
+        "*--updateSnapshot*",
+        "deny"
+      ],
+      [
+        "git push*",
+        "deny"
+      ],
+      [
+        "*--no-verify*",
+        "deny"
+      ],
+      [
+        "git config*",
+        "deny"
+      ],
+      [
+        "git add -A*",
+        "deny"
+      ],
+      [
+        "git add .",
+        "deny"
+      ],
+      [
+        "git add --all*",
+        "deny"
+      ],
+      [
+        "git commit -a*",
+        "deny"
+      ]
+    ]
+  },
+  "coder": {
+    "edit": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "src/**",
+        "allow"
+      ],
+      [
+        "plan/history/**",
+        "allow"
+      ],
+      [
+        "src/**/*.test.ts",
+        "deny"
+      ],
+      [
+        "src/**/*.test.tsx",
+        "deny"
+      ],
+      [
+        "src/**/*.spec.ts",
+        "deny"
+      ],
+      [
+        "src/**/*.spec.tsx",
+        "deny"
+      ],
+      [
+        "src/**/__tests__/**",
+        "deny"
+      ],
+      [
+        "src/**/api/**",
+        "deny"
+      ],
+      [
+        "src/**/model/**",
+        "deny"
+      ],
+      [
+        "src/app/store/**",
+        "deny"
+      ],
+      [
+        "src/shared/api/**",
+        "deny"
+      ],
+      [
+        "src/shared/config/**",
+        "deny"
+      ],
+      [
+        "src/shared/ui/theme/**",
+        "deny"
+      ],
+      [
+        "src/shared/lib/store/**",
+        "deny"
+      ],
+      [
+        "src/shared/lib/logger/**",
+        "deny"
+      ]
+    ],
+    "bash": [
+      [
+        "*",
+        "allow"
+      ],
+      [
+        "git push*",
+        "deny"
+      ],
+      [
+        "git reset --hard*",
+        "deny"
+      ],
+      [
+        "git rebase*",
+        "deny"
+      ],
+      [
+        "git checkout*",
+        "deny"
+      ],
+      [
+        "git switch*",
+        "deny"
+      ],
+      [
+        "git stash*",
+        "deny"
+      ],
+      [
+        "git clean*",
+        "deny"
+      ],
+      [
+        "git commit --amend*",
+        "deny"
+      ],
+      [
+        "rm *",
+        "deny"
+      ],
+      [
+        "sed -i*",
+        "deny"
+      ],
+      [
+        "perl -i*",
+        "deny"
+      ],
+      [
+        "perl -pi*",
+        "deny"
+      ],
+      [
+        "curl *",
+        "deny"
+      ],
+      [
+        "wget *",
+        "deny"
+      ],
+      [
+        "npm install*",
+        "deny"
+      ],
+      [
+        "npm i *",
+        "deny"
+      ],
+      [
+        "npm uninstall*",
+        "deny"
+      ],
+      [
+        "git add -A*",
+        "deny"
+      ],
+      [
+        "git add .",
+        "deny"
+      ],
+      [
+        "git add --all*",
+        "deny"
+      ],
+      [
+        "git commit -a*",
+        "deny"
+      ],
+      [
+        "git push*",
+        "deny"
+      ],
+      [
+        "*--no-verify*",
+        "deny"
+      ],
+      [
+        "git config*",
+        "deny"
+      ],
+      [
+        "git add -A*",
+        "deny"
+      ],
+      [
+        "git add .",
+        "deny"
+      ],
+      [
+        "git add --all*",
+        "deny"
+      ],
+      [
+        "git commit -a*",
+        "deny"
+      ]
+    ]
+  },
+  "component-generator": {
+    "edit": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "src/**",
+        "allow"
+      ],
+      [
+        "plan/history/**",
+        "allow"
+      ],
+      [
+        "src/**/api/**",
+        "deny"
+      ],
+      [
+        "src/**/model/**",
+        "deny"
+      ],
+      [
+        "src/pages/**",
+        "deny"
+      ],
+      [
+        "src/shared/api/**",
+        "deny"
+      ],
+      [
+        "src/shared/config/**",
+        "deny"
+      ],
+      [
+        "src/shared/ui/theme/**",
+        "deny"
+      ],
+      [
+        "src/shared/lib/store/**",
+        "deny"
+      ],
+      [
+        "src/shared/lib/logger/**",
+        "deny"
+      ],
+      [
+        "src/**/*.test.ts",
+        "deny"
+      ],
+      [
+        "src/**/*.test.tsx",
+        "deny"
+      ],
+      [
+        "src/**/*.spec.ts",
+        "deny"
+      ],
+      [
+        "src/**/*.spec.tsx",
+        "deny"
+      ],
+      [
+        "src/**/__tests__/**",
+        "deny"
+      ]
+    ],
+    "bash": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "npx vitest*",
+        "allow"
+      ],
+      [
+        "npm run typecheck*",
+        "allow"
+      ],
+      [
+        "npm run lint*",
+        "allow"
+      ],
+      [
+        "npm run build-storybook*",
+        "allow"
+      ],
+      [
+        "git diff*",
+        "allow"
+      ],
+      [
+        "git status*",
+        "allow"
+      ],
+      [
+        "git add*",
+        "allow"
+      ],
+      [
+        "git commit*",
+        "allow"
+      ],
+      [
+        "git add -A*",
+        "deny"
+      ],
+      [
+        "git add .",
+        "deny"
+      ],
+      [
+        "git add --all*",
+        "deny"
+      ],
+      [
+        "git commit -a*",
+        "deny"
+      ],
+      [
+        "git push*",
+        "deny"
+      ],
+      [
+        "*--no-verify*",
+        "deny"
+      ],
+      [
+        "git config*",
+        "deny"
+      ],
+      [
+        "git add -A*",
+        "deny"
+      ],
+      [
+        "git add .",
+        "deny"
+      ],
+      [
+        "git add --all*",
+        "deny"
+      ],
+      [
+        "git commit -a*",
+        "deny"
+      ]
+    ]
+  },
+  "coverage-checker": {
+    "edit": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "plan/coverage-matrix.md",
+        "allow"
+      ]
+    ],
+    "bash": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "node tools/list-html-elements.mjs*",
+        "allow"
+      ],
+      [
+        "grep *",
+        "allow"
+      ],
+      [
+        "find *",
+        "allow"
+      ],
+      [
+        "ls*",
+        "allow"
+      ],
+      [
+        "*-delete*",
+        "deny"
+      ],
+      [
+        "*-exec*",
+        "deny"
+      ],
+      [
+        "git push*",
+        "deny"
+      ],
+      [
+        "*--no-verify*",
+        "deny"
+      ],
+      [
+        "git config*",
+        "deny"
+      ],
+      [
+        "git add -A*",
+        "deny"
+      ],
+      [
+        "git add .",
+        "deny"
+      ],
+      [
+        "git add --all*",
+        "deny"
+      ],
+      [
+        "git commit -a*",
+        "deny"
+      ]
+    ]
+  },
+  "debugger": {
+    "edit": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "src/**",
+        "allow"
+      ],
+      [
+        "plan/history/**",
+        "allow"
+      ],
+      [
+        "src/**/*.test.ts",
+        "deny"
+      ],
+      [
+        "src/**/*.test.tsx",
+        "deny"
+      ],
+      [
+        "src/**/*.spec.ts",
+        "deny"
+      ],
+      [
+        "src/**/*.spec.tsx",
+        "deny"
+      ],
+      [
+        "src/**/__tests__/**",
+        "deny"
+      ],
+      [
+        "src/**/api/**",
+        "deny"
+      ],
+      [
+        "src/**/model/**",
+        "deny"
+      ],
+      [
+        "src/app/store/**",
+        "deny"
+      ],
+      [
+        "src/shared/api/**",
+        "deny"
+      ],
+      [
+        "src/shared/config/**",
+        "deny"
+      ],
+      [
+        "src/shared/ui/theme/**",
+        "deny"
+      ],
+      [
+        "src/shared/lib/store/**",
+        "deny"
+      ],
+      [
+        "src/shared/lib/logger/**",
+        "deny"
+      ]
+    ],
+    "bash": [
+      [
+        "*",
+        "allow"
+      ],
+      [
+        "git push*",
+        "deny"
+      ],
+      [
+        "git reset --hard*",
+        "deny"
+      ],
+      [
+        "git rebase*",
+        "deny"
+      ],
+      [
+        "git checkout*",
+        "deny"
+      ],
+      [
+        "git switch*",
+        "deny"
+      ],
+      [
+        "git stash*",
+        "deny"
+      ],
+      [
+        "git clean*",
+        "deny"
+      ],
+      [
+        "git commit --amend*",
+        "deny"
+      ],
+      [
+        "rm *",
+        "deny"
+      ],
+      [
+        "sed -i*",
+        "deny"
+      ],
+      [
+        "perl -i*",
+        "deny"
+      ],
+      [
+        "perl -pi*",
+        "deny"
+      ],
+      [
+        "curl *",
+        "deny"
+      ],
+      [
+        "wget *",
+        "deny"
+      ],
+      [
+        "npm install*",
+        "deny"
+      ],
+      [
+        "npm i *",
+        "deny"
+      ],
+      [
+        "npm uninstall*",
+        "deny"
+      ],
+      [
+        "git add -A*",
+        "deny"
+      ],
+      [
+        "git add .",
+        "deny"
+      ],
+      [
+        "git add --all*",
+        "deny"
+      ],
+      [
+        "git commit -a*",
+        "deny"
+      ],
+      [
+        "git push*",
+        "deny"
+      ],
+      [
+        "*--no-verify*",
+        "deny"
+      ],
+      [
+        "git config*",
+        "deny"
+      ],
+      [
+        "git add -A*",
+        "deny"
+      ],
+      [
+        "git add .",
+        "deny"
+      ],
+      [
+        "git add --all*",
+        "deny"
+      ],
+      [
+        "git commit -a*",
+        "deny"
+      ]
+    ]
+  },
+  "fsd-planner": {
+    "edit": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "plan/fsd-structure.md",
+        "allow"
+      ],
+      [
+        "plan/component-owners.md",
+        "allow"
+      ],
+      [
+        "plan/api-integration-points.md",
+        "allow"
+      ]
+    ],
+    "bash": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "git push*",
+        "deny"
+      ],
+      [
+        "*--no-verify*",
+        "deny"
+      ],
+      [
+        "git config*",
+        "deny"
+      ],
+      [
+        "git add -A*",
+        "deny"
+      ],
+      [
+        "git add .",
+        "deny"
+      ],
+      [
+        "git add --all*",
+        "deny"
+      ],
+      [
+        "git commit -a*",
+        "deny"
+      ]
+    ]
+  },
+  "hybrid-api-config": {
+    "edit": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "plan/generated/api-spec.yaml",
+        "allow"
+      ],
+      [
+        "plan/generated/backend-gaps.md",
+        "allow"
+      ],
+      [
+        "plan/generated/api-changes.md",
+        "allow"
+      ]
+    ],
+    "bash": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "npx @redocly/cli lint*",
+        "allow"
+      ],
+      [
+        "git push*",
+        "deny"
+      ],
+      [
+        "*--no-verify*",
+        "deny"
+      ],
+      [
+        "git config*",
+        "deny"
+      ],
+      [
+        "git add -A*",
+        "deny"
+      ],
+      [
+        "git add .",
+        "deny"
+      ],
+      [
+        "git add --all*",
+        "deny"
+      ],
+      [
+        "git commit -a*",
+        "deny"
+      ]
+    ]
+  },
+  "mock-data-generator": {
+    "edit": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "mocks/**",
+        "allow"
+      ]
+    ],
+    "bash": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "npm run typecheck*",
+        "allow"
+      ],
+      [
+        "npm ls*",
+        "allow"
+      ],
+      [
+        "git add mocks*",
+        "allow"
+      ],
+      [
+        "git commit*",
+        "allow"
+      ],
+      [
+        "git push*",
+        "deny"
+      ],
+      [
+        "*--no-verify*",
+        "deny"
+      ],
+      [
+        "git config*",
+        "deny"
+      ],
+      [
+        "git add -A*",
+        "deny"
+      ],
+      [
+        "git add .",
+        "deny"
+      ],
+      [
+        "git add --all*",
+        "deny"
+      ],
+      [
+        "git commit -a*",
+        "deny"
+      ]
+    ]
+  },
+  "orchestrator": {
+    "edit": [
+      [
+        "*",
+        "deny"
+      ]
+    ],
+    "bash": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "git push*",
+        "deny"
+      ],
+      [
+        "*--no-verify*",
+        "deny"
+      ],
+      [
+        "git config*",
+        "deny"
+      ],
+      [
+        "git add -A*",
+        "deny"
+      ],
+      [
+        "git add .",
+        "deny"
+      ],
+      [
+        "git add --all*",
+        "deny"
+      ],
+      [
+        "git commit -a*",
+        "deny"
+      ]
+    ]
+  },
+  "reflector": {
+    "edit": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "notes/memory/reflections/**",
+        "allow"
+      ]
+    ],
+    "bash": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "git push*",
+        "deny"
+      ],
+      [
+        "*--no-verify*",
+        "deny"
+      ],
+      [
+        "git config*",
+        "deny"
+      ],
+      [
+        "git add -A*",
+        "deny"
+      ],
+      [
+        "git add .",
+        "deny"
+      ],
+      [
+        "git add --all*",
+        "deny"
+      ],
+      [
+        "git commit -a*",
+        "deny"
+      ]
+    ]
+  },
+  "researcher": {
+    "edit": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "notes/research/**",
+        "allow"
+      ],
+      [
+        "notes/research/api-schema.md",
+        "deny"
+      ]
+    ],
+    "bash": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "git push*",
+        "deny"
+      ],
+      [
+        "*--no-verify*",
+        "deny"
+      ],
+      [
+        "git config*",
+        "deny"
+      ],
+      [
+        "git add -A*",
+        "deny"
+      ],
+      [
+        "git add .",
+        "deny"
+      ],
+      [
+        "git add --all*",
+        "deny"
+      ],
+      [
+        "git commit -a*",
+        "deny"
+      ]
+    ]
+  },
+  "reviewer": {
+    "edit": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "plan/history/**",
+        "allow"
+      ],
+      [
+        "plan/PROGRESS.md",
+        "allow"
+      ]
+    ],
+    "bash": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "npm run typecheck*",
+        "allow"
+      ],
+      [
+        "npm run lint*",
+        "allow"
+      ],
+      [
+        "npm test*",
+        "allow"
+      ],
+      [
+        "npm run coverage*",
+        "allow"
+      ],
+      [
+        "npm run build*",
+        "allow"
+      ],
+      [
+        "npm run e2e*",
+        "allow"
+      ],
+      [
+        "npx playwright test*",
+        "allow"
+      ],
+      [
+        "npx vitest run*",
+        "allow"
+      ],
+      [
+        "git diff*",
+        "allow"
+      ],
+      [
+        "git log*",
+        "allow"
+      ],
+      [
+        "git show*",
+        "allow"
+      ],
+      [
+        "git status*",
+        "allow"
+      ],
+      [
+        "git branch --show-current*",
+        "allow"
+      ],
+      [
+        "grep *",
+        "allow"
+      ],
+      [
+        "wc *",
+        "allow"
+      ],
+      [
+        "git push*",
+        "deny"
+      ],
+      [
+        "*--no-verify*",
+        "deny"
+      ],
+      [
+        "git config*",
+        "deny"
+      ],
+      [
+        "git add -A*",
+        "deny"
+      ],
+      [
+        "git add .",
+        "deny"
+      ],
+      [
+        "git add --all*",
+        "deny"
+      ],
+      [
+        "git commit -a*",
+        "deny"
+      ]
+    ]
+  },
+  "schema-parser": {
+    "edit": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "src/shared/api/generated/models.ts",
+        "allow"
+      ],
+      [
+        "plan/generated/endpoints-map.json",
+        "allow"
+      ],
+      [
+        "notes/research/api-schema.md",
+        "allow"
+      ]
+    ],
+    "bash": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "npx @redocly/cli lint*",
+        "allow"
+      ],
+      [
+        "npx openapi-typescript*",
+        "allow"
+      ],
+      [
+        "npx tsc*",
+        "allow"
+      ],
+      [
+        "git push*",
+        "deny"
+      ],
+      [
+        "*--no-verify*",
+        "deny"
+      ],
+      [
+        "git config*",
+        "deny"
+      ],
+      [
+        "git add -A*",
+        "deny"
+      ],
+      [
+        "git add .",
+        "deny"
+      ],
+      [
+        "git add --all*",
+        "deny"
+      ],
+      [
+        "git commit -a*",
+        "deny"
+      ]
+    ]
+  },
+  "store-architect": {
+    "edit": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "src/shared/api/baseApi.ts",
+        "allow"
+      ],
+      [
+        "src/shared/api/errors.ts",
+        "allow"
+      ],
+      [
+        "src/shared/api/events.ts",
+        "allow"
+      ],
+      [
+        "src/shared/api/index.ts",
+        "allow"
+      ],
+      [
+        "src/shared/lib/store/**",
+        "allow"
+      ],
+      [
+        "src/entities/*/api/**",
+        "allow"
+      ],
+      [
+        "src/entities/*/model/**",
+        "allow"
+      ],
+      [
+        "src/entities/*/index.ts",
+        "allow"
+      ],
+      [
+        "src/features/*/api/**",
+        "allow"
+      ],
+      [
+        "src/features/*/model/**",
+        "allow"
+      ],
+      [
+        "src/features/*/index.ts",
+        "allow"
+      ],
+      [
+        "src/app/store/**",
+        "allow"
+      ],
+      [
+        "plan/store-design.md",
+        "allow"
+      ],
+      [
+        "src/**/*.ts",
+        "allow"
+      ],
+      [
+        "src/**/*.test.ts",
+        "deny"
+      ],
+      [
+        "src/**/*.spec.ts",
+        "deny"
+      ],
+      [
+        "src/**/__tests__/**",
+        "deny"
+      ],
+      [
+        "src/shared/config/**",
+        "deny"
+      ],
+      [
+        "src/shared/lib/logger/**",
+        "deny"
+      ],
+      [
+        "src/shared/api/generated/**",
+        "deny"
+      ]
+    ],
+    "bash": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "npm run typecheck*",
+        "allow"
+      ],
+      [
+        "npm run lint*",
+        "allow"
+      ],
+      [
+        "git add*",
+        "allow"
+      ],
+      [
+        "git commit*",
+        "allow"
+      ],
+      [
+        "git status*",
+        "allow"
+      ],
+      [
+        "git add -A*",
+        "deny"
+      ],
+      [
+        "git add .",
+        "deny"
+      ],
+      [
+        "git add --all*",
+        "deny"
+      ],
+      [
+        "git commit -a*",
+        "deny"
+      ],
+      [
+        "git push*",
+        "deny"
+      ],
+      [
+        "*--no-verify*",
+        "deny"
+      ],
+      [
+        "git config*",
+        "deny"
+      ],
+      [
+        "git add -A*",
+        "deny"
+      ],
+      [
+        "git add .",
+        "deny"
+      ],
+      [
+        "git add --all*",
+        "deny"
+      ],
+      [
+        "git commit -a*",
+        "deny"
+      ]
+    ]
+  },
+  "styling-engineer": {
+    "edit": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "tailwind.config.ts",
+        "allow"
+      ],
+      [
+        "src/shared/ui/theme/**",
+        "allow"
+      ],
+      [
+        "plan/design-system.md",
+        "allow"
+      ]
+    ],
+    "bash": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "node tools/check-contrast.mjs*",
+        "allow"
+      ],
+      [
+        "npm run typecheck*",
+        "allow"
+      ],
+      [
+        "npm run lint*",
+        "allow"
+      ],
+      [
+        "npm run build*",
+        "allow"
+      ],
+      [
+        "grep *",
+        "allow"
+      ],
+      [
+        "git status*",
+        "allow"
+      ],
+      [
+        "git diff*",
+        "allow"
+      ],
+      [
+        "git add src/shared/ui/theme*",
+        "allow"
+      ],
+      [
+        "git add tailwind.config.ts*",
+        "allow"
+      ],
+      [
+        "git add plan/design-system.md*",
+        "allow"
+      ],
+      [
+        "git commit*",
+        "allow"
+      ],
+      [
+        "git push*",
+        "deny"
+      ],
+      [
+        "*--no-verify*",
+        "deny"
+      ],
+      [
+        "git config*",
+        "deny"
+      ],
+      [
+        "git add -A*",
+        "deny"
+      ],
+      [
+        "git add .",
+        "deny"
+      ],
+      [
+        "git add --all*",
+        "deny"
+      ],
+      [
+        "git commit -a*",
+        "deny"
+      ]
+    ]
+  },
+  "test-engineer": {
+    "edit": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "test/**",
+        "allow"
+      ],
+      [
+        "src/**/*.test.ts",
+        "allow"
+      ],
+      [
+        "src/**/*.test.tsx",
+        "allow"
+      ],
+      [
+        "e2e/**",
+        "allow"
+      ],
+      [
+        "plan/history/**",
+        "allow"
+      ],
+      [
+        "plan/PROGRESS.md",
+        "allow"
+      ]
+    ],
+    "bash": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "npx vitest run*",
+        "allow"
+      ],
+      [
+        "npm test*",
+        "allow"
+      ],
+      [
+        "npm run test*",
+        "allow"
+      ],
+      [
+        "npm run e2e*",
+        "allow"
+      ],
+      [
+        "npx playwright test*",
+        "allow"
+      ],
+      [
+        "npx jest*",
+        "allow"
+      ],
+      [
+        "CI=true npm test*",
+        "allow"
+      ],
+      [
+        "CI=true npx jest*",
+        "allow"
+      ],
+      [
+        "npm run typecheck*",
+        "allow"
+      ],
+      [
+        "npm run lint*",
+        "allow"
+      ],
+      [
+        "git rev-parse*",
+        "allow"
+      ],
+      [
+        "git status*",
+        "allow"
+      ],
+      [
+        "git diff*",
+        "allow"
+      ],
+      [
+        "git log*",
+        "allow"
+      ],
+      [
+        "git add *",
+        "allow"
+      ],
+      [
+        "git add -A*",
+        "deny"
+      ],
+      [
+        "git add .",
+        "deny"
+      ],
+      [
+        "git add --all*",
+        "deny"
+      ],
+      [
+        "git commit*",
+        "allow"
+      ],
+      [
+        "git commit -a*",
+        "deny"
+      ],
+      [
+        "git commit --amend*",
+        "deny"
+      ],
+      [
+        "grep *",
+        "allow"
+      ],
+      [
+        "git push*",
+        "deny"
+      ],
+      [
+        "*--no-verify*",
+        "deny"
+      ],
+      [
+        "git config*",
+        "deny"
+      ],
+      [
+        "git add -A*",
+        "deny"
+      ],
+      [
+        "git add .",
+        "deny"
+      ],
+      [
+        "git add --all*",
+        "deny"
+      ],
+      [
+        "git commit -a*",
+        "deny"
+      ]
+    ]
+  },
+  "wireframe-analyzer": {
+    "edit": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "analysis/**",
+        "allow"
+      ]
+    ],
+    "bash": [
+      [
+        "*",
+        "deny"
+      ],
+      [
+        "node tools/list-html-elements.mjs*",
+        "allow"
+      ],
+      [
+        "ls*",
+        "allow"
+      ],
+      [
+        "grep *",
+        "allow"
+      ],
+      [
+        "wc *",
+        "allow"
+      ],
+      [
+        "git push*",
+        "deny"
+      ],
+      [
+        "*--no-verify*",
+        "deny"
+      ],
+      [
+        "git config*",
+        "deny"
+      ],
+      [
+        "git add -A*",
+        "deny"
+      ],
+      [
+        "git add .",
+        "deny"
+      ],
+      [
+        "git add --all*",
+        "deny"
+      ],
+      [
+        "git commit -a*",
+        "deny"
+      ]
+    ]
+  }
+}

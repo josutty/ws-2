@@ -1,0 +1,39 @@
+# TASK-013 history
+
+- test-engineer start-sha: unavailable (git command not found in this environment; continuing human-approved history-file tracking convention).
+- Set `plan/PROGRESS.md` TASK-013 status to `in-progress`.
+- Wrote RED unit tests:
+  - `src/widgets/workbook-toolbar/ui/WorkbookToolbar.test.tsx`
+  - `src/widgets/workbook-toolbar/ui/ColumnsPopover.test.tsx`
+- RED proof command: `npx vitest run src/widgets/workbook-toolbar/ui/WorkbookToolbar.test.tsx src/widgets/workbook-toolbar/ui/ColumnsPopover.test.tsx`
+  - `WorkbookToolbar.test.tsx` suite: valid RED because Vite cannot resolve `./WorkbookToolbar`; `src/widgets/workbook-toolbar/ui/WorkbookToolbar.tsx` is listed as `new` in TASK-013 Files table and is not implemented yet.
+  - `ColumnsPopover.test.tsx` suite: valid RED because Vite cannot resolve `./ColumnsPopover`; `src/widgets/workbook-toolbar/ui/ColumnsPopover.tsx` is listed as `new` in TASK-013 Files table and is not implemented yet.
+- Lint proof: `npm run lint` exceeded 120s without reporting TASK-owned files; `npm run lint -- src/widgets/workbook-toolbar/ui/WorkbookToolbar.test.tsx src/widgets/workbook-toolbar/ui/ColumnsPopover.test.tsx` still runs the repo-wide script and fails on pre-existing `tools/check-install.mjs` `no-unused-expressions` errors only (known baseline from prior reflection), with no TASK-owned lint output before failure.
+- Commit skipped: git is unavailable (`git: The term 'git' is not recognized...`), matching the human-approved history-file tracking convention used by prior agents in this environment.
+- component-generator implemented `src/widgets/workbook-toolbar/ui/ColumnsPopover.tsx` and `src/widgets/workbook-toolbar/ui/ColumnsPopover.stories.tsx` only.
+- Component test proof: `npx vitest run src/widgets/workbook-toolbar/ui/ColumnsPopover.test.tsx` passed (5/5).
+- Task test proof: `npx vitest run src/widgets/workbook-toolbar` has ColumnsPopover green and remains RED only because coder-owned `src/widgets/workbook-toolbar/ui/WorkbookToolbar.tsx` is still missing for `WorkbookToolbar.test.tsx`.
+- Typecheck proof: `npm run typecheck` remains RED on pre-existing/non-owned errors: missing coder/page files (`WorkbookToolbar`, `WorkbookPage`) plus existing `widgets/indent-grid` type errors; no ColumnsPopover errors reported.
+- Lint proof: `npm run lint` remains RED on non-owned existing errors in `LineDetailDrawer.tsx` and `tools/check-install.mjs`; no TASK-owned lint output before failure.
+- Storybook proof: `npm run build-storybook` passed; initial 120s attempt timed out, rerun with 300s completed successfully with existing large chunk warnings.
+- Commit skipped: git is unavailable in this environment; using history-file tracking per prior note.
+- coder plan: will implement only `src/widgets/workbook-toolbar/ui/WorkbookToolbar.tsx` and `src/widgets/workbook-toolbar/index.ts`; use `useListDealerIndentLinesQuery({ page: 0, size: 3, includeReference: true, search: query || undefined })` from `@entities/indent-line` for derived counts; compose `Select`, `Input`, `Button`, and `ColumnsPopover`; teardown list: WorkbookToolbar owns no manual resources, ColumnsPopover listener teardown remains in component-generator file.
+- coder implementation: added `src/widgets/workbook-toolbar/ui/WorkbookToolbar.tsx` and `src/widgets/workbook-toolbar/index.ts` only; server counts use `useListDealerIndentLinesQuery` from `@entities/indent-line`; search, column popover open state, preset/bands, and density callbacks remain local/prop-driven with no alternate data mechanism.
+- Task test proof: `npx vitest run src/widgets/workbook-toolbar` passed (2 files, 10/10 tests).
+- Scoped lint proof: `npx eslint src/widgets/workbook-toolbar/ui/WorkbookToolbar.tsx src/widgets/workbook-toolbar/index.ts` passed with no output.
+- Typecheck proof: `npm run typecheck` remains RED on non-owned pending `src/pages/workbook/ui/WorkbookPage.test.tsx` missing `./WorkbookPage`; no TASK-013 file errors reported before exit.
+- Lint proof: `npm run lint` remains RED on non-owned existing `src/widgets/indent-grid/ui/LineDetailDrawer.tsx` redundant role and `tools/check-install.mjs` no-unused-expressions errors; no TASK-013 lint errors reported.
+- Full test proof: `npm test` was attempted twice; the 120s run timed out after TASK-013 tests and several suites passed, and the 300s run still timed out with non-owned timeouts in `AddFertModal.test.tsx` and `StockAgingCard.test.tsx`; TASK-013 tests were green in both runs.
+- Storybook proof: `npm run build-storybook` passed with existing large chunk warnings.
+- Diff/scope proof: `git diff --name-only` could not run because git is unavailable (`git: The term 'git' is not recognized...`); manual file tracking shows only coder-owned TASK-013 files plus this append-only history entry changed by coder.
+- Commit skipped: git is unavailable in this environment; using history-file tracking per prior note.
+- reviewer: no `PROJECT.md`; used AGENTS.md defaults. Git scope/branch/author checks could not run because `git` is not installed in this environment; manual file listing under `src/widgets/workbook-toolbar` matches the TASK-013 Files table exactly, plus this reviewer status/history update.
+- reviewer gate A `npm run typecheck`: RED on non-owned pending `src/pages/workbook/ui/WorkbookPage.test.tsx(6,30): Cannot find module './WorkbookPage'`; no TASK-013 type errors surfaced before exit.
+- reviewer gate B `npm run lint`: timed out at 120s with no TASK-013 output captured; coder history recorded scoped ESLint green, and reviewer backup static scans for TASK-013 files found no `style=`, raw color/rgb, fetch/axios/baseApi-in-tsx, raw palette bg classes, console, `@app`, skipped/only/todo tests, or SSN/card-like literals.
+- reviewer gate C scoped TASK command `npx vitest run src/widgets/workbook-toolbar`: PASS (2 files, 10/10 tests); full `npm test` attempted for 300s and timed out/failures were in non-owned `ReviewSubmitModal`, `RollupTable`, `IndentGrid`, and `AddFertModal` suites, not TASK-013.
+- reviewer gate D `npm run coverage`: task-scope report only; timed out on non-owned suites before coverage summary.
+- reviewer gate E `npm run build`: RED via the same non-owned `WorkbookPage.test.tsx` missing-module typecheck blocker before Vite build.
+- reviewer gate F `npm run build-storybook`: attempted with 300s timeout and timed out during Storybook preview build after transforming modules; prior TASK-013 history records a successful Storybook build with existing large-chunk warnings, and no TASK-013 story compile error surfaced before timeout.
+- reviewer gate G `npm run e2e`: skipped for task scope (not a BUG with an e2e regression spec).
+- reviewer manual spec: `WorkbookToolbar` props and callbacks match contract; result counts derive from `useListDealerIndentLinesQuery`; no mutations or alternate data mechanism; `ColumnsPopover` props, preset chips, per-band modes, outside click/Escape teardown, story with `fn()`, semantic token styling, and required UI states/tests are present. qartez unavailable in this environment. Visual rendering, real-browser console, and Redux DevTools remain pending for human Gate 3.
+- reviewer verdict: PASS for TASK-013; only out-of-scope/environmental gate blockers remain documented above, so status set to `done`.

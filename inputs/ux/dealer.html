@@ -1,0 +1,1734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VECVplan Dealer Indent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  --canvas:#F4F6F8; --surface:#FFFFFF; --surface-2:#F8FAFB; --bar:#10202D; --bar-ink:#C7D6E2;
+  --ink:#16222C; --ink-2:#42576A; --muted:#6B7C8A; --rule:#DCE3E9; --rule-soft:#EAEFF3;
+  --accent:#0E6BA8; --accent-2:#0A5686; --accent-soft:#E6F1F8; --accent-line:#B9D7EA;
+  --ok:#1F7A45; --ok-soft:#E7F2EB; --warn:#A65D00; --warn-soft:#FBEFE0; --crit:#B3261E; --crit-soft:#FBE9E7;
+  --add:#6B3FA0; --add-soft:#F0EAF8;
+  --ui:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  --shadow:0 1px 2px rgba(16,32,45,.06),0 2px 8px rgba(16,32,45,.06);
+  --shadow-lg:0 12px 40px rgba(16,32,45,.22);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --canvas:#0C1319; --surface:#141D25; --surface-2:#19242D; --bar:#080F14; --bar-ink:#9FB4C4;
+  --ink:#E2EAF0; --ink-2:#AEC0CE; --muted:#8296A6; --rule:#26343F; --rule-soft:#1D2831;
+  --accent:#4FA3D6; --accent-2:#79BCE5; --accent-soft:#122A3A; --accent-line:#20455C;
+  --ok:#5FBA84; --ok-soft:#132720; --warn:#D9A05B; --warn-soft:#2A2015; --crit:#E08A84; --crit-soft:#2C1917;
+  --add:#A487D0; --add-soft:#211B2E;
+  --shadow:0 1px 2px rgba(0,0,0,.4); --shadow-lg:0 12px 40px rgba(0,0,0,.55);
+}}
+:root[data-theme="dark"]{
+  --canvas:#0C1319; --surface:#141D25; --surface-2:#19242D; --bar:#080F14; --bar-ink:#9FB4C4;
+  --ink:#E2EAF0; --ink-2:#AEC0CE; --muted:#8296A6; --rule:#26343F; --rule-soft:#1D2831;
+  --accent:#4FA3D6; --accent-2:#79BCE5; --accent-soft:#122A3A; --accent-line:#20455C;
+  --ok:#5FBA84; --ok-soft:#132720; --warn:#D9A05B; --warn-soft:#2A2015; --crit:#E08A84; --crit-soft:#2C1917;
+  --add:#A487D0; --add-soft:#211B2E;
+  --shadow:0 1px 2px rgba(0,0,0,.4); --shadow-lg:0 12px 40px rgba(0,0,0,.55);
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--canvas);color:var(--ink);font-family:var(--ui);font-size:13.5px;
+  line-height:1.45;height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased;}
+button{font-family:inherit;cursor:pointer;}
+input,select,textarea{font-family:inherit;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
+
+.btn{height:32px;padding:0 14px;border-radius:5px;font-size:13px;font-weight:500;border:1px solid transparent;
+  display:inline-flex;align-items:center;gap:7px;white-space:nowrap;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:var(--accent-2);}
+.btn-ghost{background:var(--surface);color:var(--ink-2);border-color:var(--rule);}
+.btn-ghost:hover{background:var(--surface-2);border-color:var(--muted);}
+.btn-quiet{background:transparent;color:var(--ink-2);border-color:transparent;}
+.btn-quiet:hover{background:var(--surface-2);}
+.btn-add{background:var(--surface);color:var(--add);border-color:var(--add);}
+.btn-add:hover{background:var(--add-soft);}
+.btn-sm{height:27px;padding:0 10px;font-size:12px;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.link{background:none;border:none;padding:0;color:var(--accent);font-size:13px;font-weight:500;
+  text-decoration:underline;text-underline-offset:2px;}
+
+/* ══ LOGIN ══ */
+#login{height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;overflow-y:auto;
+  background:linear-gradient(150deg,#0B1822 0%,#12293A 55%,#0E3A4A 100%);}
+.lg-shell{width:100%;max-width:400px;display:flex;flex-direction:column;gap:18px;}
+.lg-logo{font-size:23px;font-weight:700;color:#fff;letter-spacing:-.4px;}
+.lg-logo span{color:#5FB0DE;}
+.lg-cycle{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.09);
+  border:1px solid rgba(255,255,255,.14);border-radius:5px;padding:5px 11px;font-size:11.5px;color:#B7CDDD;margin-top:6px;}
+.lg-cycle b{color:#fff;font-weight:600;}
+.lg-card{background:var(--surface);border-radius:9px;padding:26px;box-shadow:var(--shadow-lg);
+  display:flex;flex-direction:column;gap:15px;}
+.lg-card h1{margin:0;font-size:19px;font-weight:600;}
+.lg-card .sub{font-size:13px;color:var(--muted);margin-top:-9px;}
+.fld{display:flex;flex-direction:column;gap:5px;}
+.fld label{font-size:12px;font-weight:600;color:var(--ink-2);display:flex;align-items:baseline;}
+.fld label .hint{margin-left:auto;font-weight:400;}
+.fld input{height:38px;padding:0 11px;border:1px solid var(--rule);border-radius:5px;font-size:14px;
+  background:var(--surface);color:var(--ink);}
+.fld input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+.fld .err{font-size:12px;color:var(--crit);display:none;}
+.fld.invalid input{border-color:var(--crit);}
+.fld.invalid .err{display:block;}
+.lg-or{display:flex;align-items:center;gap:11px;color:var(--muted);font-size:11.5px;}
+.lg-or::before,.lg-or::after{content:'';flex:1;height:1px;background:var(--rule);}
+.lg-foot{font-size:11.5px;color:var(--muted);text-align:center;}
+.lg-note{font-size:11px;color:rgba(183,205,221,.75);text-align:center;}
+
+/* ══ SHELL ══ */
+#app{display:none;height:100vh;flex-direction:column;overflow:hidden;}
+#app.on{display:flex;}
+.topbar{height:48px;flex-shrink:0;background:var(--bar);display:flex;align-items:center;gap:4px;padding:0 8px 0 16px;}
+.tb-logo{font-size:14.5px;font-weight:700;color:#fff;margin-right:14px;white-space:nowrap;}
+.tb-logo span{color:#5FB0DE;}
+.tb-nav{display:flex;gap:2px;}
+.tb-nav button{height:30px;padding:0 12px;border:none;border-radius:5px;background:transparent;
+  color:var(--bar-ink);font-size:13px;font-weight:500;}
+.tb-nav button:hover{background:rgba(255,255,255,.08);color:#fff;}
+.tb-nav button.on{background:rgba(255,255,255,.14);color:#fff;}
+.tb-nav button:disabled{opacity:.35;cursor:not-allowed;}
+.tb-status{margin-left:16px;display:flex;align-items:center;overflow:hidden;}
+.tb-status .seg{font-size:12px;color:var(--bar-ink);white-space:nowrap;padding:0 12px;
+  border-left:1px solid rgba(255,255,255,.13);}
+.tb-status .seg:first-child{border-left:none;}
+.tb-status b{color:#fff;font-weight:600;}
+.warnv{color:#F0B770;font-weight:600;} .okv{color:#7DD3A0;font-weight:600;}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:8px;padding-left:10px;}
+.tb-user{display:flex;align-items:center;gap:8px;padding:3px 10px 3px 4px;border-radius:16px;background:rgba(255,255,255,.09);}
+.tb-av{width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:10px;
+  font-weight:700;display:flex;align-items:center;justify-content:center;}
+.tb-user .nm{font-size:11.5px;color:#fff;line-height:1.15;}
+.tb-user .rl{font-size:10px;color:#8FADC4;line-height:1.15;}
+.tb-icon{width:30px;height:30px;border:none;border-radius:5px;background:transparent;color:var(--bar-ink);
+  font-size:14px;display:flex;align-items:center;justify-content:center;}
+.tb-icon:hover{background:rgba(255,255,255,.1);color:#fff;}
+.page{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+.view{display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;}
+.view.on{display:flex;}
+
+/* ══ HOME ══ */
+.home-scroll{flex:1;overflow-y:auto;}
+.home-inner{max-width:1440px;margin:0 auto;padding:20px 32px 56px;display:flex;flex-direction:column;gap:18px;}
+.proto-strip{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);
+  border:1px dashed var(--accent-line);border-radius:7px;padding:9px 14px;}
+.proto-strip .pl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--accent);background:var(--accent-soft);padding:3px 7px;border-radius:3px;}
+.proto-strip label{font-size:12.5px;font-weight:600;color:var(--ink-2);}
+.proto-strip select{height:32px;padding:0 9px;border:1px solid var(--rule);border-radius:5px;
+  background:var(--surface);color:var(--ink);font-size:13px;font-weight:500;min-width:228px;}
+.proto-strip .np{font-size:11.5px;color:var(--muted);margin-left:auto;}
+.home-head{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;}
+.home-head h1{margin:0;font-size:24px;font-weight:600;letter-spacing:-.4px;}
+.home-head .sub{font-size:13.5px;color:var(--muted);}
+.home-head .right{margin-left:auto;display:flex;gap:8px;}
+.zone{display:flex;align-items:center;gap:12px;margin-top:10px;}
+.zone .zl{font-size:11px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);white-space:nowrap;}
+.zone .zr{flex:1;height:1px;background:var(--rule);}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(262px,1fr));gap:14px;}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:16px 17px 15px;
+  display:flex;flex-direction:column;gap:11px;box-shadow:var(--shadow);}
+.card.lead{grid-column:span 2;}
+.card.full{grid-column:1/-1;}
+@media (max-width:760px){.card.lead,.card.full{grid-column:span 1;}}
+.card h3{margin:0;font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);}
+.big{font-family:var(--mono);font-size:27px;font-weight:600;letter-spacing:-.5px;line-height:1;font-variant-numeric:tabular-nums;}
+.big.sm{font-size:21px;}
+.cap{font-size:12.5px;color:var(--ink-2);}
+.card .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:4px;}
+.meter{height:6px;border-radius:3px;background:var(--rule-soft);overflow:hidden;}
+.meter i{display:block;height:100%;background:var(--accent);border-radius:3px;}
+.kv-row{display:flex;align-items:center;gap:10px;font-size:13px;padding:7px 0;border-bottom:1px solid var(--rule-soft);}
+.kv-row:last-child{border-bottom:none;}
+.kv-row .nm{color:var(--ink);font-weight:500;}
+.kv-row .vl{margin-left:auto;font-family:var(--mono);font-size:12.5px;color:var(--ink-2);font-variant-numeric:tabular-nums;}
+.pill{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:3px;white-space:nowrap;}
+.p-ok{background:var(--ok-soft);color:var(--ok);}
+.p-warn{background:var(--warn-soft);color:var(--warn);}
+.p-crit{background:var(--crit-soft);color:var(--crit);}
+.p-add{background:var(--add-soft);color:var(--add);}
+.attn-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule-soft);font-size:13px;}
+.attn-row:last-child{border-bottom:none;}
+.attn-row .n{font-family:var(--mono);font-size:16px;font-weight:600;min-width:26px;}
+.attn-row .t{color:var(--ink-2);}
+.attn-row button{margin-left:auto;}
+.sbar{display:flex;height:9px;border-radius:5px;overflow:hidden;background:var(--rule-soft);}
+.sbar i{height:100%;}
+.slgd{display:flex;gap:12px;flex-wrap:wrap;margin-top:7px;}
+.slgd span{font-size:11.5px;color:var(--ink-2);display:flex;align-items:center;gap:5px;}
+.slgd i{width:8px;height:8px;border-radius:2px;display:inline-block;}
+.spark{display:flex;align-items:flex-end;gap:5px;height:40px;}
+.spark i{flex:1;border-radius:2px 2px 0 0;background:var(--accent);opacity:.35;}
+.spark i:last-child{opacity:1;}
+.sumtbl{width:100%;border-collapse:collapse;font-size:13px;}
+.sumtbl th{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+  text-align:right;padding:8px 10px;border-bottom:1px solid var(--rule);}
+.sumtbl th.l{text-align:left;}
+.sumtbl td{padding:9px 10px;border-bottom:1px solid var(--rule-soft);text-align:right;
+  font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--ink-2);}
+.sumtbl td.l{text-align:left;font-family:var(--ui);color:var(--ink);font-weight:500;}
+.sumtbl tr.tot td{background:var(--surface-2);font-weight:700;color:var(--ink);border-bottom:none;}
+.sumtbl tr.sub td{background:var(--surface-2);color:var(--muted);font-size:12px;}
+.sumtbl tr.sub td.l{padding-left:26px;font-weight:400;color:var(--ink-2);}
+.sumtbl thead tr.bands th{height:24px;padding:0 8px;text-align:left;text-transform:uppercase;
+  letter-spacing:.08em;font-size:10px;font-weight:700;border-bottom:1px solid var(--rule-soft);}
+.sumtbl thead tr.bands th.b-ref{background:var(--surface-2);color:var(--muted);}
+.sumtbl thead tr.bands th.b-edit{background:var(--accent-soft);color:var(--accent);}
+.zone .zn{font-size:11.5px;color:var(--muted);white-space:nowrap;}
+.exp{background:none;border:none;padding:0 6px 0 0;color:var(--accent);font-size:10px;}
+.acell{display:flex;flex-direction:column;align-items:flex-end;gap:1px;line-height:1.15;}
+.acell .ai{font-size:12px;}
+.acell .ao{font-size:10.5px;color:var(--muted);}
+.abar{display:inline-block;width:44px;height:5px;border-radius:3px;background:var(--rule-soft);overflow:hidden;vertical-align:middle;}
+.abar i{display:block;height:100%;}
+.accwrap{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:14px 16px 10px;
+  box-shadow:var(--shadow);display:flex;flex-direction:column;gap:11px;}
+.acchead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.acchead h4{margin:0;font-size:13.5px;font-weight:600;}
+
+/* ══ WORKBOOK ══ */
+.wb{flex:1;display:flex;overflow:hidden;min-height:0;}
+.rail{width:262px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--rule);
+  display:flex;flex-direction:column;overflow:hidden;transition:width .16s ease;}
+.rail.collapsed{width:46px;}
+.rail-head{height:44px;flex-shrink:0;display:flex;align-items:center;gap:8px;padding:0 8px 0 14px;border-bottom:1px solid var(--rule);}
+.rail-head .t{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);flex:1;white-space:nowrap;}
+.rail-head .cnt{font-family:var(--mono);font-size:10.5px;font-weight:600;background:var(--accent-soft);
+  color:var(--accent);padding:2px 6px;border-radius:9px;}
+.rail-toggle{width:26px;height:26px;flex-shrink:0;border:none;border-radius:5px;background:transparent;
+  color:var(--muted);font-size:14px;display:flex;align-items:center;justify-content:center;}
+.rail-toggle:hover{background:var(--surface-2);color:var(--ink);}
+.rail.collapsed .rail-head{padding:0 10px;}
+.rail.collapsed .rail-head .t,.rail.collapsed .rail-head .cnt,.rail.collapsed .rail-body,.rail.collapsed .rail-foot{display:none;}
+.rail-stub{display:none;flex-direction:column;align-items:center;gap:10px;padding:12px 0;}
+.rail.collapsed .rail-stub{display:flex;}
+.rail-stub .sb{writing-mode:vertical-rl;font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.rail-stub .sc{font-family:var(--mono);font-size:10.5px;font-weight:600;background:var(--accent-soft);
+  color:var(--accent);padding:2px 5px;border-radius:8px;}
+.rail-body{flex:1;overflow-y:auto;padding:12px 14px 20px;display:flex;flex-direction:column;gap:13px;}
+.rail-body::-webkit-scrollbar{width:7px;}
+.rail-body::-webkit-scrollbar-thumb{background:var(--rule);border-radius:4px;}
+.frow{display:flex;flex-direction:column;gap:5px;}
+.frow .fl{font-size:11.5px;font-weight:600;color:var(--ink-2);display:flex;align-items:baseline;gap:6px;}
+.frow .fl .clr{margin-left:auto;font-size:10.5px;color:var(--accent);background:none;border:none;padding:0;text-decoration:underline;}
+.ms{position:relative;}
+.ms-btn{width:100%;height:32px;padding:0 9px;border:1px solid var(--rule);border-radius:5px;
+  background:var(--surface);color:var(--ink);font-size:12.5px;display:flex;align-items:center;gap:6px;text-align:left;}
+.ms-btn:hover{border-color:var(--muted);}
+.ms-btn.act{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:500;}
+.ms-btn .lbl{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ms-btn .lbl.dim{color:var(--muted);}
+.ms-btn .ca{font-size:9px;opacity:.7;}
+.ms-pop{display:none;position:absolute;top:35px;left:0;right:0;z-index:40;background:var(--surface);
+  border:1px solid var(--rule);border-radius:6px;box-shadow:var(--shadow-lg);max-height:300px;overflow:hidden;flex-direction:column;}
+.ms.open .ms-pop{display:flex;}
+.ms-search{padding:8px;border-bottom:1px solid var(--rule-soft);}
+.ms-search input{width:100%;height:30px;padding:0 9px;border:1px solid var(--rule);border-radius:4px;
+  font-size:12.5px;background:var(--surface);color:var(--ink);}
+.ms-search input:focus{outline:none;border-color:var(--accent);}
+.ms-search .ph{font-size:10.5px;color:var(--muted);margin-top:5px;line-height:1.35;}
+.ms-list{overflow-y:auto;padding:4px 0;}
+.ms-list::-webkit-scrollbar{width:7px;}
+.ms-list::-webkit-scrollbar-thumb{background:var(--rule);border-radius:4px;}
+.ms-opt{display:flex;align-items:flex-start;gap:8px;padding:6px 11px;font-size:12.5px;width:100%;
+  background:none;border:none;text-align:left;color:var(--ink);}
+.ms-opt:hover{background:var(--surface-2);}
+.ms-opt .bx{width:14px;height:14px;flex-shrink:0;margin-top:2px;border:1.5px solid var(--rule);border-radius:3px;
+  display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;}
+.ms-opt.on .bx{background:var(--accent);border-color:var(--accent);}
+.ms-opt .tx{flex:1;min-width:0;}
+.ms-opt .t1{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ms-opt .t2{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ms-opt .n{font-family:var(--mono);font-size:10.5px;color:var(--muted);flex-shrink:0;margin-top:1px;}
+.ms-foot{padding:7px 9px;border-top:1px solid var(--rule-soft);display:flex;gap:8px;align-items:center;}
+.ms-foot .c{font-size:11px;color:var(--muted);margin-left:auto;}
+.ms-empty{padding:16px 12px;text-align:center;font-size:12px;color:var(--muted);}
+.rail-foot{padding:10px 14px;border-top:1px solid var(--rule);display:flex;gap:8px;}
+
+.wb-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+.strip{height:48px;flex-shrink:0;display:flex;align-items:center;gap:9px;padding:0 14px;
+  background:var(--surface);border-bottom:1px solid var(--rule);overflow-x:auto;}
+.strip::-webkit-scrollbar{height:0;}
+.vsel{height:32px;padding:0 8px;border:1px solid var(--rule);border-radius:5px;background:var(--surface);
+  color:var(--ink);font-size:12.5px;font-weight:600;flex-shrink:0;}
+.srch{position:relative;flex-shrink:0;}
+.srch input{width:246px;height:32px;padding:0 10px 0 30px;border:1px solid var(--rule);border-radius:5px;
+  font-size:12.5px;background:var(--surface);color:var(--ink);}
+.srch input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+.srch .ic{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px;pointer-events:none;}
+.aft{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;}
+.ftok{display:inline-flex;align-items:center;gap:6px;background:var(--accent-soft);color:var(--accent);
+  border:1px solid var(--accent-line);border-radius:13px;padding:3px 8px 3px 10px;font-size:11.5px;font-weight:500;white-space:nowrap;}
+.ftok.srt{background:var(--surface-2);color:var(--ink-2);border-color:var(--rule);}
+.ftok button{background:none;border:none;color:inherit;font-size:13px;line-height:1;padding:0;opacity:.6;}
+.ftok button:hover{opacity:1;}
+.strip .sep{width:1px;height:24px;background:var(--rule);flex-shrink:0;}
+.strip .right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.rescount{font-size:12px;color:var(--muted);white-space:nowrap;}
+.rescount b{color:var(--ink);font-family:var(--mono);font-weight:600;}
+.seg-ctl{display:flex;border:1px solid var(--rule);border-radius:5px;overflow:hidden;flex-shrink:0;}
+.seg-ctl button{height:30px;padding:0 10px;border:none;background:var(--surface);color:var(--muted);font-size:12px;font-weight:500;}
+.seg-ctl button.on{background:var(--accent-soft);color:var(--accent);font-weight:600;}
+.seg-ctl button+button{border-left:1px solid var(--rule);}
+
+.grid-wrap{flex:1;overflow:auto;min-height:0;background:var(--canvas);}
+.grid-wrap::-webkit-scrollbar{width:10px;height:10px;}
+.grid-wrap::-webkit-scrollbar-thumb{background:#BCC8D2;border-radius:5px;}
+table.grid{border-collapse:separate;border-spacing:0;width:100%;min-width:960px;background:var(--surface);}
+table.grid thead th{position:sticky;top:26px;z-index:6;background:var(--surface-2);border-bottom:1px solid var(--rule);
+  font-size:11px;font-weight:600;color:var(--muted);padding:0;height:38px;white-space:nowrap;}
+table.grid thead tr.bands th{height:26px;top:0;z-index:7;font-size:10px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;text-align:left;border-bottom:1px solid var(--rule-soft);padding:0 8px;}
+table.grid thead tr.bands th.b-ref{background:var(--surface-2);color:var(--muted);}
+table.grid thead tr.bands th.b-edit{background:var(--accent-soft);color:var(--accent);}
+.sortbtn{width:100%;height:38px;padding:0 8px;background:none;border:none;color:inherit;font:inherit;
+  display:flex;align-items:center;justify-content:flex-end;gap:4px;}
+.sortbtn.l{justify-content:flex-start;}
+.sortbtn:hover{background:var(--rule-soft);color:var(--ink);}
+.sortbtn .ar{font-size:9px;opacity:0;}
+.sortbtn:hover .ar{opacity:.45;}
+.sortbtn.on{color:var(--accent);font-weight:700;}
+.sortbtn.on .ar{opacity:1;}
+th.idc,td.idc{position:sticky;left:0;z-index:5;background:var(--surface);border-right:1px solid var(--rule);
+  text-align:left;min-width:276px;max-width:276px;}
+thead th.idc{z-index:8;background:var(--surface-2);}
+table.grid tbody td{padding:0 8px;border-bottom:1px solid var(--rule-soft);height:40px;vertical-align:middle;
+  text-align:right;font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--ink-2);}
+table.grid tbody tr:hover td{background:#F6FAFD;}
+table.grid tbody tr:hover td.idc{background:#F0F7FC;}
+table.grid tbody tr.noentry td.idc{box-shadow:inset 3px 0 0 var(--warn);}
+table.grid tbody tr.isadd td.idc{box-shadow:inset 3px 0 0 var(--add);}
+table.grid tbody tr.filtered-total td{background:var(--accent-soft);border-top:2px solid var(--accent-line);border-bottom:0;
+  color:var(--ink);font-weight:700;}
+table.grid tbody tr.filtered-total td.idc{background:var(--accent-soft);}
+table.grid tbody tr.filtered-total .total-note{display:block;margin-top:2px;font-size:9.5px;font-weight:500;color:var(--muted);}
+table.grid.compact tbody td{height:31px;}
+table.grid.compact .id-meta{display:none;}
+.id-cell{display:flex;align-items:center;gap:9px;padding:5px 0;}
+.id-txt{min-width:0;flex:1;}
+.id-desc{font-family:var(--ui);font-size:12.5px;font-weight:500;color:var(--ink);line-height:1.25;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.id-meta{display:flex;align-items:center;gap:7px;margin-top:1px;}
+.id-code{font-family:var(--mono);font-size:10.5px;color:var(--accent);font-weight:500;}
+.id-sm{font-size:10.5px;color:var(--muted);}
+.seg-dot{font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px;font-family:var(--ui);}
+.sg-R{background:var(--ok-soft);color:var(--ok);}
+.sg-S{background:var(--warn-soft);color:var(--warn);}
+.sg-D{background:var(--crit-soft);color:var(--crit);}
+.addtag{font-size:9.5px;font-weight:700;padding:1px 5px;border-radius:3px;background:var(--add-soft);color:var(--add);}
+.id-btn{width:22px;height:22px;flex-shrink:0;border:1px solid var(--rule);border-radius:4px;background:var(--surface);
+  color:var(--muted);font-size:11px;display:flex;align-items:center;justify-content:center;}
+.id-btn:hover{border-color:var(--accent);color:var(--accent);}
+td.ref .aged{color:var(--warn);font-weight:600;}
+td.ref .aged.hot{color:var(--crit);}
+td.ref.txt{font-family:var(--ui);font-size:11.5px;text-align:left;color:var(--ink-2);white-space:nowrap;}
+td.sepL{border-left:1px solid var(--rule);}
+th.bsep,td.bsep{border-left:1px solid var(--rule);}
+.bandbtn{width:100%;height:26px;padding:0 8px;background:none;border:none;color:inherit;font:inherit;
+  display:flex;align-items:center;gap:5px;text-align:left;}
+.bandbtn:hover{background:rgba(0,0,0,.05);}
+.bandbtn .bm{font-size:8px;opacity:.6;}
+.id-meta .diff{color:var(--warn);font-weight:700;}
+.colpop{position:absolute;top:34px;right:0;z-index:45;width:318px;background:var(--surface);
+  border:1px solid var(--rule);border-radius:7px;box-shadow:var(--shadow-lg);overflow:hidden;}
+.cp-sec{padding:11px 13px;border-bottom:1px solid var(--rule-soft);}
+.cp-lbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.cp-presets{display:flex;flex-wrap:wrap;gap:5px;}
+.chipx{padding:4px 10px;border-radius:13px;font-size:11.5px;font-weight:500;border:1px solid var(--rule);
+  background:var(--surface);color:var(--ink-2);}
+.chipx:hover{border-color:var(--accent);color:var(--accent);}
+.chipx.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+.cp-row{display:flex;align-items:center;gap:10px;padding:5px 0;}
+.cp-row.dis{opacity:.55;}
+.cp-n{font-size:12.5px;color:var(--ink);flex:1;min-width:0;}
+.cp-c{font-size:10.5px;color:var(--muted);margin-left:6px;font-family:var(--mono);}
+.cp-note{font-size:10.5px;color:var(--muted);text-align:right;max-width:130px;line-height:1.3;}
+.seg-ctl.sm button{height:24px;padding:0 7px;font-size:11px;}
+.cp-foot{padding:9px 13px;font-size:11px;color:var(--muted);background:var(--surface-2);}
+.cellin{width:52px;height:26px;padding:0 6px;border:1px solid var(--rule);border-radius:4px;text-align:right;
+  font-family:var(--mono);font-size:12.5px;background:var(--surface);color:var(--ink);font-variant-numeric:tabular-nums;}
+.cellin:hover{border-color:var(--muted);}
+.cellin:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+.cellin:disabled{background:var(--surface-2);color:var(--muted);border-color:var(--rule-soft);}
+.carry{display:block;font-family:var(--mono);font-size:9.5px;color:var(--muted);text-align:right;margin-top:1px;line-height:1;}
+td.tot{font-weight:600;color:var(--ink);background:var(--surface-2);}
+td.gtot{font-weight:700;color:var(--accent);background:var(--accent-soft);}
+.empty-state{padding:56px 24px;text-align:center;color:var(--muted);}
+.empty-state .t{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:5px;}
+
+.commit{height:52px;flex-shrink:0;background:var(--surface);border-top:1px solid var(--rule);
+  display:flex;align-items:center;gap:16px;padding:0 16px;box-shadow:0 -2px 8px rgba(16,32,45,.05);overflow-x:auto;}
+.commit .stat{display:flex;align-items:baseline;gap:7px;white-space:nowrap;}
+.commit .stat .v{font-family:var(--mono);font-size:16px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;}
+.commit .stat .k{font-size:11.5px;color:var(--muted);}
+.commit .div{width:1px;height:24px;background:var(--rule);flex-shrink:0;}
+.commit .right{margin-left:auto;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.commit .saved{font-size:11.5px;color:var(--muted);white-space:nowrap;}
+
+.scrim{display:none;position:fixed;inset:0;background:rgba(16,32,45,.42);z-index:60;}
+.scrim.on{display:block;}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:396px;max-width:92vw;background:var(--surface);
+  z-index:61;box-shadow:var(--shadow-lg);display:none;flex-direction:column;}
+.drawer.on{display:flex;}
+.dr-head{padding:16px 18px 14px;border-bottom:1px solid var(--rule);display:flex;gap:12px;align-items:flex-start;}
+.dr-head h3{margin:0;font-size:15.5px;font-weight:600;line-height:1.3;}
+.dr-head .cd{font-family:var(--mono);font-size:11.5px;color:var(--accent);margin-top:3px;}
+.dr-close{width:28px;height:28px;flex-shrink:0;margin-left:auto;border:none;border-radius:5px;
+  background:transparent;color:var(--muted);font-size:16px;}
+.dr-close:hover{background:var(--surface-2);color:var(--ink);}
+.dr-body{flex:1;overflow-y:auto;padding:4px 18px 24px;}
+.dr-sec{padding:15px 0;border-bottom:1px solid var(--rule-soft);}
+.dr-sec:last-child{border-bottom:none;}
+.dr-sec h4{margin:0 0 9px;font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);}
+.dr-i{display:flex;align-items:baseline;gap:8px;font-size:12.5px;padding:4px 0;border-bottom:1px solid var(--rule-soft);}
+.dr-i .k{color:var(--muted);}
+.dr-i .v{margin-left:auto;font-family:var(--mono);font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;}
+.dr-i .v.w{color:var(--warn);} .dr-i .v.c{color:var(--crit);}
+.dr-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;}
+.dr-src{font-size:11px;color:var(--muted);margin-top:8px;}
+
+.modal{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;padding:20px;
+  background:rgba(16,32,45,.48);}
+.modal.on{display:flex;}
+.mbox{background:var(--surface);border-radius:10px;width:100%;max-width:480px;max-height:86vh;
+  display:flex;flex-direction:column;box-shadow:var(--shadow-lg);overflow:hidden;}
+.mbox.wide{max-width:560px;}
+.mhead{padding:18px 20px 14px;border-bottom:1px solid var(--rule);}
+.mhead h3{margin:0;font-size:17px;font-weight:600;}
+.mhead .s{font-size:12.5px;color:var(--muted);margin-top:3px;}
+.mbody{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:14px;}
+.mrow{display:flex;align-items:baseline;gap:10px;font-size:13.5px;padding:7px 0;border-bottom:1px solid var(--rule-soft);}
+.mrow .k{color:var(--ink-2);}
+.mrow .v{margin-left:auto;font-family:var(--mono);font-weight:600;font-size:14.5px;color:var(--ink);font-variant-numeric:tabular-nums;}
+.notice{border-radius:6px;padding:11px 13px;font-size:12.5px;display:flex;gap:9px;align-items:flex-start;line-height:1.5;}
+.n-warn{background:var(--warn-soft);color:var(--warn);}
+.n-acc{background:var(--accent-soft);color:var(--accent-2);}
+.n-add{background:var(--add-soft);color:var(--add);}
+.mfoot{padding:14px 20px;border-top:1px solid var(--rule);display:flex;gap:10px;justify-content:flex-end;align-items:center;}
+.mfoot .l{margin-right:auto;font-size:12px;color:var(--muted);}
+.addsearch{padding:0 0 4px;}
+.addsearch input{width:100%;height:34px;padding:0 11px;border:1px solid var(--rule);border-radius:5px;
+  font-size:13px;background:var(--surface);color:var(--ink);}
+.addsearch input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+.addlist{border:1px solid var(--rule);border-radius:6px;max-height:264px;overflow-y:auto;}
+.addlist::-webkit-scrollbar{width:8px;}
+.addlist::-webkit-scrollbar-thumb{background:var(--rule);border-radius:4px;}
+.addopt{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;width:100%;background:none;
+  border:none;border-bottom:1px solid var(--rule-soft);text-align:left;color:var(--ink);}
+.addopt:last-child{border-bottom:none;}
+.addopt:hover{background:var(--surface-2);}
+.addopt .bx{width:15px;height:15px;flex-shrink:0;margin-top:2px;border:1.5px solid var(--rule);border-radius:3px;
+  display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;}
+.addopt.on .bx{background:var(--add);border-color:var(--add);}
+.addopt .d1{font-size:12.5px;font-weight:500;}
+.addopt .d2{font-family:var(--mono);font-size:11px;color:var(--accent);margin-top:1px;}
+.csvbox{width:100%;height:170px;border:1px solid var(--rule);border-radius:6px;padding:9px;
+  font-family:var(--mono);font-size:11px;background:var(--surface-2);color:var(--ink-2);resize:none;white-space:pre;}
+.toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(10px);z-index:80;
+  background:var(--bar);color:#fff;padding:10px 16px;border-radius:6px;font-size:13px;
+  box-shadow:var(--shadow-lg);opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;}}
+@media (max-width:900px){
+  .rail{position:absolute;left:0;top:0;bottom:52px;z-index:30;box-shadow:var(--shadow-lg);}
+  .rail.collapsed{width:46px;}
+  .tb-status .seg:nth-child(n+2){display:none;}
+  .srch input{width:160px;}
+}
+</style>
+</head>
+<body>
+<!-- ══ LOGIN ══ -->
+<div id="login">
+  <div class="lg-shell">
+    <div>
+      <div class="lg-logo">VECV<span>plan</span></div>
+      <div class="lg-cycle"><span>S&amp;OP-1A</span><b>Jul 2026</b><span>· Indent closes</span><b>15 Jul, 23:59 IST</b></div>
+    </div>
+    <form class="lg-card" onsubmit="doLogin(event)">
+      <h1>Sign in</h1>
+      <p class="sub">Dealer code or work email.</p>
+      <div class="fld" id="fId">
+        <label for="lgId">Dealer code or email</label>
+        <input id="lgId" type="text" value="DLR-1002" autocomplete="username" oninput="clearErr()">
+        <span class="err">⚠ We don't recognise that dealer code.</span>
+      </div>
+      <div class="fld" id="fPw">
+        <label for="lgPw">Password <button type="button" class="link hint" onclick="toast('A reset link would go to the address on file')">Forgot password?</button></label>
+        <input id="lgPw" type="password" value="demo-password" autocomplete="current-password" oninput="clearErr()">
+        <span class="err">⚠ Incorrect password. 4 attempts left before the account locks.</span>
+      </div>
+      <button type="submit" class="btn btn-primary" style="height:38px;justify-content:center;font-size:14px;">Sign in</button>
+      <div class="lg-or">or</div>
+      <button type="button" class="btn btn-ghost" style="height:38px;justify-content:center;font-size:13.5px;" onclick="doLogin(event)">Sign in with VECVNet SSO</button>
+      <p class="lg-foot">Trouble signing in? Contact Sales Planning support</p>
+    </form>
+    <p class="lg-note">Prototype · your role and verticals come from your account</p>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+  <div class="topbar">
+    <div class="tb-logo">VECV<span>plan</span></div>
+    <nav class="tb-nav">
+      <button id="nvHome" class="on" onclick="go('home')">Home</button>
+      <button id="nvWb" onclick="go('wb')">Indent workbook</button>
+    </nav>
+    <div class="tb-status">
+      <span class="seg">S&amp;OP-1A · <b>Jul 2026</b></span>
+      <span class="seg">Closes in <span class="warnv" id="tbClock">—</span></span>
+      <span class="seg" id="tbState">Status: <b>Not submitted</b></span>
+    </div>
+    <div class="tb-right">
+      <button class="tb-icon" onclick="toggleTheme()" title="Light / dark">◐</button>
+      <div class="tb-user">
+        <div class="tb-av">SM</div>
+        <div><div class="nm">Sharma Motors</div><div class="rl">DLR-1002 · Dealer</div></div>
+      </div>
+      <button class="tb-icon" onclick="signOut()" title="Sign out">⎋</button>
+    </div>
+  </div>
+
+  <div class="page">
+    <!-- HOME + SUMMARY -->
+    <div class="view on" id="vHome">
+      <div class="home-scroll"><div class="home-inner">
+        <div class="proto-strip">
+          <span class="pl">Prototype control</span>
+          <label for="personaSel">Viewing as</label>
+          <select id="personaSel" onchange="setPersona(this.value)"><option value="dealer" selected>Dealer — Sharma Motors</option><option value="asm">ASM — North Cluster</option><option value="rsm">RSM — North Region</option><option value="vh">Vertical Head — LMD</option><option value="iso">ISO — Central Planning</option></select>
+          <span class="np">Persona switching lives here, not in the product chrome</span>
+        </div>
+
+        <div class="home-head">
+          <div><h1 id="hGreet">Good afternoon, Sharma Motors</h1>
+            <div class="sub">July 2026 · LMD and HD · Delhi NCR, 3 outlets</div></div>
+          <div class="right">
+            <button class="btn btn-ghost" onclick="openExport()">Export</button>
+            <button class="btn btn-primary" onclick="go('wb')">Continue indent →</button>
+          </div>
+        </div>
+
+        <div class="zone"><span class="zl">Indent progress</span><span class="zr"></span>
+          <span class="zn" id="zProg"></span></div>
+        <div class="cards">
+          <div class="card lead">
+            <h3 id="hcTitle">Your July indent — LMD</h3>
+            <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;">
+              <div><div class="big" id="hcEntered">—</div><div class="cap" id="hcEnteredCap">of — lines entered</div></div>
+              <div><div class="big" id="hcUnits">—</div><div class="cap">units for July</div></div>
+              <div style="margin-left:auto"><span class="pill p-warn" id="hcStatus">Not submitted</span></div>
+            </div>
+            <div class="meter"><i id="hcMeter" style="width:0%"></i></div>
+            <div class="cap">Auto-submits <b>15 Jul, 23:59 IST</b> if you haven't sent it. Whatever is in the grid then is what goes up.</div>
+            <div class="acts">
+              <button class="btn btn-primary btn-sm" onclick="go('wb')">Continue</button>
+              <button class="btn btn-ghost btn-sm" onclick="go('wb');setTimeout(openReview,240)">Review &amp; submit</button>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Your verticals</h3>
+            <div id="hcVerts"></div>
+            <div class="cap" style="color:var(--muted)">Both close at the same cut-off.</div>
+          </div>
+          <div class="card">
+            <h3>Needs attention</h3>
+            <div id="hcAttn"></div>
+          </div>
+        </div>
+
+        <div class="zone"><span class="zl">Summary — <span id="zVert">LMD</span></span><span class="zr"></span>
+          <span class="zn">Reflects the filters you set in the workbook</span></div>
+        <div class="cards">
+          <div class="card">
+            <h3>Indent vs demand signal</h3>
+            <div style="display:flex;align-items:flex-end;gap:16px;">
+              <div><div class="big sm" id="kIndent">—</div><div class="cap">July indent</div></div>
+              <div><div class="big sm" id="kOfftake">—</div><div class="cap">3-month offtake</div></div>
+            </div>
+            <div class="cap"><span class="pill" id="kOfftakePill">—</span> against your own offtake run-rate</div>
+            <div class="cap" style="color:var(--muted)">Last cycle you planned <b id="kPrev">—</b> for July.
+              <span class="pill" id="kPrevPill">—</span></div>
+          </div>
+          <div class="card">
+            <h3>Stock on hand by age</h3>
+            <div style="display:flex;align-items:flex-end;gap:16px;">
+              <div><div class="big sm" id="kStock">—</div><div class="cap">units on hand</div></div>
+              <div><div class="big sm" id="kAged" style="color:var(--warn)">—</div><div class="cap">over 60 days</div></div>
+            </div>
+            <div class="sbar" id="kStockBar"></div>
+            <div class="slgd" id="kStockLgd"></div>
+            <div class="acts"><button class="btn btn-ghost btn-sm" onclick="jumpFilter('aged180')">Show over 180 days →</button></div>
+          </div>
+          <div class="card">
+            <h3>Demand mix — Runner / Repeater / Stranger</h3>
+            <div style="display:flex;align-items:flex-end;gap:16px">
+              <div><div class="big sm" id="kMixTotal">—</div><div class="cap">FERTs in your July indent</div></div>
+            </div>
+            <div class="sbar" id="kMixBar" style="margin-top:4px"></div>
+            <div class="slgd" id="kMixLgd"></div>
+            <div class="cap" style="color:var(--muted)" id="kMixCap"></div>
+          </div>
+          <div class="card">
+            <h3>Against ABP</h3>
+            <div class="big sm" style="color:var(--muted)">Not yet available</div>
+            <div class="cap" style="color:var(--muted)">Dealer-level ABP targets are being introduced this year and aren't reliable enough to score against. Your ASM sees the cluster figure.</div>
+          </div>
+          <div class="card full">
+            <h3>Your indent accuracy</h3>
+            <div style="display:flex;align-items:flex-end;gap:24px;flex-wrap:wrap;">
+              <div><div class="big sm" id="kAcc">—</div><div class="cap">4-cycle average</div></div>
+              <div><div class="big sm" id="kBias">—</div><div class="cap" id="kBiasCap">bias</div></div>
+              <div style="flex:1;min-width:160px;max-width:420px"><div class="spark" id="kSpark"></div></div>
+              <div style="margin-left:auto"><span class="pill" id="kAccPill">—</span></div>
+            </div>
+            <div class="cap" style="color:var(--muted)"><b>Indent</b> is what you asked for; <b>offtake</b> is what you actually took. Monthly, across all outlets and vehicles, Mar–Jun. Tolerance is ±10%.</div>
+            <div class="acts"><button class="btn btn-ghost btn-sm" id="accBtn" onclick="toggleAcc()">▸ View report card</button></div>
+          </div>
+        </div>
+
+        <div id="accPanel" style="display:none"></div>
+
+        <div class="zone"><span class="zl">Rollup</span><span class="zr"></span></div>
+        <div class="card" style="padding:12px 14px 10px;gap:10px">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <span style="font-size:11.5px;font-weight:600;color:var(--ink-2)">Group by</span>
+            <div class="seg-ctl" id="rollGb"></div>
+            <span style="margin-left:auto;font-size:11.5px;color:var(--muted)" id="rollNote"></span>
+          </div>
+          <div style="overflow-x:auto"><table class="sumtbl" id="rollTbl"></table></div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- WORKBOOK -->
+    <div class="view" id="vWb">
+      <div class="wb">
+        <aside class="rail" id="rail">
+          <div class="rail-head">
+            <span class="t">Filters</span><span class="cnt" id="railCnt" style="display:none">0</span>
+            <button class="rail-toggle" onclick="toggleRail()" id="railBtn" title="Collapse">‹</button>
+          </div>
+          <div class="rail-stub" onclick="toggleRail()"><span class="sc" id="stubCnt" style="display:none">0</span><span class="sb">Filters</span></div>
+          <div class="rail-body" id="railBody"></div>
+          <div class="rail-foot">
+            <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" onclick="clearAll()">Clear all</button>
+            <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" onclick="saveView()">Save view</button>
+          </div>
+        </aside>
+
+        <div class="wb-main">
+          <div class="strip">
+            <select class="vsel" id="vertSel" onchange="setVert(this.value)">
+              <option value="lmd">LMD</option><option value="hd">HD</option>
+            </select>
+            <div class="srch"><span class="ic">⌕</span>
+              <input id="qBox" type="text" placeholder="Search code or description" oninput="setQ(this.value)"></div>
+            <div class="aft" id="aft"></div>
+            <div class="right">
+              <span class="rescount" id="resCount"></span>
+              <span class="sep"></span>
+              <button class="btn btn-add btn-sm" onclick="openAdd()">+ Add FERT</button>
+              <button class="btn btn-ghost btn-sm" onclick="openExport()">Export</button>
+              <div class="seg-ctl">
+                <button id="dnComf" class="on" onclick="setDensity(0)">Comfortable</button>
+                <button id="dnComp" onclick="setDensity(1)">Compact</button>
+              </div>
+              <div style="position:relative">
+                <button class="btn btn-ghost btn-sm" id="colBtn" onclick="toggleColPop(event)">☷ Columns</button>
+                <div class="colpop" id="colPop" style="display:none" onclick="event.stopPropagation()"></div>
+              </div>
+            </div>
+          </div>
+          <div class="grid-wrap" id="gridWrap">
+            <table class="grid" id="grid"><thead id="gHead"></thead><tbody id="gBody"></tbody></table>
+            <div class="empty-state" id="gEmpty" style="display:none">
+              <div class="t">No lines match these filters</div>
+              <div>Clear a filter to bring lines back — your entries are untouched.</div>
+              <div style="margin-top:12px"><button class="btn btn-ghost btn-sm" onclick="clearAll()">Clear all filters</button></div>
+            </div>
+          </div>
+          <div class="commit" id="commit"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="scrim" id="scrim" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer" aria-label="Line detail"></aside>
+
+<div class="modal" id="review"><div class="mbox">
+  <div class="mhead"><h3>Review &amp; submit</h3><div class="s" id="revSub"></div></div>
+  <div class="mbody" id="reviewBody"></div>
+  <div class="mfoot"><button class="btn btn-ghost" onclick="closeM('review')">Cancel</button>
+    <button class="btn btn-primary" onclick="doSubmit()">Submit indent</button></div>
+</div></div>
+
+<div class="modal" id="addM"><div class="mbox">
+  <div class="mhead"><h3>Add FERT to your indent</h3><div class="s" id="addSub"></div></div>
+  <div class="mbody">
+    <div class="notice n-add"><span>ⓘ</span><div>These are codes you haven't ordered in the last 12 months, so they aren't in your list. Added lines are flagged for your ASM.</div></div>
+    <div class="addsearch"><input id="addQ" type="text" placeholder="Search code or description…" oninput="renderAdd()"></div>
+    <div class="addlist" id="addList"></div>
+  </div>
+  <div class="mfoot"><span class="l" id="addCount">None selected</span>
+    <button class="btn btn-ghost" onclick="closeM('addM')">Cancel</button>
+    <button class="btn btn-primary" onclick="confirmAdd()">Add selected</button></div>
+</div></div>
+
+<div class="modal" id="expM"><div class="mbox wide">
+  <div class="mhead"><h3>Export</h3><div class="s" id="expSub"></div></div>
+  <div class="mbody">
+    <div class="notice n-acc"><span>ⓘ</span><div>In the live product this downloads a file. Here it's on screen so you can check the shape — select all and copy.</div></div>
+    <textarea class="csvbox" id="csvBox" readonly onclick="this.select()"></textarea>
+  </div>
+  <div class="mfoot"><button class="btn btn-ghost" onclick="closeM('expM')">Close</button>
+    <button class="btn btn-primary" onclick="copyCsv()">Copy to clipboard</button></div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ════════ DATA ════════
+ tuple: 0 code 1 desc 2 mpg 3 ton 4 fuel 5 ac 6 seg 7 subV
+ 8 st<60 9 st60-90 10 st90-180 11 st>180 12 openFg 13 openPO 14 offtakeL3 15 prevPlan 16-19 w1-w4 20 aug 21 sep */
+const LMD_RAW=[
+["V4130CAF","Pro 2110 H HSD 20FT BSVI NGB AC","Pro 2110","21T","Diesel","AC","R","5–16T",4,2,1,1,4,1,84,95,24,23,23,22,88,82],
+["V4030DZL","Pro 2110 L CBC 22FT BSVI NGB AC","Pro 2110","21T","Diesel","AC","R","5–16T",17,0,0,0,17,0,71,75,19,18,18,18,70,65],
+["V4131SLP","Pro 2110 M SLP 24FT BSVI NGB","Pro 2110","21T","Diesel","NonAC","S","5–16T",3,1,0,0,3,2,38,40,10,10,9,9,36,34],
+["V5530TKR","Pro 2059XP Plus F HSD EW 14FT BSVI AC","Pro 2059XP","14T","Diesel","AC","R","5–16T",1,0,1,0,1,0,42,38,9,8,8,8,35,32],
+["V5531CBC","Pro 2059XP E CBC 14FT BSVI AC POR","Pro 2059XP","14T","Diesel","AC","R","5–16T",2,1,0,0,2,1,36,34,9,8,8,7,32,30],
+["V5532SLP","Pro 2059XP M SLP CBC BSVI SRSS WTL","Pro 2059XP","14T","Diesel","NonAC","S","5–16T",0,2,1,0,3,0,18,20,5,4,4,4,17,16],
+["V4025EXP","Pro 2095XPT D FBT BSVI LY PRM","Pro 2095XPT","16T","Diesel","NonAC","S","5–16T",3,1,1,0,5,2,30,26,8,8,7,7,28,26],
+["V3515SUB","Pro 2095XP F HSD 16FT BSVI AC NGB","Pro 2095XP","16T","Diesel","AC","R","5–16T",6,1,1,0,8,1,36,42,10,10,9,9,38,35],
+["V3516WTK","Pro 2095 F 16FT WTANK BSVI AC NGB 5S","Pro 2095XP","16T","Diesel","AC","S","5–16T",1,0,0,0,1,0,14,16,4,4,3,3,13,12],
+["V3517MSC","Pro 2095XP G MSC BSVI AC 5S POR PRM","Pro 2095XP","16T","Diesel","AC","D","5–16T",0,1,1,1,3,0,6,9,2,1,1,1,6,5],
+["V3518CNG","Pro 2095XP F CNG 16FT BSVI AC NGB","Pro 2095XP","16T","CNG","AC","S","5–16T",2,0,0,0,2,3,22,18,6,5,5,5,21,20],
+["V2875CBC","Pro 2075 D CBC 12FT AB BSVI AC DW 5S","Pro 2075","18T","Diesel","AC","R","5–16T",5,2,0,0,7,1,48,52,13,12,12,12,46,44],
+["V2876PRI","Pro 2075 F PRI VAN 4G BSVI ABS NB","Pro 2075","18T","Diesel","NonAC","D","5–16T",1,1,0,1,2,0,7,8,2,2,1,1,6,6],
+["V2877TCS","Pro 2075 E TCST BSVI PS NGB BASE","Pro 2075","18T","Diesel","NonAC","S","5–16T",0,0,2,0,2,0,15,14,4,4,3,3,14,13],
+["V2680LHD","Pro 2080 G DSD 18FT BSVI DW BASE","Pro 2080","20T","Diesel","NonAC","R","5–16T",4,1,0,0,5,2,40,38,10,10,10,9,38,36],
+["V2681HVA","Pro 2080 LX F DSD 16FT AB DW","Pro 2080","20T","Diesel","AC","S","5–16T",2,0,1,0,3,0,24,22,6,6,5,5,22,20],
+["V2490CBC","Pro 2049 D BSVI 14FT CBC DW PRM","Pro 2049","12T","Diesel","NonAC","R","5–16T",3,1,0,0,4,1,44,46,12,11,11,11,42,40],
+["V2491FBT","Pro 2049 C FBT BSVI 12FT HB","Pro 2049","12T","Diesel","NonAC","S","5–16T",1,2,0,0,3,0,20,18,5,5,4,4,18,17],
+["V2492CNG","Pro 2049 D CNG BSVI 14FT CBC","Pro 2049","12T","CNG","NonAC","S","5–16T",0,0,0,0,0,4,16,12,5,4,4,4,16,16],
+["V2114HRB","Pro 2114XP H 20FT BSVI RB 7S WTMS AC","Pro 2114XP","21T","Diesel","AC","S","5–16T",2,1,0,0,3,1,18,16,5,4,4,4,16,15],
+["V2115SLP","Pro 2114XP J SLP HSD 20FT BSVI NGB","Pro 2114XP","21T","Diesel","NonAC","D","5–16T",0,1,1,1,3,0,5,6,1,1,1,1,4,4],
+["V3015MSL","Pro 3015 M SLP CBC BSVI TY PRM","Pro 3015","15T","Diesel","NonAC","R","5–16T",5,0,0,0,5,2,34,32,9,8,8,8,31,30],
+["V3016JCB","Pro 3015 J CBC BSVI NABS TY PRM","Pro 3015","15T","Diesel","NonAC","R","5–16T",3,1,0,0,4,1,30,28,8,7,7,7,27,26],
+["V3017HSD","Pro 3015 J SLP HSD PS BSVI","Pro 3015","15T","Diesel","NonAC","S","5–16T",1,0,1,0,2,0,14,15,4,3,3,3,13,12],
+["V1095XPC","Pro 1095XP H CBC BSVI AB PS TY 4.7","Pro 1095XP","9T","Diesel","AC","S","Sub-5T",3,1,0,0,4,1,26,24,7,6,6,6,24,22],
+["V1096XPF","Pro 1095XP F CBC BSVI PS NGB BASE","Pro 1095XP","9T","Diesel","NonAC","R","Sub-5T",4,0,0,0,4,2,32,30,8,8,8,7,29,28],
+["V1075HCB","Pro 1075 H CBC RHD BSVI AB PRM TY","Pro 1075","7.5T","Diesel","NonAC","R","Sub-5T",2,1,0,0,3,0,28,26,7,7,6,6,25,24],
+["V1076FCB","Pro 1075 F CBC RHD BSVI AB PS TY","Pro 1075","7.5T","Diesel","AC","S","Sub-5T",1,0,1,0,2,1,19,18,5,5,4,4,17,16],
+["V1077DCK","Pro 1075 D DECK 10FT BSVI HB","Pro 1075","7.5T","Diesel","NonAC","D","Sub-5T",0,1,0,1,2,0,6,7,2,1,1,1,5,5],
+["V1055C1C","Pro 1055 C1 CBC BSVI 4.7 HB TY PRM","Pro 1055","5.5T","Diesel","NonAC","R","Sub-5T",6,1,0,0,7,2,36,34,10,9,9,8,33,31],
+["V1056C1P","Pro 1055 C1 CBC BSVI 4.7 HB PB PRM","Pro 1055","5.5T","Diesel","NonAC","S","Sub-5T",2,2,0,0,4,0,22,20,6,5,5,5,20,19],
+["V1057NGC","Pro 1055 NG 4.9T BSVI NonAC CNG","Pro 1055","4.9T","CNG","NonAC","R","Sub-5T",3,0,0,0,3,3,18,20,5,5,4,4,18,16],
+["V1058RFR","Pro 1055 Reefer 4.9T BSVI","Pro 1055","4.9T","Diesel","AC","D","Sub-5T",0,0,1,1,2,0,4,5,1,1,1,0,4,4],
+["V1112XPG","Pro 1112XP G CBC 17FT BSVI PS TY","Pro 1112XP","11T","Diesel","NonAC","S","5–16T",2,1,0,0,3,1,21,20,6,5,5,5,19,18],
+["V1113XPH","Pro 1112XP H SLP 17FT BSVI NGB","Pro 1112XP","11T","Diesel","NonAC","D","5–16T",1,0,1,0,2,0,8,9,2,2,2,2,8,7],
+["V1080XPT","Pro 1080XPT C 3.5FBT BSVI AB PS TY","Pro 1080XPT","8T","Diesel","AC","S","Sub-5T",2,1,0,0,3,0,20,19,5,5,5,4,18,17],
+["V1081XPD","Pro 1080XPT D CBC BSVI PS HB","Pro 1080XPT","8T","Diesel","NonAC","R","Sub-5T",3,0,0,0,3,1,27,26,7,7,6,6,25,23],
+["V2055XPC","Pro 2055XP C CBC BSVI HB TEL DW","Pro 2055XP","21T","Diesel","AC","S","5–16T",1,1,0,0,2,0,16,15,4,4,4,3,15,14],
+["V2056XPD","Pro 2055XP D DSD 12FT BSVI HB DW","Pro 2055XP","21T","Diesel","AC","S","5–16T",0,1,0,0,1,2,13,12,4,3,3,3,12,11],
+["V2065XPE","Pro 2065XP E CBC BSVI HB PS DW","Pro 2065XP","21T","Diesel","AC","D","5–16T",1,0,1,0,2,0,7,8,2,2,1,1,6,6],
+["V2090JE3","Pro 2090 J BSVI AB ABS NGB","Pro 2090","9T","Diesel","NonAC","S","Sub-5T",2,0,0,0,2,1,17,16,5,4,4,4,16,15],
+["V3210SUB","Pro 3210 Sub-5T Diesel CBC","Pro 3210","4.9T","Diesel","NonAC","S","Sub-5T",1,1,0,0,2,0,12,11,3,3,3,3,11,10],
+["V4140LPG","Pro 4140 LPG Flatbed BSVI","Pro 4140","14T","CNG","NonAC","D","5–16T",0,0,0,0,0,0,3,4,0,0,0,0,0,0],
+["V5020REF","Pro 5020 Reefer BSVI 16FT","Pro 5020","16T","Diesel","AC","D","5–16T",0,0,1,0,1,0,4,5,0,0,0,0,0,0],
+["V2059TIP","Pro 2059 Tipper 6CuM BSVI","Pro 2059XP","14T","Diesel","NonAC","D","5–16T",0,1,0,0,1,0,5,6,0,0,0,0,0,0],
+["V1075TIP","Pro 1075 Tipper 4CuM BSVI","Pro 1075","7.5T","Diesel","NonAC","D","Sub-5T",1,0,0,0,1,0,4,4,0,0,0,0,0,0],
+["V2110CNG","Pro 2110 H CNG 20FT BSVI NGB AC","Pro 2110","21T","CNG","AC","S","5–16T",0,0,0,0,0,2,9,7,0,0,0,0,0,0],
+["V3015CNG","Pro 3015 M CNG SLP CBC BSVI","Pro 3015","15T","CNG","NonAC","D","5–16T",0,0,0,0,0,0,3,3,0,0,0,0,0,0],
+["V2095WTL","Pro 2095XP H WTL 16FT BSVI AC 7S","Pro 2095XP","16T","Diesel","AC","S","5–16T",1,0,0,0,1,1,11,10,3,3,3,2,10,9],
+["V2075MSC","Pro 2075 E MSC 14FT BSVI AC POR","Pro 2075","18T","Diesel","AC","S","5–16T",2,1,0,0,3,0,17,16,5,4,4,4,15,14],
+["V1095WTL","Pro 1095XP J WTL BSVI PS NGB 5S","Pro 1095XP","9T","Diesel","NonAC","S","Sub-5T",1,1,0,0,2,0,13,12,4,3,3,3,12,11],
+["V2049WTK","Pro 2049 E WTANK 12FT BSVI DW","Pro 2049","12T","Diesel","NonAC","S","5–16T",0,1,1,0,2,0,10,11,3,3,2,2,10,9],
+];
+const HD_RAW=[
+["H6028XPG","Pro 6028XPT G BSVI DW PRM 11X20 16BB","Pro 6028","28T","Diesel","AC","R","HD 4x2",2,1,0,0,3,1,22,24,0,0,0,0,0,0],
+["H6028CBC","Pro 6028XPT G BSVI DW PRM 11R20 CBC","Pro 6028","28T","Diesel","AC","R","HD 4x2",1,0,0,0,1,2,18,20,0,0,0,0,0,0],
+["H6019XPF","Pro 6019XPT F BSVI DW 11X20 8.5B UTEB","Pro 6019","19T","Diesel","NonAC","R","HD 4x2",3,1,0,0,4,0,26,28,0,0,0,0,0,0],
+["H6019SLP","Pro 6019 J SLP HSD 20FT BSVI NGB 7S","Pro 6019","19T","Diesel","NonAC","S","HD 4x2",1,1,1,0,3,0,14,15,0,0,0,0,0,0],
+["H8028TIP","Pro 8028 6x4 Tipper BSVI","Pro 8028","28T","Diesel","NonAC","S","Tipper",0,1,0,1,2,0,9,11,0,0,0,0,0,0],
+["H6030TIP","Pro 6030 Tipper 18CuM BSVI","Pro 6030","30T","Diesel","NonAC","S","Tipper",2,0,0,0,2,1,12,13,0,0,0,0,0,0],
+["H6035TIP","Pro 6035 Tipper 20CuM BSVI","Pro 6035","35T","Diesel","AC","S","Tipper",1,1,0,0,2,0,8,9,0,0,0,0,0,0],
+["H6040MAV","Pro 6040 E BSVI CBC MAV 10x2","Pro 6040","40T","Diesel","AC","R","MAV",3,0,0,0,3,2,20,22,0,0,0,0,0,0],
+["H6055MAV","Pro 6055 BSVI MAV 12x2 HSD","Pro 6055","55T","Diesel","AC","S","MAV",1,0,1,0,2,0,10,11,0,0,0,0,0,0],
+["H5516TTR","Pro 5516 Tractor Trailer BSVI 4x2","Pro 5516","16T","Diesel","AC","R","Tractor Trailer",2,1,0,0,3,1,16,17,0,0,0,0,0,0],
+["H5525TTR","Pro 5525 Tractor Trailer BSVI 6x4","Pro 5525","25T","Diesel","AC","S","Tractor Trailer",1,0,0,0,1,0,11,12,0,0,0,0,0,0],
+["H6019CNG","Pro 6019 F CNG BSVI 11X20 DW","Pro 6019","19T","CNG","NonAC","D","HD 4x2",0,0,0,0,0,1,4,5,0,0,0,0,0,0],
+["H6028CNG","Pro 6028XPT CNG BSVI DW PRM","Pro 6028","28T","CNG","AC","D","HD 4x2",0,0,1,0,1,0,3,4,0,0,0,0,0,0],
+["H8035TIP","Pro 8035 8x4 Tipper BSVI","Pro 8035","35T","Diesel","NonAC","D","Tipper",0,1,0,1,2,0,5,6,0,0,0,0,0,0],
+["H6040CBC","Pro 6040 D CBC BSVI MAV NGB","Pro 6040","40T","Diesel","NonAC","S","MAV",1,1,0,0,2,0,9,10,0,0,0,0,0,0],
+["H5516CBC","Pro 5516 CBC BSVI 4x2 PS HB","Pro 5516","16T","Diesel","NonAC","S","Tractor Trailer",2,0,0,0,2,1,13,14,0,0,0,0,0,0],
+["H6019WTL","Pro 6019 H WTL 20FT BSVI AC 7S","Pro 6019","19T","Diesel","AC","S","HD 4x2",1,0,0,0,1,0,7,8,0,0,0,0,0,0],
+["H6030CBC","Pro 6030 CBC BSVI 6x4 HSD NGB","Pro 6030","30T","Diesel","NonAC","D","Tipper",0,0,1,0,1,0,4,5,0,0,0,0,0,0],
+];
+/* catalogue for Add FERT — codes not in the dealer's own list */
+const CATALOG={
+ lmd:[["V4141LPG","Pro 4140 LPG Flatbed 16FT BSVI","Pro 4140","14T","CNG","NonAC","S","5–16T"],
+      ["V5021REF","Pro 5020 Reefer 20FT BSVI AC","Pro 5020","16T","Diesel","AC","D","5–16T"],
+      ["V3211SUB","Pro 3210 Sub-5T CNG CBC","Pro 3210","4.9T","CNG","NonAC","S","Sub-5T"],
+      ["V2093JE3","Pro 2090 J E3 AB ABS NGB EXP","Pro 2090","9T","Diesel","NonAC","R","Sub-5T"],
+      ["V2112HRB","Pro 2114XP H 24FT BSVI RB 7S AC","Pro 2114XP","21T","Diesel","AC","S","5–16T"],
+      ["V1059TIP","Pro 1055 Tipper 3CuM BSVI","Pro 1055","5.5T","Diesel","NonAC","D","Sub-5T"],
+      ["V2496SLP","Pro 2049 M SLP CBC BSVI TY","Pro 2049","12T","Diesel","NonAC","S","5–16T"],
+      ["V3519AMB","Pro 2095XP Ambulance BSVI AC","Pro 2095XP","16T","Diesel","AC","D","5–16T"]],
+ hd:[["H6058MAV","Pro 6055 BSVI MAV 14x2 CBC","Pro 6055","55T","Diesel","AC","S","MAV"],
+     ["H8040TIP","Pro 8040 8x4 Tipper 24CuM BSVI","Pro 8035","35T","Diesel","NonAC","S","Tipper"],
+     ["H5530TTR","Pro 5530 Tractor Trailer BSVI 6x4 AC","Pro 5525","25T","Diesel","AC","R","Tractor Trailer"],
+     ["H6021XPF","Pro 6019XPT F BSVI DW 11R20 CBC","Pro 6019","19T","Diesel","NonAC","S","HD 4x2"]]
+};
+const ACC_HIST=[{m:'Mar',ind:286,off:268},{m:'Apr',ind:292,off:279},{m:'May',ind:288,off:265},{m:'Jun',ind:296,off:271}];
+/* the dealer group's three outlets — accuracy is reported per outlet as well as per FERT */
+const OUTLETS=[
+ {name:'Sharma Motors — Karol Bagh',code:'DLR-1002-01',
+  hist:[{m:'Mar',ind:129,off:121},{m:'Apr',ind:131,off:126},{m:'May',ind:130,off:119},{m:'Jun',ind:133,off:122}]},
+ {name:'Sharma Motors — Lajpat Nagar',code:'DLR-1002-02',
+  hist:[{m:'Mar',ind:92,off:86},{m:'Apr',ind:94,off:89},{m:'May',ind:92,off:85},{m:'Jun',ind:95,off:87}]},
+ {name:'Sharma Motors — Rohini',code:'DLR-1002-03',
+  hist:[{m:'Mar',ind:65,off:61},{m:'Apr',ind:67,off:64},{m:'May',ind:66,off:61},{m:'Jun',ind:68,off:62}]},
+];
+const TOL=10;
+function accStats(hist){
+  const pcts=hist.map(h=>Math.round(Math.min(h.ind,h.off)/Math.max(h.ind,h.off,1)*100));
+  const avg=Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length);
+  const ti=hist.reduce((a,h)=>a+h.ind,0), to=hist.reduce((a,h)=>a+h.off,0);
+  const bias=to?Math.round((ti/to-1)*100):0;
+  return {pcts,avg,bias,ti,to};
+}
+/* per-FERT indent-vs-offtake history, derived deterministically from the line's own offtake */
+function fertHist(d){
+  if(d._h)return d._h;
+  const seed=[...d.code].reduce((a,c)=>a+c.charCodeAt(0),0);
+  const base=Math.max(1,Math.round(d.o3/3));
+  d._h=['Mar','Apr','May','Jun'].map((m,i)=>{
+    const ind=Math.max(1,base+((seed+i*7)%5)-2);
+    const off=Math.max(0,ind+((seed*(i+3))%5)-2);
+    return {m,ind,off};
+  });
+  return d._h;
+}
+const SEGNAME={R:'Runner',S:'Repeater',D:'Stranger'};
+const SEGCOL={R:'var(--ok)',S:'var(--warn)',D:'var(--crit)'};
+
+let uid=0;
+function mk(r,added,vertKey){
+  const o3=r[14]!==undefined?r[14]:0;
+  const codeSeed=[...r[0]].reduce((a,c)=>a+c.charCodeAt(0),0);
+  const lastTxnMonths=[3,6,12][codeSeed%3];
+  return {i:uid++, code:r[0], desc:r[1], mpg:r[2], ton:r[3], fuel:r[4], ac:r[5], seg:r[6], sv:r[7], vert:vertKey,
+    s60:r[8]||0,s90:r[9]||0,s180:r[10]||0,sOver:r[11]||0,openFg:r[12]||0,openPO:r[13]||0,
+    o3, o6:Math.round(o3*2.05), o12:Math.round(o3*4.1), oly:Math.round(o3*3.6),
+    r3:Math.round(o3*0.42), r6:Math.round(o3*0.86), r12:Math.round(o3*1.7), rly:Math.round(o3*1.5),
+    /* Eicher's own FERT segmentation — a separate classification from the dealer's, and it
+       does not always agree. Derived here so the divergence is visible in the prototype. */
+    eseg:(()=>{const h=[...r[0]].reduce((a,c)=>a+c.charCodeAt(0),0);
+      return h%4===0?({R:'S',S:'D',D:'R'})[r[6]]:r[6];})(),
+    prev:r[15]||0, added:!!added, lastTxnMonths,
+    conf:Math.round(o3*.40), fa:Math.round(o3*.35), fc:Math.round(o3*.25), hot:Math.round(o3*2.05*.60),
+    v:[r[16]||0,r[17]||0,r[18]||0,r[19]||0,r[20]||0,r[21]||0],
+    carry:(()=>{const p=r[15]||0,a=Math.round(p*.26),b=Math.round(p*.25),c=Math.round(p*.25);return [a,b,c,p-a-b-c,p,0];})()};
+}
+const SETS={lmd:LMD_RAW.map(r=>mk(r,false,'lmd')), hd:HD_RAW.map(r=>mk(r,false,'hd'))};
+const VERTNAME={lmd:'LMD',hd:'HD'};
+let vert='lmd';
+let D=SETS[vert];
+
+/* ════════ FILTER MODEL — every filter is the same control ════════ */
+const FKEYS=['vert','fert','sv','seg','mpg','ton','fuel','ac','hist','flag'];
+let F={}; FKEYS.forEach(k=>F[k]=new Set());
+F.vert.add(vert);
+let q='', showRef=false, compact=false, railOpen=true, submitted={lmd:false,hd:false}, savedViews=[];
+let sortKey=null, sortDir=-1;
+const FLAGS=[['noentry','No entry yet'],['added','Added by me'],['aged180','Stock over 180 days'],
+             ['aged90','Stock over 90 days'],['aged60','Stock over 60 days'],['swing','More than ±20% vs last cycle']];
+const HIST=[['3','Last 3 months'],['6','Last 6 months'],['12','Last 12 months'],['all','All FERTs']];
+
+const stockTot=d=>d.s60+d.s90+d.s180+d.sOver;
+const jul=d=>d.v[0]+d.v[1]+d.v[2]+d.v[3];
+const gTot=d=>jul(d)+d.v[4]+d.v[5];
+const hasEntry=d=>d.v.some(x=>x>0);
+const swings=d=>d.prev? Math.abs(jul(d)-d.prev)/d.prev>0.2 : false;
+function matchFlag(d,f){
+  if(f==='noentry')return !hasEntry(d);
+  if(f==='added')return d.added;
+  if(f==='aged180')return d.sOver>0;
+  if(f==='aged90')return d.s180+d.sOver>0;
+  if(f==='aged60')return d.s90+d.s180+d.sOver>0;
+  if(f==='swing')return swings(d);
+  return true;
+}
+const VALOF={fert:'code',sv:'sv',seg:'seg',mpg:'mpg',ton:'ton',fuel:'fuel',ac:'ac',vert:'vert'};
+const histMatches=(d,range)=>range==='all'||d.lastTxnMonths<=parseInt(range,10);
+function pass(d,skip){
+  for(const k of FKEYS){
+    if(k===skip)continue;
+    if(!F[k].size)continue;
+    if(k==='flag'){ if(![...F.flag].every(f=>matchFlag(d,f)))return false; }
+    else if(k==='hist'){ if(![...F.hist].some(h=>histMatches(d,h)))return false; }
+    else if(!F[k].has(d[VALOF[k]]))return false;
+  }
+  if(q){const s=q.toLowerCase(); if(!(d.code.toLowerCase().includes(s)||d.desc.toLowerCase().includes(s)))return false;}
+  return true;
+}
+function optCount(key,val){
+  if(key==='vert')return (SETS[val]||[]).length;
+  return D.filter(d=>{ if(!pass(d,key))return false;
+    if(key==='flag')return matchFlag(d,val);
+    if(key==='hist')return histMatches(d,val);
+    return d[VALOF[key]]===val; }).length;
+}
+const activeCount=()=>FKEYS.reduce((a,k)=>a+F[k].size,0);
+const SORTV={desc:d=>d.desc,code:d=>d.code,eseg:d=>SEGNAME[d.eseg],sv:d=>d.sv,mpg:d=>d.mpg,
+  fuel:d=>d.fuel,ac:d=>d.ac,ton:d=>d.ton,
+  stock:stockTot,s60:d=>d.s60,s90:d=>d.s90,s180:d=>d.s180,sOver:d=>d.sOver,
+  openFg:d=>d.openFg,openPO:d=>d.openPO,conf:d=>d.conf,fa:d=>d.fa,fc:d=>d.fc,hot:d=>d.hot,
+  o3:d=>d.o3,o6:d=>d.o6,o12:d=>d.o12,oly:d=>d.oly,
+  r3:d=>d.r3,r6:d=>d.r6,r12:d=>d.r12,rly:d=>d.rly,
+  prev:d=>d.prev,w0:d=>d.v[0],w1:d=>d.v[1],w2:d=>d.v[2],w3:d=>d.v[3],jul:jul,aug:d=>d.v[4],sep:d=>d.v[5],tot:gTot};
+const SORTLBL={desc:'Vehicle',code:'FERT code',eseg:'Eicher segment',sv:'Sub-vertical',mpg:'MPG',
+  fuel:'Fuel',ac:'Cabin',ton:'Tonnage',
+  stock:'Stock total',s60:'Stock <60D',s90:'Stock 60–90D',s180:'Stock 90–180D',sOver:'Stock >180D',
+  openFg:'Opening stock',openPO:'Live POs',conf:'Confirmed',fa:'FA',fc:'FC',hot:'Hot Inquiry',
+  o3:'Offtake L3',o6:'Offtake L6',o12:'Offtake L12',oly:'Offtake LYSM',
+  r3:'Retail L3',r6:'Retail L6',r12:'Retail L12',rly:'Retail LYSM',
+  prev:'Last cycle',w0:'W1',w1:'W2',w2:'W3',w3:'W4',jul:'July',aug:'August',sep:'September',tot:'Total'};
+
+/* ════════ COLUMN BANDS ════════
+   The Phase 0 grouping, restored: every band from the original dealer grid, each one
+   independently shown as a single summary column, expanded in full, or hidden. */
+const seg=(v)=>`<span class="seg-dot sg-${v}">${SEGNAME[v]}</span>`;
+const num=(v)=>v||'–';
+const BANDS=[
+  {k:'attr',label:'Vehicle attributes',summary:{k:'mpg',label:'MPG',get:d=>d.mpg,txt:true},cols:[
+    {k:'eseg',label:'Eicher seg',get:d=>seg(d.eseg),txt:true},
+    {k:'sv',label:'Sub-vertical',get:d=>d.sv,txt:true},
+    {k:'mpg',label:'MPG',get:d=>d.mpg,txt:true},
+    {k:'ton',label:'Tonnage',get:d=>d.ton,txt:true},
+    {k:'fuel',label:'Fuel',get:d=>d.fuel,txt:true},
+    {k:'ac',label:'AC / Non-AC',get:d=>d.ac==='AC'?'AC':'Non-AC',txt:true}]},
+  {k:'stock',label:'Current dealer stock',summary:{k:'stock',label:'Stock',
+    get:d=>`<span class="${d.sOver>0?'aged hot':(d.s180>0?'aged':'')}">${num(stockTot(d))}</span>`},cols:[
+    {k:'s60',label:'&lt;60D',get:d=>num(d.s60)},
+    {k:'s90',label:'60–90D',get:d=>d.s90?`<span class="aged">${d.s90}</span>`:'–'},
+    {k:'s180',label:'90–180D',get:d=>d.s180?`<span class="aged">${d.s180}</span>`:'–'},
+    {k:'sOver',label:'&gt;180D',get:d=>d.sOver?`<span class="aged hot">${d.sOver}</span>`:'–'},
+    {k:'stock',label:'Total',get:d=>`<b>${num(stockTot(d))}</b>`}]},
+  {k:'open',label:'Opening &amp; live POs',summary:{k:'openPO',label:'Live POs',get:d=>num(d.openPO)},cols:[
+    {k:'openFg',label:'Mth opening stk',get:d=>num(d.openFg)},
+    {k:'openPO',label:'Live POs',get:d=>num(d.openPO)}]},
+  {k:'pipe',label:'Pipeline',summary:{k:'conf',label:'Confirmed',get:d=>num(d.conf)},cols:[
+    {k:'conf',label:'Confirmed',get:d=>num(d.conf)},
+    {k:'fa',label:'FA',get:d=>num(d.fa)},
+    {k:'fc',label:'FC',get:d=>num(d.fc)},
+    {k:'hot',label:'Hot Inq',get:d=>num(d.hot)}]},
+  {k:'off',label:'Trend — offtake',summary:{k:'o3',label:'Offtake L3',get:d=>num(d.o3)},cols:[
+    {k:'o3',label:'L3',get:d=>num(d.o3)},{k:'o6',label:'L6',get:d=>num(d.o6)},
+    {k:'o12',label:'L12',get:d=>num(d.o12)},{k:'oly',label:'LYSM',get:d=>num(d.oly)}]},
+  {k:'ret',label:'Trend — retail',summary:{k:'r3',label:'Retail L3',get:d=>num(d.r3)},cols:[
+    {k:'r3',label:'L3',get:d=>num(d.r3)},{k:'r6',label:'L6',get:d=>num(d.r6)},
+    {k:'r12',label:'L12',get:d=>num(d.r12)},{k:'rly',label:'LYSM',get:d=>num(d.rly)}]},
+  {k:'last',label:'Last cycle',cols:[{k:'prev',label:'Last mth plan',get:d=>num(d.prev)}]},
+];
+const PRESETS={
+  essentials:{attr:'summary',stock:'summary',open:'summary',pipe:'full',off:'summary',ret:'summary',last:'full'},
+  stock:{attr:'off',stock:'full',open:'full',pipe:'full',off:'summary',ret:'off',last:'full'},
+  trends:{attr:'off',stock:'summary',open:'off',pipe:'full',off:'full',ret:'full',last:'full'},
+  all:{attr:'full',stock:'full',open:'full',pipe:'full',off:'full',ret:'full',last:'full'},
+};
+const PRESET_LBL={essentials:'Essentials',stock:'Stock focus',trends:'Trends',all:'Everything'};
+let bandMode=Object.assign({},PRESETS.essentials);
+let activePreset='essentials';
+function activeCols(){
+  const out=[];
+  BANDS.forEach(b=>{
+    if(b.disabled)return;
+    const m=bandMode[b.k]||'off';
+    if(m==='off')return;
+    if(m==='summary'&&b.summary)out.push({...b.summary,band:b,first:true});
+    else b.cols.forEach((c,i)=>out.push({...c,band:b,first:i===0}));
+  });
+  return out;
+}
+function bandSpan(){
+  const cols=activeCols(),out=[];
+  cols.forEach(c=>{
+    const last=out[out.length-1];
+    if(last&&last.b===c.band)last.n++;
+    else out.push({b:c.band,n:1,mode:bandMode[c.band.k]});
+  });
+  return out;
+}
+function rows(){
+  let r=D.filter(d=>pass(d));
+  if(sortKey){
+    const f=SORTV[sortKey];
+    r=[...r].sort((a,b)=>{const x=f(a),y=f(b);
+      return (typeof x==='string'?x.localeCompare(y):x-y)*sortDir;});
+  }
+  return r;
+}
+
+/* ════════ LOGIN / SHELL ════════ */
+function clearErr(){['fId','fPw'].forEach(i=>document.getElementById(i).classList.remove('invalid'));}
+function doLogin(e){
+  if(e&&e.preventDefault)e.preventDefault();
+  if(!document.getElementById('lgId').value.trim()){document.getElementById('fId').classList.add('invalid');return;}
+  if(!document.getElementById('lgPw').value){document.getElementById('fPw').classList.add('invalid');return;}
+  document.getElementById('login').style.display='none';
+  document.getElementById('app').classList.add('on');
+  buildRail(); render(); tick();
+}
+function signOut(){document.getElementById('app').classList.remove('on');document.getElementById('login').style.display='flex';}
+function setPersona(v){ if(v!=='dealer'){toast('Only the Dealer experience is built in this iteration');document.getElementById('personaSel').value='dealer';} }
+function toggleTheme(){
+  const r=document.documentElement;
+  const dark=r.getAttribute('data-theme')==='dark'||(!r.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme:dark)').matches);
+  r.setAttribute('data-theme',dark?'light':'dark');
+}
+function go(v){
+  document.getElementById('vHome').classList.toggle('on',v==='home');
+  document.getElementById('vWb').classList.toggle('on',v==='wb');
+  document.getElementById('nvHome').classList.toggle('on',v==='home');
+  document.getElementById('nvWb').classList.toggle('on',v==='wb');
+  render();
+}
+function setVert(v){
+  vert=v; D=SETS[v]; FKEYS.forEach(k=>F[k].clear()); F.vert.add(v); q=''; sortKey=null;
+  document.getElementById('qBox').value=''; document.getElementById('vertSel').value=v;
+  buildRail(); render();
+}
+function jumpFilter(flag){
+  F.flag.clear(); F.flag.add(flag); go('wb'); buildRail(); render();
+  toast('Filtered to: '+FLAGS.find(f=>f[0]===flag)[1]);
+}
+function tick(){
+  const now=new Date(); const t=new Date(now); t.setDate(15); t.setHours(23,59,0,0);
+  if(t<now)t.setMonth(t.getMonth()+1);
+  const ms=t-now, d=Math.floor(ms/864e5), h=Math.floor(ms%864e5/36e5), m=Math.floor(ms%36e5/6e4);
+  document.getElementById('tbClock').textContent=d>0?`${d}d ${h}h`:`${h}h ${m}m`;
+  setTimeout(tick,60000);
+}
+
+/* ════════ FILTER RAIL — one control type for everything ════════ */
+let msOpen=null; const msQ={};
+function optsFor(key){
+  if(key==='vert')return Object.keys(SETS).map(v=>({v,t1:VERTNAME[v]||v.toUpperCase()}));
+  if(key==='fert')return D.map(d=>({v:d.code,t1:d.code,t2:d.desc}));
+  if(key==='seg')return ['R','S','D'].map(v=>({v,t1:SEGNAME[v]}));
+  if(key==='ac')return ['AC','NonAC'].map(v=>({v,t1:v==='NonAC'?'Non-AC':'AC'}));
+  if(key==='flag')return FLAGS.map(([v,t1])=>({v,t1}));
+  if(key==='hist')return HIST.map(([v,t1])=>({v,t1}));
+  const f=VALOF[key];
+  let vals=[...new Set(D.map(d=>d[f]))];
+  if(key==='ton')vals.sort((a,b)=>parseFloat(a)-parseFloat(b)); else vals.sort();
+  return vals.map(v=>({v,t1:v}));
+}
+const FLABEL={vert:'Vertical',fert:'FERT',sv:'Sub-vertical',seg:'Demand segment',mpg:'MPG model',ton:'Tonnage',
+  fuel:'Fuel',ac:'Cabin',hist:'FERT History',flag:'Status'};
+function msOptions(key){
+  const s=(msQ[key]||'').toLowerCase();
+  const out=optsFor(key).filter(o=>{
+    if(!s)return true;
+    return s.split(/[,\n]/).map(t=>t.trim()).filter(Boolean)
+      .some(t=>String(o.t1).toLowerCase().includes(t)||String(o.t2||'').toLowerCase().includes(t));
+  }).map(o=>{
+    const n=optCount(key,o.v), on=F[key].has(o.v);
+    if(n===0&&!on)return '';
+    return `<button class="ms-opt${on?' on':''}" onclick="tog('${key}','${o.v}')">
+      <span class="bx">${on?'✓':''}</span>
+      <span class="tx"><span class="t1">${o.t1}</span>${o.t2?`<span class="t2">${o.t2}</span>`:''}</span>
+      <span class="n">${n}</span></button>`;
+  }).join('');
+  return out||'<div class="ms-empty">No match</div>';
+}
+function msBlock(key){
+  const total=optsFor(key).length, sel=F[key].size;
+  const lbl=sel===0?'All':(sel===1?(optsFor(key).find(o=>F[key].has(o.v))||{t1:'1 selected'}).t1:sel+' selected');
+  const isFert=key==='fert';
+  return `<div class="frow">
+    <div class="fl">${FLABEL[key]}${sel?`<button class="clr" onclick="F['${key}'].clear();buildRail();render()">clear</button>`:''}</div>
+    <div class="ms${msOpen===key?' open':''}">
+      <button class="ms-btn${sel?' act':''}" onclick="event.stopPropagation();toggleMs('${key}')">
+        <span class="lbl${sel?'':' dim'}">${lbl}</span><span class="ca">▾</span></button>
+      <div class="ms-pop" onclick="event.stopPropagation()">
+        <div class="ms-search">
+          <input type="text" id="msq-${key}" placeholder="Search ${FLABEL[key].toLowerCase()}…" value="${msQ[key]||''}"
+            oninput="msFilter('${key}',this.value)" ${isFert?`onpaste="fertPaste(event)"`:''}>
+          ${isFert?`<div class="ph">Paste a list of codes from a spreadsheet to select many at once.</div>`:''}
+        </div>
+        <div class="ms-list" id="msl-${key}">${msOptions(key)}</div>
+        <div class="ms-foot">
+          <button class="btn btn-quiet btn-sm" onclick="F['${key}'].clear();buildRail();render()">Clear</button>
+          <span class="c">${sel} of ${total}</span></div>
+      </div></div></div>`;
+}
+function toggleMs(key){
+  msOpen=msOpen===key?null:key; buildRail();
+  if(msOpen){const el=document.getElementById('msq-'+key); if(el)el.focus();}
+}
+function msFilter(key,v){ msQ[key]=v; document.getElementById('msl-'+key).innerHTML=msOptions(key); }
+document.addEventListener('click',()=>{ if(msOpen){msOpen=null;buildRail();} });
+function fertPaste(e){
+  const txt=(e.clipboardData||window.clipboardData).getData('text');
+  if(!/[,\n\t]/.test(txt))return;
+  e.preventDefault();
+  const terms=txt.split(/[,\n\t]/).map(t=>t.trim().toLowerCase()).filter(Boolean);
+  let n=0,miss=0;
+  terms.forEach(t=>{const m=D.find(d=>d.code.toLowerCase()===t); if(m){if(!F.fert.has(m.code)){F.fert.add(m.code);n++;}} else miss++;});
+  msQ.fert=''; msOpen=null; buildRail(); render();
+  toast(n+' FERT'+(n===1?'':'s')+' selected'+(miss?' · '+miss+' not in your list':''));
+}
+function tog(key,val){
+  if(key==='vert'){ setVert(val); return; }
+  const s=F[key]; s.has(val)?s.delete(val):s.add(val); buildRail(); render();
+}
+function buildRail(){
+  let h='';
+  if(savedViews.length){
+    h+=`<div class="frow"><div class="fl">Saved views</div>
+      <select class="ms-btn" style="height:32px" onchange="applyView(this.value)">
+        <option value="">Choose a saved view…</option>
+        ${savedViews.map((v,i)=>`<option value="${i}">${v.name}</option>`).join('')}</select></div>`;
+  }
+  FKEYS.forEach(k=>{ h+=msBlock(k); });
+  document.getElementById('railBody').innerHTML=h;
+  const n=activeCount();
+  ['railCnt','stubCnt'].forEach(id=>{const el=document.getElementById(id);el.style.display=n?'':'none';el.textContent=n;});
+}
+function clearAll(){ FKEYS.forEach(k=>F[k].clear()); q=''; sortKey=null; document.getElementById('qBox').value=''; buildRail(); render(); }
+function setQ(v){ q=v; render(); }
+function saveView(){
+  if(!activeCount()){toast('Nothing to save — no filters applied');return;}
+  const bits=[];
+  FKEYS.forEach(k=>{ if(F[k].size){ const o=optsFor(k).find(o=>F[k].has(o.v)); bits.push(F[k].size>1?F[k].size+' '+FLABEL[k]:(o?o.t1:FLABEL[k])); } });
+  savedViews.push({name:bits.slice(0,2).join(' · '),F:Object.fromEntries(FKEYS.map(k=>[k,[...F[k]]]))});
+  buildRail(); toast('View saved');
+}
+function applyView(i){ if(i==='')return; const v=savedViews[i]; FKEYS.forEach(k=>F[k]=new Set(v.F[k]||[])); buildRail(); render(); toast('Applied “'+v.name+'”'); }
+function toggleRail(){ railOpen=!railOpen;
+  document.getElementById('rail').classList.toggle('collapsed',!railOpen);
+  document.getElementById('railBtn').textContent=railOpen?'‹':'›'; }
+
+/* ════════ GRID ════════ */
+function setDensity(c){ compact=!!c;
+  document.getElementById('dnComf').classList.toggle('on',!c);
+  document.getElementById('dnComp').classList.toggle('on',!!c);
+  document.getElementById('grid').classList.toggle('compact',!!c); }
+function setSort(k){ if(sortKey===k){ if(sortDir===-1)sortDir=1; else {sortKey=null;} } else {sortKey=k;sortDir=-1;} render(); }
+function th(k,label,left,sep){
+  const on=sortKey===k;
+  return `<th class="${sep?'bsep':''}"><button class="sortbtn${left?' l':''}${on?' on':''}" onclick="setSort('${k}')" title="Sort by ${SORTLBL[k]||label}">
+    ${label}<span class="ar">${on?(sortDir===-1?'▼':'▲'):'▼'}</span></button></th>`;
+}
+function head(){
+  const cols=activeCols(), spans=bandSpan();
+  const bandRow=spans.map(s=>{
+    const short=s.mode==='summary'&&s.b.summary;
+    return `<th class="b-ref bsep" colspan="${s.n}">
+      <button class="bandbtn" onclick="cycleBand('${s.b.k}')"
+        title="${s.b.label} · ${s.mode==='summary'?'Expand this group':'Collapse this group'}">${short?s.b.summary.label:s.b.label}
+        <span class="bm">${s.mode==='summary'?'▸':'▾'}</span></button></th>`;
+  }).join('');
+  const colRow=cols.map(c=>th(c.k,c.label,false,c.first)).join('');
+  return `<tr class="bands">
+      <th class="idc b-ref">Vehicle</th><th class="b-ref">FERT code</th>
+      ${bandRow||'<th class="b-ref">&nbsp;</th>'}
+      <th class="b-edit bsep" colspan="8">Your indent · July 2026</th></tr>
+    <tr><th class="idc"><button class="sortbtn l${sortKey==='desc'?' on':''}" onclick="setSort('desc')">Vehicle<span class="ar">${sortKey==='desc'?(sortDir===-1?'▼':'▲'):'▼'}</span></button></th>
+      ${th('code','FERT code')}${colRow||'<th>&nbsp;</th>'}
+      ${th('w0','W1',false,true)}${th('w1','W2')}${th('w2','W3')}${th('w3','W4')}
+      ${th('jul','Jul')}${th('aug','Aug')}${th('sep','Sep')}${th('tot','Total')}</tr>`;
+}
+/* clicking a band header cycles summary → full → summary (or full → hidden where there is no summary) */
+function cycleBand(k){
+  const b=BANDS.find(x=>x.k===k);
+  const m=bandMode[k];
+  bandMode[k]= b.summary ? (m==='summary'?'full':'summary') : (m==='full'?'off':'full');
+  activePreset=null; render(); renderColPop();
+}
+function setBand(k,m){ bandMode[k]=m; activePreset=null; render(); renderColPop(); }
+function setPreset(p){ bandMode=Object.assign({},PRESETS[p]); activePreset=p; render(); renderColPop(); }
+let colPopOpen=false;
+function toggleColPop(e){ if(e)e.stopPropagation(); colPopOpen=!colPopOpen; renderColPop(); }
+function renderColPop(){
+  const el=document.getElementById('colPop');
+  el.style.display=colPopOpen?'':'none';
+  document.getElementById('colBtn').classList.toggle('on',colPopOpen);
+  if(!colPopOpen)return;
+  el.innerHTML=`
+    <div class="cp-sec"><div class="cp-lbl">Presets</div>
+      <div class="cp-presets">${Object.keys(PRESETS).map(p=>
+        `<button class="chipx${activePreset===p?' on':''}" onclick="setPreset('${p}')">${PRESET_LBL[p]}</button>`).join('')}</div></div>
+    <div class="cp-sec"><div class="cp-lbl">Column groups</div>
+      ${BANDS.map(b=>{
+        if(b.disabled)return `<div class="cp-row dis"><span class="cp-n">${b.label}</span>
+          <span class="cp-note">${b.disabled}</span></div>`;
+        const m=bandMode[b.k]||'off';
+        return `<div class="cp-row"><span class="cp-n">${b.label}<span class="cp-c">${b.cols.length} col${b.cols.length===1?'':'s'}</span></span>
+          <div class="seg-ctl sm">
+            <button class="${m==='off'?'on':''}" onclick="setBand('${b.k}','off')">Hide</button>
+            ${b.summary?`<button class="${m==='summary'?'on':''}" onclick="setBand('${b.k}','summary')">Summary</button>`:''}
+            <button class="${m==='full'?'on':''}" onclick="setBand('${b.k}','full')">Full</button>
+          </div></div>`;}).join('')}
+    </div>
+    <div class="cp-foot">Click any group header in the grid to expand or collapse it.</div>`;
+}
+document.addEventListener('click',()=>{ if(colPopOpen){colPopOpen=false;renderColPop();} });
+function cell(d,c){
+  const dis=submitted[vert]?'disabled':'';
+  const carry=d.carry[c];
+  return `<td><input class="cellin" type="number" min="0" inputmode="numeric" data-r="${d.i}" data-c="${c}" value="${d.v[c]}" ${dis}
+    onfocus="this.select()" oninput="edit(${d.i},${c},this.value)" onkeydown="gridKey(event)" onpaste="gridPaste(event)">
+    ${(c<5&&carry)?`<span class="carry">was ${carry}</span>`:''}</td>`;
+}
+function vehicleDescription(d){
+  let text=d.desc;
+  // Attributes remain available in their dedicated columns.
+  if(d.mpg && text.toLowerCase().startsWith(d.mpg.toLowerCase()))text=text.slice(d.mpg.length);
+  for(const value of [d.ton,d.sv,d.fuel]){
+    if(!value)continue;
+    const escaped=value.replace(/[.*+?^${}()|[\]\\]/g,'\\function row(d){');
+    text=text.replace(new RegExp('(^|\\s)'+escaped+'(?=\\s|$)','gi'),' ');
+  }
+  return text.replace(/\b(?:non[ -]?ac|ac)\b/gi,'').replace(/\s+/g,' ').trim();
+}
+function row(d){
+  const cols=activeCols();
+  const ref=cols.map(c=>`<td class="ref${c.first?' bsep':''}${c.txt?' txt':''}">${c.get(d)}</td>`).join('')
+    ||'<td class="ref">&nbsp;</td>';
+  const segDiff=d.eseg!==d.seg;
+  return `<tr class="${d.added?'isadd':(hasEntry(d)?'':'noentry')}">
+    <td class="idc"><div class="id-cell"><div class="id-txt">
+      <div class="id-desc" title="${vehicleDescription(d)}">${vehicleDescription(d)}</div>
+      <div class="id-meta">
+        ${d.added?'<span class="addtag">ADDED</span>':''}</div></div>
+      <button class="id-btn" onclick="openDrawer(${d.i})" title="Line detail">ⓘ</button></div></td>
+    <td class="ref txt"><span class="id-code">${d.code}</span></td>${ref}<td class="sepL">${cell(d,0).slice(4)}${cell(d,1)}${cell(d,2)}${cell(d,3)}
+    <td class="tot">${jul(d)}</td>${cell(d,4)}${cell(d,5)}<td class="gtot">${gTot(d)}</td></tr>`;
+}
+function refTotal(d,k){
+  const calc={stock:stockTot,s60:x=>x.s60,s90:x=>x.s90,s180:x=>x.s180,sOver:x=>x.sOver,
+    openFg:x=>x.openFg,openPO:x=>x.openPO,conf:x=>x.conf,fa:x=>x.fa,fc:x=>x.fc,hot:x=>x.hot,
+    o3:x=>x.o3,o6:x=>x.o6,o12:x=>x.o12,oly:x=>x.oly,r3:x=>x.r3,r6:x=>x.r6,r12:x=>x.r12,rly:x=>x.rly,
+    prev:x=>x.prev};
+  return calc[k]?calc[k](d):null;
+}
+function filteredTotalRow(rs){
+  const sum=fn=>rs.reduce((a,d)=>a+(fn(d)||0),0);
+  const refs=activeCols().map(c=>{
+    const hasNumeric=rs.some(d=>typeof refTotal(d,c.k)==='number');
+    return `<td class="ref${c.first?' bsep':''}">${hasNumeric?num(sum(d=>refTotal(d,c.k))):'—'}</td>`;
+  }).join('')||'<td class="ref">&nbsp;</td>';
+  const filtered=FKEYS.some(k=>k!=='vert'&&F[k].size)||!!q;
+  const label=filtered?'Filtered view total':'Visible view total';
+  return `<tr class="filtered-total"><td class="idc"><div>${label}<span class="total-note">${rs.length} line${rs.length===1?'':'s'}</span></div></td>
+    <td class="ref txt">–</td>${refs}<td class="sepL">${sum(d=>d.v[0])}</td><td>${sum(d=>d.v[1])}</td><td>${sum(d=>d.v[2])}</td><td>${sum(d=>d.v[3])}</td>
+    <td class="tot">${sum(jul)}</td><td>${sum(d=>d.v[4])}</td><td>${sum(d=>d.v[5])}</td><td class="gtot">${sum(gTot)}</td></tr>`;
+}
+function render(){
+  const rs=rows();
+  document.getElementById('gHead').innerHTML=head();
+  document.getElementById('gBody').innerHTML=rs.map(row).join('')+(rs.length?filteredTotalRow(rs):'');
+  document.getElementById('gEmpty').style.display=rs.length?'none':'';
+  document.getElementById('grid').style.display=rs.length?'':'none';
+  document.getElementById('resCount').innerHTML=`<b>${rs.length}</b> of ${D.length} lines`;
+  renderTokens(); renderCommit(); renderHome();
+}
+function renderTokens(){
+  const t=[];
+  const add=(lbl,fn,cls)=>t.push(`<span class="ftok ${cls||''}">${lbl}<button onclick="${fn}" aria-label="Remove">×</button></span>`);
+  FKEYS.forEach(k=>{
+    if(!F[k].size)return;
+    if(k==='fert'){ add(F.fert.size+' FERT'+(F.fert.size>1?'s':''),`F.fert.clear();buildRail();render()`); return; }
+    F[k].forEach(v=>{ const o=optsFor(k).find(o=>o.v===v); add(o?o.t1:v,`tog('${k}','${v}')`); });
+  });
+  if(q)add('“'+q+'”',`document.getElementById('qBox').value='';setQ('')`);
+  if(sortKey)add('Sorted: '+SORTLBL[sortKey]+' '+(sortDir===-1?'high→low':'low→high'),`setSort('${sortKey}');setSort('${sortKey}')`,'srt');
+  document.getElementById('aft').innerHTML=t.length
+    ? `<span class="sep"></span>`+t.join('')+`<button class="btn btn-quiet btn-sm" onclick="clearAll()">Clear all</button>` : '';
+}
+function edit(i,c,val){
+  const d=D.find(x=>x.i===i); if(!d)return;
+  d.v[c]=Math.max(0,parseInt(val)||0);
+  const tr=document.querySelector(`.cellin[data-r="${i}"][data-c="${c}"]`).closest('tr');
+  tr.querySelector('td.tot').textContent=jul(d);
+  tr.querySelector('td.gtot').textContent=gTot(d);
+  if(!d.added)tr.classList.toggle('noentry',!hasEntry(d));
+  renderCommit(); renderHome();
+}
+function gridKey(e){
+  const t=e.target,c=+t.dataset.c,r=+t.dataset.r;
+  const all=[...document.querySelectorAll('.cellin')],idx=all.indexOf(t);
+  const move=n=>{const el=all[n];if(el){el.focus();el.select();e.preventDefault();}};
+  if(e.key==='ArrowDown'||e.key==='Enter'){const n=all.find(el=>+el.dataset.c===c&&all.indexOf(el)>idx);if(n)move(all.indexOf(n));}
+  else if(e.key==='ArrowUp'){const p=all.filter(el=>+el.dataset.c===c&&all.indexOf(el)<idx).pop();if(p)move(all.indexOf(p));}
+  else if(e.key==='ArrowLeft'&&t.selectionStart===0)move(idx-1);
+  else if(e.key==='ArrowRight'&&t.selectionStart===t.value.length)move(idx+1);
+  else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='d'){
+    e.preventDefault();
+    const p=all.filter(el=>+el.dataset.c===c&&all.indexOf(el)<idx).pop();
+    if(p){t.value=p.value;edit(r,c,p.value);toast('Filled down from the line above');}
+  }
+}
+function gridPaste(e){
+  const txt=(e.clipboardData||window.clipboardData).getData('text');
+  if(!/[\t\n]/.test(txt))return;
+  e.preventDefault();
+  const t=e.target,startC=+t.dataset.c,rs=rows();
+  const start=rs.findIndex(d=>d.i===+t.dataset.r);
+  let n=0;
+  txt.replace(/\r/g,'').split('\n').filter(l=>l.length).forEach((ln,li)=>{
+    const d=rs[start+li]; if(!d)return;
+    ln.split('\t').forEach((cv,ci)=>{
+      const c=startC+ci; if(c>5)return;
+      const num=parseInt(cv.replace(/[^\d-]/g,''));
+      if(!isNaN(num)){d.v[c]=Math.max(0,num);n++;}
+    });
+  });
+  render();
+  setTimeout(()=>{const el=document.querySelector(`.cellin[data-r="${t.dataset.r}"][data-c="${startC}"]`);if(el)el.focus();},0);
+  toast(n+' cell'+(n===1?'':'s')+' pasted from your spreadsheet');
+}
+
+/* ════════ COMMIT ════════ */
+function renderCommit(){
+  const filtered=FKEYS.some(k=>k!=='vert'&&F[k].size)||!!q;
+  const view=filtered?rows():D;
+  const julT=view.reduce((a,d)=>a+jul(d),0), grand=view.reduce((a,d)=>a+gTot(d),0);
+  const missing=view.filter(d=>!hasEntry(d)).length;
+  const el=document.getElementById('commit');
+  if(submitted[vert]){
+    el.innerHTML=`<div class="stat"><span class="v" style="color:var(--ok)">✓</span>
+      <span class="k">${VERTNAME[vert]} submitted · ${D.length} lines · ${julT} units for July</span></div>
+      <div class="right"><button class="btn btn-ghost btn-sm" onclick="openExport()">View what was sent</button>
+      <button class="btn btn-ghost btn-sm" onclick="reopen()">Reopen</button></div>`; return;
+  }
+  el.innerHTML=`<div class="stat"><span class="v">${view.length}</span><span class="k">${filtered?'filtered lines':'lines'}</span></div>
+    <div class="stat"><span class="v">${julT}</span><span class="k">units · July</span></div>
+    <div class="stat"><span class="v">${grand}</span><span class="k">Jul–Sep</span></div>
+    ${missing?`<div class="div"></div><div class="stat"><span class="v" style="color:var(--warn)">${missing}</span><span class="k">with no entry</span></div>`:''}
+    <div class="right">
+      ${filtered?`<span class="saved" style="color:var(--warn)">Filtered-view total · submission still includes all ${D.length} lines</span>`:`<span class="saved">Saved just now</span>`}
+      <button class="btn btn-primary btn-sm" onclick="openReview()">Review &amp; submit</button></div>`;
+}
+
+/* ════════ HOME + SUMMARY ════════ */
+function renderHome(){
+  const entered=D.filter(hasEntry).length, julT=D.reduce((a,d)=>a+jul(d),0);
+  const vn=VERTNAME[vert];
+  document.getElementById('hcTitle').textContent='Your July indent — '+vn;
+  document.getElementById('zVert').textContent=vn;
+  document.getElementById('hcEntered').textContent=entered;
+  document.getElementById('hcEnteredCap').textContent='of '+D.length+' lines entered';
+  document.getElementById('hcUnits').textContent=julT;
+  document.getElementById('hcMeter').style.width=Math.round(entered/D.length*100)+'%';
+  const st=document.getElementById('hcStatus');
+  st.textContent=submitted[vert]?'Submitted':'Not submitted';
+  st.className='pill '+(submitted[vert]?'p-ok':'p-warn');
+  document.getElementById('tbState').innerHTML=submitted[vert]
+    ?'Status: <b class="okv">Submitted</b>':'Status: <b>Not submitted</b>';
+
+  /* verticals card */
+  document.getElementById('hcVerts').innerHTML=['lmd','hd'].map(v=>{
+    const s=SETS[v], e=s.filter(hasEntry).length;
+    const state=submitted[v]?['p-ok','Submitted']:(e===0?['p-crit','Not started']:['p-warn','In progress']);
+    return `<div class="kv-row"><span class="nm">${VERTNAME[v]}</span>
+      <span class="pill ${state[0]}">${state[1]}</span>
+      <span class="vl">${e} / ${s.length}</span>
+      <button class="btn btn-quiet btn-sm" onclick="setVert('${v}');go('wb')">Open →</button></div>`;
+  }).join('');
+
+  /* attention card */
+  const at=[['noentry',D.length-entered,'lines with no entry','var(--warn)'],
+            ['aged180',D.filter(d=>d.sOver>0).length,'lines with stock over 180 days','var(--crit)'],
+            ['swing',D.filter(swings).length,'lines more than ±20% off last cycle','var(--ink-2)'],
+            ['added',D.filter(d=>d.added).length,'lines you added this cycle','var(--add)']];
+  document.getElementById('hcAttn').innerHTML=at.filter(a=>a[1]>0).map(a=>
+    `<div class="attn-row"><span class="n" style="color:${a[3]}">${a[1]}</span>
+     <span class="t">${a[2]}</span><button class="btn btn-quiet btn-sm" onclick="jumpFilter('${a[0]}')">Show →</button></div>`
+  ).join('')||`<div class="cap" style="color:var(--ok)">✓ Nothing needs your attention right now.</div>`;
+
+  /* summary KPIs */
+  const o3=D.reduce((a,d)=>a+d.o3,0), prev=D.reduce((a,d)=>a+d.prev,0);
+  document.getElementById('kIndent').textContent=julT;
+  document.getElementById('kOfftake').textContent=o3;
+  const oPct=o3?Math.round((julT/(o3/3)-1)*100):0;
+  const op=document.getElementById('kOfftakePill');
+  op.textContent=(oPct>0?'+':'')+oPct+'% vs monthly run-rate';
+  op.className='pill '+(Math.abs(oPct)<=15?'p-ok':(oPct>0?'p-warn':'p-crit'));
+  document.getElementById('kPrev').textContent=prev;
+  const pPct=prev?Math.round((julT/prev-1)*100):0;
+  const pp=document.getElementById('kPrevPill');
+  pp.textContent=(pPct>0?'+':'')+pPct+'%';
+  pp.className='pill '+(Math.abs(pPct)<=10?'p-ok':'p-warn');
+
+  const sb=[['Under 60 days',D.reduce((a,d)=>a+d.s60,0),'var(--ok)'],
+            ['60–90 days',D.reduce((a,d)=>a+d.s90,0),'var(--warn)'],
+            ['90–180 days',D.reduce((a,d)=>a+d.s180,0),'#D97706'],
+            ['Over 180 days',D.reduce((a,d)=>a+d.sOver,0),'var(--crit)']];
+  const sbT=sb.reduce((a,s)=>a+s[1],0)||1;
+  document.getElementById('kStock').textContent=sb.reduce((a,s)=>a+s[1],0);
+  document.getElementById('kAged').textContent=sb[1][1]+sb[2][1]+sb[3][1];
+  document.getElementById('kStockBar').innerHTML=sb.map(s=>`<i style="width:${s[1]/sbT*100}%;background:${s[2]}" title="${s[0]}: ${s[1]}"></i>`).join('');
+  document.getElementById('kStockLgd').innerHTML=sb.map(s=>`<span><i style="background:${s[2]}"></i>${s[0]} · ${s[1]}</span>`).join('');
+
+  const mx=['R','S','D'].map(g=>{const rs=D.filter(d=>d.seg===g);
+    return [SEGNAME[g],rs.reduce((a,d)=>a+jul(d),0),SEGCOL[g],rs.length];});
+  const mxT=mx.reduce((a,m)=>a+m[1],0)||1;
+  document.getElementById('kMixTotal').textContent=D.length;
+  document.getElementById('kMixBar').innerHTML=mx.map(m=>`<i style="width:${m[1]/mxT*100}%;background:${m[2]}" title="${m[0]}: ${m[1]} units across ${m[3]} FERTs"></i>`).join('');
+  document.getElementById('kMixLgd').innerHTML=mx.map(m=>
+    `<span><i style="background:${m[2]}"></i>${m[0]} · <b>${m[1]}</b> units · ${m[3]} FERT${m[3]===1?'':'s'}</span>`).join('');
+  document.getElementById('kMixCap').innerHTML='Vehicles in your July indent · '+
+    mx.map(m=>`${m[3]} ${m[0].toLowerCase()} line${m[3]===1?'':'s'}`).join(', ')+'.';
+  document.getElementById('zProg').textContent=submitted[vert]
+    ? VERTNAME[vert]+' submitted' : entered+' of '+D.length+' lines entered · closes 15 Jul';
+
+  const A=accStats(ACC_HIST);
+  document.getElementById('kAcc').textContent=A.avg+'%';
+  document.getElementById('kBias').textContent=(A.bias>0?'+':'')+A.bias+'%';
+  document.getElementById('kBias').style.color=Math.abs(A.bias)<=TOL?'var(--ok)':'var(--warn)';
+  document.getElementById('kBiasCap').textContent=A.bias>0?'over-indent':(A.bias<0?'under-indent':'no bias');
+  const ap=document.getElementById('kAccPill');
+  ap.textContent=Math.abs(A.bias)<=TOL?'Within ±10%':(A.bias>0?'Consistently over':'Consistently under');
+  ap.className='pill '+(Math.abs(A.bias)<=TOL?'p-ok':'p-warn');
+  document.getElementById('kSpark').innerHTML=A.pcts.map((v,i)=>
+    `<i style="height:${v}%" title="${ACC_HIST[i].m}: ${v}% · indented ${ACC_HIST[i].ind}, took ${ACC_HIST[i].off}"></i>`).join('');
+  if(accOpen)renderAccPanel();
+  renderRollup();
+}
+
+/* ── indent accuracy report card ── */
+let accOpen=false, accView='outlet';
+function toggleAcc(){
+  accOpen=!accOpen;
+  document.getElementById('accBtn').textContent=(accOpen?'▾':'▸')+' View report card';
+  document.getElementById('accPanel').style.display=accOpen?'':'none';
+  if(accOpen)renderAccPanel();
+}
+function setAccView(v){ accView=v; renderAccPanel(); }
+function accRow(name,sub,hist,onClick){
+  const s=accStats(hist);
+  const col=s.avg>=90?'var(--ok)':s.avg>=80?'var(--warn)':'var(--crit)';
+  const pill=Math.abs(s.bias)<=TOL?['p-ok','Within ±10%']:(s.bias>0?['p-warn','Over by '+s.bias+'%']:['p-warn','Under by '+Math.abs(s.bias)+'%']);
+  return `<tr${onClick?` style="cursor:pointer" onclick="${onClick}"`:''}>
+    <td class="l">${name}${sub?`<div style="font-size:10.5px;color:var(--muted);font-family:var(--mono)">${sub}</div>`:''}</td>
+    ${hist.map(h=>`<td><div class="acell"><span class="ai">${h.ind}</span><span class="ao">took ${h.off}</span></div></td>`).join('')}
+    <td><span style="color:${col};font-weight:700">${s.avg}%</span>
+      <div class="abar"><i style="width:${s.avg}%;background:${col}"></i></div></td>
+    <td style="text-align:right"><span class="pill ${pill[0]}">${pill[1]}</span></td></tr>`;
+}
+function renderAccPanel(){
+  const months=ACC_HIST.map(h=>h.m);
+  let body='';
+  if(accView==='outlet'){
+    body=OUTLETS.map(o=>accRow(o.name,o.code,o.hist)).join('')+accRow('<b>All three outlets</b>','',ACC_HIST);
+  }else{
+    const rs=rows().filter(d=>d.o3>0).slice(0,25);
+    body=rs.length?rs.map(d=>accRow(d.desc,d.code,fertHist(d),`closeAccTo(${d.i})`)).join('')
+      :`<tr><td class="l" colspan="7" style="color:var(--muted)">No lines with offtake history in this filter.</td></tr>`;
+  }
+  document.getElementById('accPanel').innerHTML=`
+    <div class="accwrap">
+      <div class="acchead">
+        <h4>Indent accuracy — last four cycles</h4>
+        <div class="seg-ctl">
+          <button class="${accView==='outlet'?'on':''}" onclick="setAccView('outlet')">By outlet</button>
+          <button class="${accView==='fert'?'on':''}" onclick="setAccView('fert')">By vehicle</button>
+        </div>
+        <span style="margin-left:auto;font-size:11.5px;color:var(--muted)">
+          Monthly · ${accView==='fert'?'top 25 lines in your current filter · click a row to open it':'your three outlets'}</span>
+      </div>
+      <div class="cap" style="color:var(--muted);padding:0 0 2px">Each month below shows what you <b>indented</b> (large number) over what you <b>took</b> — the offtake — underneath it.</div>
+      <div style="overflow-x:auto"><table class="sumtbl">
+        <thead><tr><th class="l">${accView==='outlet'?'Outlet':'Vehicle'}</th>
+          ${months.map(m=>`<th>${m}<div style="font-size:9px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">indent / offtake</div></th>`).join('')}<th>Accuracy</th><th style="text-align:right">Bias</th></tr></thead>
+        <tbody>${body}</tbody></table></div>
+      <div class="cap" style="color:var(--muted);padding-bottom:4px">
+        <b>Indent</b> is the quantity you planned for that month. <b>Offtake</b> is what you actually took from stock that month.
+        Accuracy is the smaller of the two over the larger. Bias is the total you indented against the total you took across all four months —
+        a positive number means you consistently ask for more than you lift.</div>
+    </div>`;
+}
+function closeAccTo(i){ const d=D.find(x=>x.i===i); if(!d)return; F.fert=new Set([d.code]); go('wb'); buildRail(); render(); toast('Opened '+d.code); }
+
+/* ── rollup with group-by ──
+   Structured the same way as the workbook grid (P-08): a fixed "Your indent" block sits right
+   after Lines, always visible, so the number you came here for is never behind a scroll. Stock,
+   both trend bands and last cycle are collapsible groups, same off/summary/full mechanism as the
+   grid's Reference columns (see BANDS above), collapsed to one figure by default. */
+const ROLL_GB=[['vert','Vertical'],['sv','Sub-vertical'],['mpg','MPG'],['ton','Tonnage'],['ac','AC / Non-AC'],['seg','Segment'],['fert','FERT']];
+let rollBy='sv'; let rollOpen=new Set();
+function setRollBy(k){ rollBy=k; rollOpen=new Set(); renderRollup(); }
+function toggleRollRow(k){ rollOpen.has(k)?rollOpen.delete(k):rollOpen.add(k); renderRollup(); }
+/* every line this dealer has across BOTH verticals, still honouring the workbook's own filters —
+   used only by the "Vertical" rollup, since that grouping is meaningless within a single vertical */
+function allRows(){ return SETS.lmd.concat(SETS.hd).filter(d=>pass(d)); }
+
+function lineVals(rs){
+  const run=rs.length?Math.round(rs.filter(d=>d.seg==='R').length/rs.length*100):0;
+  const s60=rs.reduce((a,d)=>a+d.s60,0), s90=rs.reduce((a,d)=>a+d.s90,0),
+    s180=rs.reduce((a,d)=>a+d.s180,0), sOver=rs.reduce((a,d)=>a+d.sOver,0);
+  const o3=rs.reduce((a,d)=>a+d.o3,0), o6=rs.reduce((a,d)=>a+d.o6,0),
+    o12=rs.reduce((a,d)=>a+d.o12,0), oly=rs.reduce((a,d)=>a+d.oly,0);
+  const r3=rs.reduce((a,d)=>a+d.r3,0), r6=rs.reduce((a,d)=>a+d.r6,0),
+    r12=rs.reduce((a,d)=>a+d.r12,0), rly=rs.reduce((a,d)=>a+d.rly,0);
+  const prev=rs.reduce((a,d)=>a+d.prev,0);
+  const w=[0,1,2,3].map(c=>rs.reduce((a,d)=>a+d.v[c],0));
+  const jul=w.reduce((a,b)=>a+b,0), aug=rs.reduce((a,d)=>a+d.v[4],0), sep=rs.reduce((a,d)=>a+d.v[5],0);
+  return {run, s60,s90,s180,sOver, stock:s60+s90+s180+sOver, o3,o6,o12,oly, r3,r6,r12,rly,
+    prev, delta:jul-prev, w0:w[0],w1:w[1],w2:w[2],w3:w[3], jul,aug,sep, tot:jul+aug+sep};
+}
+/* the "your indent" block — always shown, always first, never collapsible */
+const ROLL_INDENT=[
+  {k:'w0',label:'W1'},{k:'w1',label:'W2'},{k:'w2',label:'W3'},{k:'w3',label:'W4'},
+  {k:'jul',label:'Jul',bold:true},{k:'aug',label:'Aug'},{k:'sep',label:'Sep'},{k:'tot',label:'Total',bold:true}];
+function deltaCell(v){
+  const c=v.delta>0?'var(--ok)':v.delta<0?'var(--crit)':'var(--muted)';
+  return `<span style="color:${c};font-weight:600">${v.delta>0?'+':''}${v.delta||0}</span>`;
+}
+/* everything else — collapsible groups, same shape as the grid's BANDS */
+const ROLL_BANDS=[
+  {k:'mix',label:'Demand mix',cols:[{k:'run',label:'RUN%',get:v=>`${v.run}%`}]},
+  {k:'stock',label:'Current dealer stock',summary:{k:'stock',label:'Stock',get:v=>v.stock||'–'},cols:[
+    {k:'s60',label:'&lt;60D',get:v=>v.s60||'–'},{k:'s90',label:'60–90D',get:v=>v.s90||'–'},
+    {k:'s180',label:'90–180D',get:v=>v.s180||'–'},{k:'sOver',label:'&gt;180D',get:v=>v.sOver||'–'},
+    {k:'stock',label:'Total',get:v=>v.stock||'–'}]},
+  {k:'off',label:'Trend — offtake',summary:{k:'o3',label:'Off L3',get:v=>v.o3||'–'},cols:[
+    {k:'o3',label:'L3',get:v=>v.o3||'–'},{k:'o6',label:'L6',get:v=>v.o6||'–'},
+    {k:'o12',label:'L12',get:v=>v.o12||'–'},{k:'oly',label:'LYSM',get:v=>v.oly||'–'}]},
+  {k:'ret',label:'Trend — retail',summary:{k:'r3',label:'Ret L3',get:v=>v.r3||'–'},cols:[
+    {k:'r3',label:'L3',get:v=>v.r3||'–'},{k:'r6',label:'L6',get:v=>v.r6||'–'},
+    {k:'r12',label:'L12',get:v=>v.r12||'–'},{k:'rly',label:'LYSM',get:v=>v.rly||'–'}]},
+  {k:'last',label:'Last cycle',summary:{k:'delta',label:'Δ vs last',get:deltaCell},cols:[
+    {k:'prev',label:'Last cycle',get:v=>v.prev||'–'},{k:'delta',label:'Δ vs last',get:deltaCell}]},
+];
+let rollBandMode={mix:'full',stock:'summary',off:'summary',ret:'summary',last:'summary'};
+function activeRollCols(){
+  const out=[];
+  ROLL_BANDS.forEach(b=>{
+    const m=rollBandMode[b.k]||'off';
+    if(m==='off')return;
+    if(m==='summary'&&b.summary)out.push({...b.summary,band:b});
+    else b.cols.forEach(c=>out.push({...c,band:b}));
+  });
+  return out;
+}
+function rollBandSpan(){
+  const cols=activeRollCols(), out=[];
+  cols.forEach(c=>{
+    const last=out[out.length-1];
+    if(last&&last.b===c.band)last.n++;
+    else out.push({b:c.band,n:1,mode:rollBandMode[c.band.k]});
+  });
+  return out;
+}
+/* clicking a band header cycles it the same way the grid's bands do: summary↔full where a
+   summary exists (Demand mix has none, so it just toggles full↔off) */
+function cycleRollBand(k){
+  const b=ROLL_BANDS.find(x=>x.k===k);
+  const m=rollBandMode[k];
+  rollBandMode[k]= b.summary ? (m==='summary'?'full':'summary') : (m==='full'?'off':'full');
+  renderRollup();
+}
+function rowCells(v){
+  return ROLL_INDENT.map(c=>`<td${c.bold?' style="font-weight:700"':''}>${v[c.k]||'–'}</td>`).join('')
+    +activeRollCols().map(c=>`<td>${c.get(v)}</td>`).join('');
+}
+function renderRollup(){
+  document.getElementById('rollGb').innerHTML=ROLL_GB.map(([k,l])=>
+    `<button class="${rollBy===k?'on':''}" onclick="setRollBy('${k}')">${l}</button>`).join('');
+  const crossVert=rollBy==='vert';
+  const src=crossVert?allRows():rows();
+  document.getElementById('rollNote').textContent=crossVert
+    ?`${src.length} lines across both verticals${(activeCount()||q)?' · workbook filters applied':''}`
+    :((activeCount()||q)?`${src.length} of ${D.length} lines — workbook filters applied`:`All ${D.length} lines`);
+  const label={vert:'Vertical',sv:'Sub-vertical',mpg:'MPG',ton:'Tonnage',ac:'Cabin',seg:'Segment',fert:'Vehicle'}[rollBy];
+  const spans=rollBandSpan();
+  const bandRow=spans.map(s=>{
+    const short=s.mode==='summary'&&s.b.summary;
+    return `<th class="b-ref" colspan="${s.n}"><button class="bandbtn" onclick="cycleRollBand('${s.b.k}')"
+      title="${s.b.label} · ${s.mode==='summary'?'Expand this group':'Collapse this group'}">${short?s.b.summary.label:s.b.label}
+      <span class="bm">${s.mode==='summary'?'▸':'▾'}</span></button></th>`;}).join('');
+  const colRow=`${ROLL_INDENT.map(c=>`<th>${c.label}</th>`).join('')}${activeRollCols().map(c=>`<th>${c.label}</th>`).join('')}`;
+  let h=`<thead>
+      <tr class="bands"><th class="l" rowspan="2">${label}</th><th rowspan="2">Lines</th>
+        <th class="b-edit" colspan="8">Your indent · July 2026</th>${bandRow}</tr>
+      <tr>${colRow}</tr>
+    </thead><tbody>`;
+  if(rollBy==='fert'){
+    src.forEach(d=>{
+      const v=lineVals([d]);
+      h+=`<tr><td class="l">${d.desc}<div style="font-size:10.5px;color:var(--muted);font-family:var(--mono)">${d.code}</div></td>
+        <td>1</td>${rowCells(v)}</tr>`;
+    });
+  } else {
+    const keys=[...new Set(src.map(d=>d[VALOF[rollBy]]))];
+    if(rollBy==='ton')keys.sort((a,b)=>parseFloat(a)-parseFloat(b));
+    else if(rollBy==='seg')keys.sort((a,b)=>'RSD'.indexOf(a)-'RSD'.indexOf(b));
+    else if(rollBy==='vert')keys.sort((a,b)=>(a==='lmd'?0:1)-(b==='lmd'?0:1));
+    else keys.sort();
+    keys.forEach(k=>{
+      const rs=src.filter(d=>d[VALOF[rollBy]]===k);
+      const v=lineVals(rs);
+      const open=rollOpen.has(k);
+      const nm=rollBy==='seg'?SEGNAME[k]:(rollBy==='ac'?(k==='NonAC'?'Non-AC':'AC'):(rollBy==='vert'?VERTNAME[k]:k));
+      h+=`<tr><td class="l"><button class="exp" onclick="toggleRollRow('${k}')" aria-label="Expand">${open?'▼':'▶'}</button>${nm}</td>
+        <td>${rs.length}</td>${rowCells(v)}</tr>`;
+      if(open)rs.forEach(d=>{
+        const dv=lineVals([d]);
+        h+=`<tr class="sub"><td class="l">${d.desc} <span style="font-family:var(--mono);color:var(--muted)">${d.code}</span></td>
+          <td>1</td>${rowCells(dv)}</tr>`;
+      });
+    });
+  }
+  const tv=lineVals(src);
+  h+=`<tr class="tot"><td class="l">Total</td><td>${src.length}</td>${rowCells(tv)}</tr></tbody>`;
+  document.getElementById('rollTbl').innerHTML=h;
+}
+
+/* ════════ DRAWER ════════ */
+function openDrawer(i){
+  const d=D.find(x=>x.i===i); const st=stockTot(d);
+  document.getElementById('drawer').innerHTML=`
+    <div class="dr-head"><div><h3>${d.desc}</h3><div class="cd">${d.code}${d.added?' · <span class="addtag">ADDED</span>':''}</div></div>
+      <button class="dr-close" onclick="closeDrawer()" aria-label="Close">×</button></div>
+    <div class="dr-body">
+      <div class="dr-sec"><h4>Vehicle</h4>
+        <div class="dr-i"><span class="k">Your segment</span><span class="v"><span class="seg-dot sg-${d.seg}">${SEGNAME[d.seg]}</span></span></div>
+        <div class="dr-i"><span class="k">Eicher segment</span><span class="v"><span class="seg-dot sg-${d.eseg}">${SEGNAME[d.eseg]}</span>${d.eseg!==d.seg?' <span style="color:var(--warn);font-size:10.5px">differs</span>':''}</span></div>
+        <div class="dr-i"><span class="k">MPG model</span><span class="v">${d.mpg}</span></div>
+        <div class="dr-i"><span class="k">Tonnage</span><span class="v">${d.ton}</span></div>
+        <div class="dr-i"><span class="k">Fuel · cabin</span><span class="v">${d.fuel} · ${d.ac==='AC'?'AC':'Non-AC'}</span></div>
+        <div class="dr-i"><span class="k">Sub-vertical</span><span class="v">${d.sv}</span></div></div>
+      <div class="dr-sec"><h4>Your stock on hand — ${st} units</h4>
+        <div class="dr-i"><span class="k">Under 60 days</span><span class="v">${d.s60}</span></div>
+        <div class="dr-i"><span class="k">60–90 days</span><span class="v ${d.s90?'w':''}">${d.s90}</span></div>
+        <div class="dr-i"><span class="k">90–180 days</span><span class="v ${d.s180?'w':''}">${d.s180}</span></div>
+        <div class="dr-i"><span class="k">Over 180 days</span><span class="v ${d.sOver?'c':''}">${d.sOver}</span></div>
+        <div class="dr-i"><span class="k">Opening stock, 1 Jul</span><span class="v">${d.openFg}</span></div>
+        <div class="dr-i"><span class="k">Live purchase orders</span><span class="v">${d.openPO}</span></div>
+        <div class="dr-src">◷ From SAP · refreshed today 06:00 IST</div></div>
+      <div class="dr-sec"><h4>Offtake and retail</h4><div class="dr-grid">
+        <div class="dr-i"><span class="k">Offtake L3</span><span class="v">${d.o3}</span></div>
+        <div class="dr-i"><span class="k">Retail L3</span><span class="v">${d.r3}</span></div>
+        <div class="dr-i"><span class="k">Offtake L6</span><span class="v">${d.o6}</span></div>
+        <div class="dr-i"><span class="k">Retail L6</span><span class="v">${d.r6}</span></div>
+        <div class="dr-i"><span class="k">Offtake L12</span><span class="v">${d.o12}</span></div>
+        <div class="dr-i"><span class="k">Retail L12</span><span class="v">${d.r12}</span></div>
+        <div class="dr-i"><span class="k">Offtake LYSM</span><span class="v">${d.oly}</span></div>
+        <div class="dr-i"><span class="k">Retail LYSM</span><span class="v">${d.rly}</span></div></div>
+        <div class="dr-src">◷ Retail feed · refreshed 11 Sep 23:00 IST</div></div>
+      <div class="dr-sec"><h4>Last cycle, for this month</h4>
+        <div class="dr-i"><span class="k">You planned</span><span class="v">${d.prev}</span></div>
+        <div class="dr-i"><span class="k">You have entered</span><span class="v">${jul(d)}</span></div>
+        <div class="dr-i"><span class="k">Difference</span><span class="v ${jul(d)-d.prev<0?'w':''}">${jul(d)-d.prev>0?'+':''}${jul(d)-d.prev}</span></div>
+        <div class="dr-i"><span class="k">Weekly carry-forward</span><span class="v">${d.carry.slice(0,4).join(' · ')}</span></div></div>
+    </div>`;
+  document.getElementById('drawer').classList.add('on');
+  document.getElementById('scrim').classList.add('on');
+}
+function closeDrawer(){document.getElementById('drawer').classList.remove('on');document.getElementById('scrim').classList.remove('on');}
+
+/* ════════ ADD FERT ════════ */
+let addSel=new Set();
+function openAdd(){ addSel=new Set(); document.getElementById('addQ').value='';
+  document.getElementById('addSub').textContent=VERTNAME[vert]+' · codes not currently in your list';
+  renderAdd(); document.getElementById('addM').classList.add('on'); }
+function renderAdd(){
+  const s=(document.getElementById('addQ').value||'').toLowerCase();
+  const have=new Set(D.map(d=>d.code));
+  const list=CATALOG[vert].filter(c=>!have.has(c[0])&&(!s||c[0].toLowerCase().includes(s)||c[1].toLowerCase().includes(s)));
+  document.getElementById('addList').innerHTML=list.length?list.map(c=>
+    `<button class="addopt${addSel.has(c[0])?' on':''}" onclick="togAdd('${c[0]}')">
+      <span class="bx">${addSel.has(c[0])?'✓':''}</span>
+      <span><div class="d1">${c[1]}</div><div class="d2">${c[0]} · ${c[3]} · ${c[4]} · ${SEGNAME[c[6]]}</div></span></button>`
+  ).join(''):'<div class="ms-empty" style="padding:24px">No matching code in the catalogue.</div>';
+  document.getElementById('addCount').textContent=addSel.size?addSel.size+' selected':'None selected';
+}
+function togAdd(c){ addSel.has(c)?addSel.delete(c):addSel.add(c); renderAdd(); }
+function confirmAdd(){
+  if(!addSel.size){ closeM('addM'); return; }
+  const n=addSel.size;
+  CATALOG[vert].filter(c=>addSel.has(c[0])).forEach(c=>{ SETS[vert].push(mk(c,true,vert)); });
+  closeM('addM'); F.flag.clear(); F.flag.add('added'); buildRail(); render();
+  toast(n+' line'+(n===1?'':'s')+' added · enter quantities to include them');
+}
+
+/* ════════ EXPORT ════════ */
+function openExport(){
+  const rs=rows().length?rows():D;
+  const scope=(activeCount()||q)?`${rs.length} filtered lines`:`all ${D.length} lines`;
+  document.getElementById('expSub').textContent=`${VERTNAME[vert]} · July 2026 · ${scope}`;
+  const hdr=['FERT Code','Description','Dealer Seg','Eicher Seg','Sub-vertical','MPG','Tonnage','Fuel','Cabin',
+    'Stock <60D','Stock 60-90D','Stock 90-180D','Stock >180D','Stock Total','Mth Opening Stk','Live POs',
+    'Offtake L3','Offtake L6','Offtake L12','Offtake LYSM','Retail L3','Retail L6','Retail L12','Retail LYSM',
+    'Last cycle','W1','W2','W3','W4','Jul','Aug','Sep','Total','Added'];
+  const lines=[hdr.join(',')].concat(rs.map(d=>[d.code,'"'+d.desc+'"',SEGNAME[d.seg],SEGNAME[d.eseg],d.sv,d.mpg,d.ton,d.fuel,d.ac,
+    d.s60,d.s90,d.s180,d.sOver,stockTot(d),d.openFg,d.openPO,
+    d.o3,d.o6,d.o12,d.oly,d.r3,d.r6,d.r12,d.rly,
+    d.prev,d.v[0],d.v[1],d.v[2],d.v[3],jul(d),d.v[4],d.v[5],gTot(d),d.added?'Y':'N'].join(',')));
+  document.getElementById('csvBox').value=lines.join('\n');
+  document.getElementById('expM').classList.add('on');
+}
+function copyCsv(){
+  const el=document.getElementById('csvBox'); el.select();
+  try{ navigator.clipboard.writeText(el.value); toast('Copied to clipboard'); }
+  catch(e){ toast('Select the text and copy'); }
+}
+
+/* ════════ REVIEW & SUBMIT ════════ */
+function openReview(){
+  const julT=D.reduce((a,d)=>a+jul(d),0), aug=D.reduce((a,d)=>a+d.v[4],0), sep=D.reduce((a,d)=>a+d.v[5],0);
+  const prev=D.reduce((a,d)=>a+d.prev,0), missing=D.filter(d=>!hasEntry(d)).length;
+  const added=D.filter(d=>d.added).length;
+  const delta=julT-prev, pct=prev?Math.round(delta/prev*100):0;
+  const filtered=activeCount()>0||!!q;
+  document.getElementById('revSub').textContent=`S&OP-1A · July 2026 · Sharma Motors (DLR-1002) · ${VERTNAME[vert]}`;
+  document.getElementById('reviewBody').innerHTML=`
+    ${filtered?`<div class="notice n-warn"><span>⚠</span><div><b>You have filters applied.</b> Submitting sends your <b>full</b> ${VERTNAME[vert]} indent — all ${D.length} lines — not just the ${rows().length} on screen.</div></div>`:''}
+    ${missing?`<div class="notice n-warn"><span>⚠</span><div><b>${missing} lines have no entry.</b> They go up as zero. <button class="link" onclick="closeM('review');jumpFilter('noentry')">Review them first</button></div></div>`:''}
+    ${added?`<div class="notice n-add"><span>ⓘ</span><div><b>${added} line${added>1?'s':''} added by you</b> this cycle — flagged for your ASM.</div></div>`:''}
+    <div>
+      <div class="mrow"><span class="k">Lines</span><span class="v">${D.length}</span></div>
+      <div class="mrow"><span class="k">July (W1–W4)</span><span class="v">${julT}</span></div>
+      <div class="mrow"><span class="k">August</span><span class="v">${aug}</span></div>
+      <div class="mrow"><span class="k">September</span><span class="v">${sep}</span></div>
+      <div class="mrow"><span class="k">vs last cycle's plan for July</span>
+        <span class="v" style="color:${delta<0?'var(--warn)':'var(--ok)'}">${delta>0?'+':''}${delta} · ${pct>0?'+':''}${pct}%</span></div>
+    </div>
+    <div class="notice n-acc"><span>→</span><div>Goes to <b>R. Khanna, ASM North Cluster</b>. You can reopen and resubmit until <b>15 Jul, 23:59 IST</b>.</div></div>`;
+  document.getElementById('review').classList.add('on');
+}
+function doSubmit(){ submitted[vert]=true; closeM('review'); render(); toast(VERTNAME[vert]+' indent submitted to ASM North Cluster'); }
+function reopen(){ submitted[vert]=false; render(); toast('Reopened — resubmit before the cut-off'); }
+function closeM(id){ document.getElementById(id).classList.remove('on'); }
+
+let tt;
+function toast(m){ const el=document.getElementById('toast'); el.textContent=m; el.classList.add('on');
+  clearTimeout(tt); tt=setTimeout(()=>el.classList.remove('on'),2600); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){closeDrawer();['review','addM','expM'].forEach(closeM);} });
+buildRail(); render(); renderColPop();
+</script>
+<script>
+const personaFiles={"dealer":"VECVplan-Dealer-Prototype-v4_5-updated.html","asm":"VECVplan-ASM-Prototype-v1_3-updated.html","rsm":"VECVplan-RSM-Prototype-v1_0-corrected.html","vh":"VECVplan-VH-Workbench-v1_1-updated.html","iso":"VECVplan-ISO-Consolidation-Workbench-v2_1-updated.html"};
+setPersona=function(v){if(v==="dealer"||!personaFiles[v])return;window.location.href=new URL(personaFiles[v]+'#persona-switch',window.location.href).href;};
+if(window.location.hash==='#persona-switch'){document.getElementById('login').style.display='none';document.getElementById('app').classList.add('on');buildRail();render();tick();}
+</script>
+</body>
+</html>

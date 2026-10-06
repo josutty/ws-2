@@ -1,0 +1,124 @@
+/* src/shared/ui/theme/tokens.css — the ONLY place raw color/font/shadow values live.
+   Values are "R G B" channels (no hex, no rgb()) so Tailwind opacity modifiers work (bg-primary/90).
+   Sourced from analysis/design-tokens.md (inputs/ux/dealer.html :root). Dark block mirrors the
+   HTML's explicit dark palette — not derived/guessed. See plan/design-system.md for the mapping
+   rationale and any values adjusted for WCAG contrast. */
+:root {
+  /* Surfaces */
+  --color-canvas: 244 246 248;
+  --color-surface: 255 255 255;
+  --color-surface-muted: 248 250 251;
+  --color-surface-hover: 246 250 253;
+
+  /* Top bar — intentionally dark on any theme (source: --bar/--bar-ink) */
+  --color-topbar: 16 32 45;
+  --color-topbar-fg: 199 214 226;
+
+  /* Text */
+  --color-fg: 22 34 44;
+  --color-fg-muted: 66 87 106;
+  --color-fg-subtle: 88 101 113;
+
+  /* Lines */
+  --color-border: 220 227 233;
+  --color-border-soft: 234 239 243;
+  --color-border-strong: 66 87 106;
+
+  /* Intent: primary (accent) */
+  --color-primary: 14 107 168;
+  --color-primary-hover: 10 86 134;
+  --color-primary-soft: 230 241 248;
+  --color-primary-fg: 255 255 255;
+
+  /* Intent: success (ok) */
+  --color-success: 31 122 69;
+  --color-success-soft: 231 242 235;
+  --color-success-fg: 255 255 255;
+
+  /* Intent: warning (warn) */
+  --color-warning: 150 84 0;
+  --color-warning-soft: 251 239 224;
+  --color-warning-fg: 255 255 255;
+  --color-warning-strong: 217 119 6;
+
+  /* Intent: danger (crit) */
+  --color-danger: 179 38 30;
+  --color-danger-soft: 251 233 231;
+  --color-danger-fg: 255 255 255;
+
+  /* Intent: add — "added by dealer" accent, not in AGENTS.md's base list (design-tokens.md
+     "Unmapped" section explicitly calls for a new semantic token here) */
+  --color-add: 107 63 160;
+  --color-add-soft: 240 234 248;
+  --color-add-fg: 255 255 255;
+
+  /* Focus */
+  --color-focus: 14 107 168;
+
+  /* Typography */
+  --font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+
+  /* Shape */
+  --radius-control: 0.3125rem; /* 5px */
+  --radius-card: 0.5rem;       /* 8px */
+  --radius-chip: 0.8125rem;    /* 13px */
+  --radius-pill: 1rem;         /* 16px */
+  --radius-modal: 0.625rem;    /* 10px */
+  --radius-xs: 0.1875rem;      /* 3px */
+
+  /* Elevation */
+  --shadow-card: 0 1px 2px rgba(16, 32, 45, 0.06), 0 2px 8px rgba(16, 32, 45, 0.06);
+  --shadow-elevated: 0 12px 40px rgba(16, 32, 45, 0.22);
+  --shadow-commit-bar: 0 -2px 8px rgba(16, 32, 45, 0.05);
+
+  color-scheme: light;
+}
+
+.dark {
+  --color-canvas: 12 19 25;
+  --color-surface: 20 29 37;
+  --color-surface-muted: 25 36 45;
+  --color-surface-hover: 31 44 54;
+
+  --color-topbar: 8 15 20;
+  --color-topbar-fg: 159 180 196;
+
+  --color-fg: 226 234 240;
+  --color-fg-muted: 174 192 206;
+  --color-fg-subtle: 152 168 181;
+
+  --color-border: 38 52 63;
+  --color-border-soft: 29 40 49;
+  --color-border-strong: 174 192 206;
+
+  --color-primary: 79 163 214;
+  --color-primary-hover: 121 188 229;
+  --color-primary-soft: 18 42 58;
+  --color-primary-fg: 23 23 23;
+
+  --color-success: 95 186 132;
+  --color-success-soft: 19 39 32;
+  --color-success-fg: 23 23 23;
+
+  --color-warning: 217 160 91;
+  --color-warning-soft: 42 32 21;
+  --color-warning-fg: 23 23 23;
+  --color-warning-strong: 240 171 92;
+
+  --color-danger: 224 138 132;
+  --color-danger-soft: 44 25 23;
+  --color-danger-fg: 23 23 23;
+
+  --color-add: 164 135 208;
+  --color-add-soft: 33 27 46;
+  --color-add-fg: 23 23 23;
+
+  --color-focus: 121 188 229;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-elevated: 0 12px 40px rgba(0, 0, 0, 0.55);
+  --shadow-commit-bar: 0 -2px 8px rgba(0, 0, 0, 0.35);
+
+  color-scheme: dark;
+}

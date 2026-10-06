@@ -1,0 +1,12 @@
+#!/bin/sh
+# Blocks commits on the base branch (AGENTS.md §7). Enable once per clone:
+#   git config core.hooksPath .githooks
+branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+base=$(sed -n 's/^base-branch:[[:space:]]*//p' PROJECT.md 2>/dev/null | head -n 1)
+for b in main master develop $base; do
+  if [ "$branch" = "$b" ]; then
+    echo "pre-commit: commits on '$branch' are blocked — the agent team works on feat/* or fix/* branches (AGENTS.md §7)." >&2
+    exit 1
+  fi
+done
+exit 0

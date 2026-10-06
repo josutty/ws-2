@@ -1,0 +1,30 @@
+{
+  "_help": "Edit the four model names below (provider/model \u2014 run `opencode models` to list yours), then run: node tools/set-models.mjs. The reviewer should be a DIFFERENT model family from the coder.",
+  "tiers": {
+    "strongest": "opencode-go/deepseek-v4-flash",
+    "strong": "opencode-go/deepseek-v4-flash",
+    "reviewer": "opencode-go/deepseek-v4-flash",
+    "fast": "opencode-go/deepseek-v4-flash"
+  },
+  "agents": {
+    "architect": "strongest",
+    "fsd-planner": "strongest",
+    "wireframe-analyzer": "strongest",
+    "debugger": "strongest",
+    "orchestrator": "strong",
+    "codebase-scanner": "strong",
+    "hybrid-api-config": "strong",
+    "mock-data-generator": "strong",
+    "store-architect": "strong",
+    "styling-engineer": "strong",
+    "test-engineer": "strong",
+    "component-generator": "strong",
+    "coder": "strong",
+    "reviewer": "reviewer",
+    "schema-parser": "fast",
+    "coverage-checker": "fast",
+    "app-bootstrap": "fast",
+    "researcher": "fast",
+    "reflector": "fast"
+  }
+}
