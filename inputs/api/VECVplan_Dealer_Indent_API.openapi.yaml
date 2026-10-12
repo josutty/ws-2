@@ -1,0 +1,418 @@
+openapi: 3.0.3
+info:
+  title: VECVplan Dealer Indent API
+  description: >-
+    Dealer-facing APIs required by the VECVplan indent workbook, Add FERT flow,
+    and Review & submit dialog. Converted from the Postman collection.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Local
+security:
+  - bearerAuth: []
+tags:
+  - name: Identity
+  - name: Dealer indent
+  - name: Submission
+
+paths:
+  /users/me:
+    get:
+      tags: [Identity]
+      summary: Get the signed-in dealer
+      description: Current user and dealer scope.
+      operationId: getCurrentUser
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUser'
+
+  /dealers/{dealerId}/cycles/{cycleId}/summary:
+    get:
+      tags: [Dealer indent]
+      summary: Load the dealer workbook header and totals
+      description: Returns the cycle status, edit window, visible line count, and month totals shown by the workbook shell.
+      operationId: getCycleSummary
+      parameters:
+        - $ref: '#/components/parameters/DealerId'
+        - $ref: '#/components/parameters/CycleId'
+      responses:
+        '200':
+          description: Workbook summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CycleSummary'
+
+  /dealers/{dealerId}/cycles/{cycleId}/indent-lines:
+    get:
+      tags: [Dealer indent]
+      summary: List dealer indent rows
+      description: Returns the editable July-to-September planning grid, references, stock, and pipeline values.
+      operationId: listIndentLines
+      parameters:
+        - $ref: '#/components/parameters/DealerId'
+        - $ref: '#/components/parameters/CycleId'
+        - name: page
+          in: query
+          description: Zero-based page index.
+          schema: { type: integer, minimum: 0, default: 0 }
+        - name: size
+          in: query
+          description: Page size.
+          schema: { type: integer, minimum: 1, maximum: 500, default: 50 }
+        - name: sort
+          in: query
+          description: Stable sort in the form field,direction.
+          schema: { type: string, example: 'vehicleDescription,asc' }
+        - name: search
+          in: query
+          description: Search by FERT code or vehicle description.
+          schema: { type: string }
+        - name: includeReference
+          in: query
+          description: Include prior-cycle values and weekly was-values.
+          schema: { type: boolean, default: true }
+        - name: collapsedGroups
+          in: query
+          description: Optional collapsed table groups; only 'pipeline' is supported.
+          schema:
+            type: string
+            enum: [pipeline]
+      responses:
+        '200':
+          description: Paginated indent lines
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IndentLinePage'
+    post:
+      tags: [Dealer indent]
+      summary: Add a FERT line to the dealer indent
+      description: Adds an active product/dealer planning combination and creates zero-valued editable cells for the cycle horizon.
+      operationId: addIndentLine
+      parameters:
+        - $ref: '#/components/parameters/DealerId'
+        - $ref: '#/components/parameters/CycleId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddIndentLineRequest'
+      responses:
+        '201':
+          description: Indent line created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IndentLine'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /dealers/{dealerId}/cycles/{cycleId}/indent-lines/{lineId}/cells/{periodId}:
+    put:
+      tags: [Dealer indent]
+      summary: Save one indent cell
+      description: Upserts one DomDealerIndent fact and rejects stale, locked, inactive, or out-of-horizon cells.
+      operationId: saveIndentCell
+      parameters:
+        - $ref: '#/components/parameters/DealerId'
+        - $ref: '#/components/parameters/CycleId'
+        - name: lineId
+          in: path
+          required: true
+          schema: { type: string, example: line-PRO2114-CGO }
+        - name: periodId
+          in: path
+          required: true
+          schema: { type: string, example: 2026-M08-PW1 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CellUpdate'
+      responses:
+        '200':
+          description: Cell saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Fact'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /dealers/{dealerId}/cycles/{cycleId}/indent-lines/batch:
+    put:
+      tags: [Dealer indent]
+      summary: Save multiple indent cells
+      description: Saves edited workbook cells as one command. A locked task rejects the complete batch.
+      operationId: saveIndentCellsBatch
+      parameters:
+        - $ref: '#/components/parameters/DealerId'
+        - $ref: '#/components/parameters/CycleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchCellUpdate'
+      responses:
+        '200':
+          description: All cells saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchResult'
+        '207':
+          description: Some cells were rejected; inspect item errors.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchResult'
+
+  /dealers/{dealerId}/cycles/{cycleId}/submit-preview:
+    get:
+      tags: [Submission]
+      summary: Preview dealer submission
+      description: Returns totals, blank-line warnings, and the recipient/reopen details shown in Review & submit.
+      operationId: previewSubmission
+      parameters:
+        - $ref: '#/components/parameters/DealerId'
+        - $ref: '#/components/parameters/CycleId'
+      responses:
+        '200':
+          description: Submission preview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmitPreview'
+
+  /dealers/{dealerId}/cycles/{cycleId}/submit:
+    post:
+      tags: [Submission]
+      summary: Submit the dealer indent
+      description: Locks dealer-writable facts and submits the dealer workflow task. The command is idempotent.
+      operationId: submitIndent
+      parameters:
+        - $ref: '#/components/parameters/DealerId'
+        - $ref: '#/components/parameters/CycleId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitRequest'
+      responses:
+        '200':
+          description: Indent submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmitResult'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    DealerId:
+      name: dealerId
+      in: path
+      required: true
+      schema: { type: string, example: D-DLR-SHARMA }
+    CycleId:
+      name: cycleId
+      in: path
+      required: true
+      schema: { type: string, example: RUN-AUG-DOM }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Unique key for this consequential command.
+      schema: { type: string, format: uuid }
+
+  responses:
+    Conflict:
+      description: Conflict, e.g. the combination already exists, the task is locked, or expectedVersion is stale.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    CurrentUser:
+      type: object
+      required: [userId, displayName, dealerMemberId, dealerCode, dealerName, roles]
+      properties:
+        userId: { type: string }
+        displayName: { type: string }
+        dealerMemberId: { type: string }
+        dealerCode: { type: string }
+        dealerName: { type: string }
+        roles:
+          type: array
+          items: { type: string }
+
+    CycleSummary:
+      type: object
+      required: [cycleId, cycleLabel, dealer, status, closesAt, lines, totals, permissions]
+      properties:
+        cycleId: { type: string }
+        cycleLabel: { type: string }
+        dealer: { type: object }
+        status:
+          type: string
+          enum: [DRAFT, SUBMITTED, LOCKED, CLOSED]
+        closesAt: { type: string, format: date-time }
+        lines: { type: integer, description: Visible line count. }
+        totals: { type: object }
+        permissions: { type: object }
+
+    IndentLine:
+      type: object
+      required: [lineId]
+      properties:
+        lineId: { type: string }
+      additionalProperties: true
+
+    IndentLinePage:
+      type: object
+      required: [page, size, totalElements, items]
+      properties:
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/IndentLine'
+
+    AddIndentLineRequest:
+      type: object
+      required: [productMemberId]
+      properties:
+        productMemberId: { type: string, example: P-FERT-TIP }
+
+    CellUpdate:
+      type: object
+      required: [taskId, measure, periodId, productMemberId, orgMemberId, value, expectedVersion]
+      properties:
+        taskId: { type: string, example: TK-D-SHARMA }
+        measure: { type: string, example: DomDealerIndent }
+        periodId: { type: string, example: 2026-M08-PW1 }
+        productMemberId: { type: string, example: P-FERT-TIP }
+        orgMemberId: { type: string, example: D-DLR-SHARMA }
+        value: { type: number, example: 5 }
+        expectedVersion: { type: integer, example: 0 }
+
+    BatchCell:
+      type: object
+      required: [lineId, periodId, value, expectedVersion]
+      properties:
+        lineId: { type: string, example: line-PRO2114-CGO }
+        periodId: { type: string, example: 2026-M08-PW2 }
+        value: { type: number, example: 4 }
+        expectedVersion: { type: integer, example: 0 }
+
+    BatchCellUpdate:
+      type: object
+      required: [cells]
+      properties:
+        cells:
+          type: array
+          items:
+            $ref: '#/components/schemas/BatchCell'
+      example:
+        cells:
+          - lineId: line-PRO2114-CGO
+            periodId: 2026-M08-PW2
+            value: 4
+            expectedVersion: 0
+          - lineId: line-PRO2116-TIP
+            periodId: 2026-M08-PW3
+            value: 3
+            expectedVersion: 0
+
+    Fact:
+      type: object
+      required: [factId, measure, periodId, productMemberId, orgMemberId, value, version, updatedAt]
+      properties:
+        factId: { type: string }
+        measure: { type: string }
+        periodId: { type: string }
+        productMemberId: { type: string }
+        orgMemberId: { type: string }
+        value: { type: number }
+        version: { type: integer }
+        updatedAt: { type: string, format: date-time }
+
+    BatchResult:
+      type: object
+      required: [saved, rejected]
+      properties:
+        saved:
+          type: array
+          items:
+            $ref: '#/components/schemas/Fact'
+        rejected:
+          type: array
+          items:
+            type: object
+            properties:
+              cell:
+                $ref: '#/components/schemas/BatchCell'
+              error:
+                $ref: '#/components/schemas/Error'
+
+    SubmitPreview:
+      type: object
+      required: [status, lines, totals, warnings, recipient, reopenUntil]
+      properties:
+        status:
+          type: string
+          enum: [READY, HAS_WARNINGS, BLOCKED]
+        lines: { type: integer }
+        totals: { type: object }
+        warnings:
+          type: array
+          items: { type: object }
+        recipient: { type: object }
+        reopenUntil: { type: string, format: date-time }
+
+    SubmitRequest:
+      type: object
+      required: [taskId, expectedVersion]
+      properties:
+        taskId: { type: string, example: TK-D-SHARMA }
+        expectedVersion: { type: integer, example: 0 }
+
+    SubmitResult:
+      type: object
+      required: [taskId, status, submittedAt, recipient, reopenUntil]
+      properties:
+        taskId: { type: string, example: TK-D-SHARMA }
+        status:
+          type: string
+          enum: [SUBMITTED]
+        submittedAt: { type: string, format: date-time }
+        recipient: { type: object }
+        reopenUntil: { type: string, format: date-time }
+
+    Error:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
