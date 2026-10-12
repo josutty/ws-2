@@ -22,8 +22,8 @@ styling-engineer) also not planned here — see AGENTS.md §11 / architect mode 
 | TASK-012 | widgets/rollup | RollupTable | TASK-001 | done |
 | TASK-013 | widgets/workbook-toolbar | WorkbookToolbar, ColumnsPopover | TASK-001, TASK-004, TASK-005, TASK-006 | done |
 | TASK-014 | widgets/indent-grid | IndentGrid, LineDetailDrawer | TASK-001, TASK-003 | done |
-| TASK-015 | pages/home | HomePage (HomeDashboard) | TASK-006, TASK-008, TASK-009, TASK-010, TASK-011, TASK-012 | in-progress |
-| TASK-016 | pages/workbook | WorkbookPage | TASK-004, TASK-005, TASK-006, TASK-007, TASK-008, TASK-013, TASK-014 | open |
+| TASK-015 | pages/home | HomePage (HomeDashboard) | TASK-006, TASK-008, TASK-009, TASK-010, TASK-011, TASK-012 | done |
+| TASK-016 | pages/workbook | WorkbookPage | TASK-004, TASK-005, TASK-006, TASK-007, TASK-008, TASK-013, TASK-014 | done |
 
 Status values: `open → in-progress → done` (test-engineer sets in-progress, reviewer sets done).
 

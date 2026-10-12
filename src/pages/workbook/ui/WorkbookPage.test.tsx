@@ -50,10 +50,10 @@ describe('WorkbookPage', () => {
     expect(await screen.findByRole('dialog', { name: /add fert/i })).toBeInTheDocument();
   });
 
-  it('opens LineDetailDrawer for the clicked line via the "ⓘ" button', async () => {
+  it('opens LineDetailDrawer for the clicked line via the grid detail button', async () => {
     const firstLine = at(indentLineFixtures, 0);
     const { user } = renderPage();
-    const infoButtons = await screen.findAllByRole('button', { name: 'ⓘ' });
+    const infoButtons = await screen.findAllByRole('button', { name: `Open details for ${firstLine.product.fertCode}` });
     await user.click(at(infoButtons, 0));
 
     const drawer = await screen.findByRole('complementary', { name: 'Line detail' });

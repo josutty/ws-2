@@ -1,11 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { cycleApi } from '@entities/cycle';
-import { indentLineApi } from '@entities/indent-line';
-import { ExportModal } from '@features/export-indent';
-import { getErrorMessage } from '@shared/api';
 import { routes } from '@shared/config';
-import { useAppSelector } from '@shared/lib/store';
 import { Button, Modal } from '@shared/ui';
 import { IndentAccuracyCard } from '@widgets/accuracy-summary';
 import { IndentProgressCard, NeedsAttentionCard, VerticalsSummaryCard } from '@widgets/home-summary';
@@ -14,8 +9,6 @@ import { RollupTable } from '@widgets/rollup';
 import { TopBar } from '@widgets/topbar';
 
 const routePaths = routes as typeof routes & { workbook?: string };
-const CYCLE_SUMMARY_QUERY = {} as const;
-const EXPORT_LINES_QUERY = { size: 50, includeReference: true } as const;
 
 export function HomePage() {
   const navigate = useNavigate();
@@ -54,28 +47,11 @@ export function HomePage() {
 }
 
 function HomeExportModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const selectCycleSummary = useMemo(() => cycleApi.endpoints.getDealerCycleSummary.select(CYCLE_SUMMARY_QUERY), []);
-  const selectExportLines = useMemo(() => indentLineApi.endpoints.listDealerIndentLines.select(EXPORT_LINES_QUERY), []);
-  const cycleResult = useAppSelector(selectCycleSummary);
-  const linesResult = useAppSelector(selectExportLines);
-  const cycle = cycleResult.data;
-  const lines = linesResult.data;
-  const isLoading = cycleResult.isLoading || cycleResult.isFetching || linesResult.isLoading || linesResult.isFetching;
-  const isError = cycleResult.isError || linesResult.isError;
-  const message = cycleResult.isError ? getErrorMessage(cycleResult.error) : getErrorMessage(linesResult.error);
-
-  if (cycle && lines && !isError) {
-    return <ExportModal open={open} lines={lines.items} dealer={cycle.dealer} cycle={cycle} scope="all" onClose={onClose} />;
-  }
-
   return (
     <Modal open={open} title="Export indent CSV" onClose={onClose} footer={<Button variant="ghost" onClick={onClose}>Close</Button>}>
-      {isError ? (
-        <div role="alert" className="rounded-card border border-danger/30 bg-danger-soft p-4 text-body-sm text-danger">
-          <p>{message}</p>
-        </div>
-      ) : null}
-      {isLoading ? <p className="rounded-card border border-border bg-surface-muted p-4 text-body-sm text-fg-muted">Loading export data…</p> : null}
+      <p className="rounded-card border border-border bg-surface-muted p-4 text-body-sm text-fg-muted">
+        Export data is prepared by the workbook export flow.
+      </p>
     </Modal>
   );
 }
