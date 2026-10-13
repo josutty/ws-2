@@ -1,0 +1,2224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VECVplan — IS &amp; IB Workbench (v1)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   Visual system (P-17) — identical tokens/components to the ASM
+   Cluster Moderation prototype (v1.3), which is itself identical to
+   the Dealer Prototype v4.5. This file adds IS and IB on top of the
+   same system — no new palette, no new component language. */
+:root{
+  --canvas:#F4F6F8; --surface:#FFFFFF; --surface-2:#F8FAFB; --bar:#10202D; --bar-ink:#C7D6E2;
+  --ink:#16222C; --ink-2:#42576A; --muted:#6B7C8A; --rule:#DCE3E9; --rule-soft:#EAEFF3;
+  --accent:#0E6BA8; --accent-2:#0A5686; --accent-soft:#E6F1F8; --accent-line:#B9D7EA;
+  --ok:#1F7A45; --ok-soft:#E7F2EB; --warn:#A65D00; --warn-soft:#FBEFE0; --crit:#B3261E; --crit-soft:#FBE9E7;
+  --add:#6B3FA0; --add-soft:#F0EAF8;
+  --ui:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  --shadow:0 1px 2px rgba(16,32,45,.06),0 2px 8px rgba(16,32,45,.06);
+  --shadow-lg:0 12px 40px rgba(16,32,45,.22);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --canvas:#0C1319; --surface:#141D25; --surface-2:#19242D; --bar:#080F14; --bar-ink:#9FB4C4;
+  --ink:#E2EAF0; --ink-2:#AEC0CE; --muted:#8296A6; --rule:#26343F; --rule-soft:#1D2831;
+  --accent:#4FA3D6; --accent-2:#79BCE5; --accent-soft:#122A3A; --accent-line:#20455C;
+  --ok:#5FBA84; --ok-soft:#132720; --warn:#D9A05B; --warn-soft:#2A2015; --crit:#E08A84; --crit-soft:#2C1917;
+  --add:#A487D0; --add-soft:#211B2E;
+  --shadow:0 1px 2px rgba(0,0,0,.4); --shadow-lg:0 12px 40px rgba(0,0,0,.55);
+}}
+:root[data-theme="dark"]{
+  --canvas:#0C1319; --surface:#141D25; --surface-2:#19242D; --bar:#080F14; --bar-ink:#9FB4C4;
+  --ink:#E2EAF0; --ink-2:#AEC0CE; --muted:#8296A6; --rule:#26343F; --rule-soft:#1D2831;
+  --accent:#4FA3D6; --accent-2:#79BCE5; --accent-soft:#122A3A; --accent-line:#20455C;
+  --ok:#5FBA84; --ok-soft:#132720; --warn:#D9A05B; --warn-soft:#2A2015; --crit:#E08A84; --crit-soft:#2C1917;
+  --add:#A487D0; --add-soft:#211B2E;
+  --shadow:0 1px 2px rgba(0,0,0,.4); --shadow-lg:0 12px 40px rgba(0,0,0,.55);
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--canvas);color:var(--ink);font-family:var(--ui);font-size:13.5px;
+  line-height:1.45;height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased;}
+button{font-family:inherit;cursor:pointer;}
+input,select,textarea{font-family:inherit;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
+
+.btn{height:32px;padding:0 14px;border-radius:5px;font-size:13px;font-weight:500;border:1px solid transparent;
+  display:inline-flex;align-items:center;gap:7px;white-space:nowrap;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:var(--accent-2);}
+.btn-primary:disabled{background:var(--muted);}
+.btn-ghost{background:var(--surface);color:var(--ink-2);border-color:var(--rule);}
+.btn-ghost:hover{background:var(--surface-2);border-color:var(--muted);}
+.btn-quiet{background:transparent;color:var(--ink-2);border-color:transparent;}
+.btn-quiet:hover{background:var(--surface-2);}
+.btn-add{background:var(--surface);color:var(--add);border-color:var(--add);}
+.btn-add:hover{background:var(--add-soft);}
+.btn-sm{height:27px;padding:0 10px;font-size:12px;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.link{background:none;border:none;padding:0;color:var(--accent);font-size:13px;font-weight:500;
+  text-decoration:underline;text-underline-offset:2px;}
+
+/* ══ LOGIN (P-01 — one screen, identical shape for every persona) ══ */
+#login{height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;overflow-y:auto;
+  background:linear-gradient(150deg,#0B1822 0%,#12293A 55%,#0E3A4A 100%);}
+.lg-shell{width:100%;max-width:400px;display:flex;flex-direction:column;gap:18px;}
+.lg-logo{font-size:23px;font-weight:700;color:#fff;letter-spacing:-.4px;}
+.lg-logo span{color:#5FB0DE;}
+.lg-cycle{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.09);
+  border:1px solid rgba(255,255,255,.14);border-radius:5px;padding:5px 11px;font-size:11.5px;color:#B7CDDD;margin-top:6px;flex-wrap:wrap;}
+.lg-cycle b{color:#fff;font-weight:600;}
+.lg-card{background:var(--surface);border-radius:9px;padding:26px;box-shadow:var(--shadow-lg);
+  display:flex;flex-direction:column;gap:15px;}
+.lg-card h1{margin:0;font-size:19px;font-weight:600;}
+.lg-card .sub{font-size:13px;color:var(--muted);margin-top:-9px;}
+.fld{display:flex;flex-direction:column;gap:5px;}
+.fld label{font-size:12px;font-weight:600;color:var(--ink-2);display:flex;align-items:baseline;}
+.fld label .hint{margin-left:auto;font-weight:400;}
+.fld input{height:38px;padding:0 11px;border:1px solid var(--rule);border-radius:5px;font-size:14px;
+  background:var(--surface);color:var(--ink);}
+.fld input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+.fld .err{font-size:12px;color:var(--crit);display:none;}
+.fld.invalid input{border-color:var(--crit);}
+.fld.invalid .err{display:block;}
+.lg-or{display:flex;align-items:center;gap:11px;color:var(--muted);font-size:11.5px;}
+.lg-or::before,.lg-or::after{content:'';flex:1;height:1px;background:var(--rule);}
+.lg-foot{font-size:11.5px;color:var(--muted);text-align:center;}
+.lg-note{font-size:11px;color:rgba(183,205,221,.75);text-align:center;}
+
+/* ══ SHELL (P-03) ══ */
+#app{display:none;height:100vh;flex-direction:column;overflow:hidden;}
+#app.on{display:flex;}
+.topbar{height:48px;flex-shrink:0;background:var(--bar);display:flex;align-items:center;gap:4px;padding:0 8px 0 16px;}
+.tb-logo{font-size:14.5px;font-weight:700;color:#fff;margin-right:14px;white-space:nowrap;}
+.tb-logo span{color:#5FB0DE;}
+.tb-mod{font-size:10.5px;font-weight:700;letter-spacing:.06em;padding:2px 7px;border-radius:3px;margin-right:12px;white-space:nowrap;}
+.tb-mod.is{background:#3A2410;color:#F0B770;}
+.tb-mod.ib{background:#0F2A2C;color:#5FD3C4;}
+.tb-nav{display:flex;gap:2px;}
+.tb-nav button{height:30px;padding:0 12px;border:none;border-radius:5px;background:transparent;
+  color:var(--bar-ink);font-size:13px;font-weight:500;}
+.tb-nav button:hover{background:rgba(255,255,255,.08);color:#fff;}
+.tb-nav button.on{background:rgba(255,255,255,.14);color:#fff;}
+.tb-nav button:disabled{opacity:.35;cursor:not-allowed;}
+.tb-status{margin-left:16px;display:flex;align-items:center;overflow:hidden;}
+.tb-status .seg{font-size:12px;color:var(--bar-ink);white-space:nowrap;padding:0 12px;
+  border-left:1px solid rgba(255,255,255,.13);}
+.tb-status .seg:first-child{border-left:none;}
+.tb-status b{color:#fff;font-weight:600;}
+.warnv{color:#F0B770;font-weight:600;} .okv{color:#7DD3A0;font-weight:600;}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:8px;padding-left:10px;}
+.tb-user{display:flex;align-items:center;gap:8px;padding:3px 10px 3px 4px;border-radius:16px;background:rgba(255,255,255,.09);}
+.tb-av{width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:10px;
+  font-weight:700;display:flex;align-items:center;justify-content:center;}
+.tb-user .nm{font-size:11.5px;color:#fff;line-height:1.15;}
+.tb-user .rl{font-size:10px;color:#8FADC4;line-height:1.15;}
+.tb-icon{width:30px;height:30px;border:none;border-radius:5px;background:transparent;color:var(--bar-ink);
+  font-size:14px;display:flex;align-items:center;justify-content:center;}
+.tb-icon:hover{background:rgba(255,255,255,.1);color:#fff;}
+.page{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+.view{display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;}
+.view.on{display:flex;}
+
+/* ══ HOME (P-04) ══ */
+.home-scroll{flex:1;overflow-y:auto;}
+.home-inner{max-width:1440px;margin:0 auto;padding:20px 32px 56px;display:flex;flex-direction:column;gap:18px;}
+.proto-strip{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);
+  border:1px dashed var(--accent-line);border-radius:7px;padding:9px 14px;}
+.proto-strip .pl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--accent);background:var(--accent-soft);padding:3px 7px;border-radius:3px;}
+.proto-strip label{font-size:12.5px;font-weight:600;color:var(--ink-2);}
+.proto-strip select{height:32px;padding:0 9px;border:1px solid var(--rule);border-radius:5px;
+  background:var(--surface);color:var(--ink);font-size:13px;font-weight:500;min-width:260px;}
+.proto-strip .np{font-size:11.5px;color:var(--muted);margin-left:auto;}
+.home-head{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;}
+.home-head h1{margin:0;font-size:24px;font-weight:600;letter-spacing:-.4px;}
+.home-head .sub{font-size:13.5px;color:var(--muted);}
+.home-head .right{margin-left:auto;display:flex;gap:8px;}
+.zone{display:flex;align-items:center;gap:12px;margin-top:10px;}
+.zone .zl{font-size:11px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);white-space:nowrap;}
+.zone .zr{flex:1;height:1px;background:var(--rule);}
+.zone .zn{font-size:11.5px;color:var(--muted);white-space:nowrap;}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(262px,1fr));gap:14px;}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:16px 17px 15px;
+  display:flex;flex-direction:column;gap:11px;box-shadow:var(--shadow);}
+.card.lead{grid-column:span 2;}
+.card.full{grid-column:1/-1;}
+.card.attn{border-color:var(--warn);}
+@media (max-width:760px){.card.lead,.card.full{grid-column:span 1;}}
+.card h3{margin:0;font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);}
+.big{font-family:var(--mono);font-size:27px;font-weight:600;letter-spacing:-.5px;line-height:1;font-variant-numeric:tabular-nums;}
+.big.sm{font-size:21px;}
+.cap{font-size:12.5px;color:var(--ink-2);}
+.card .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:4px;}
+.meter{height:6px;border-radius:3px;background:var(--rule-soft);overflow:hidden;}
+.meter i{display:block;height:100%;background:var(--accent);border-radius:3px;}
+.kv-row{display:flex;align-items:center;gap:10px;font-size:13px;padding:7px 0;border-bottom:1px solid var(--rule-soft);}
+.kv-row:last-child{border-bottom:none;}
+.kv-row .nm{color:var(--ink);font-weight:500;}
+.kv-row .vl{margin-left:auto;font-family:var(--mono);font-size:12.5px;color:var(--ink-2);font-variant-numeric:tabular-nums;}
+.pill{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:3px;white-space:nowrap;}
+.p-ok{background:var(--ok-soft);color:var(--ok);}
+.p-warn{background:var(--warn-soft);color:var(--warn);}
+.p-crit{background:var(--crit-soft);color:var(--crit);}
+.p-add{background:var(--add-soft);color:var(--add);}
+.attn-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule-soft);font-size:13px;}
+.attn-row:last-child{border-bottom:none;}
+.attn-row .n{font-family:var(--mono);font-size:16px;font-weight:600;min-width:26px;}
+.attn-row .t{color:var(--ink-2);}
+.attn-row button{margin-left:auto;}
+.sbar{display:flex;height:9px;border-radius:5px;overflow:hidden;background:var(--rule-soft);}
+.sbar i{height:100%;}
+.spark{display:flex;align-items:flex-end;gap:5px;height:40px;}
+.spark i{flex:1;border-radius:2px 2px 0 0;background:var(--accent);opacity:.35;}
+.spark i:last-child{opacity:1;}
+.sumtbl{width:100%;border-collapse:collapse;font-size:13px;}
+.sumtbl th{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+  text-align:right;padding:8px 10px;border-bottom:1px solid var(--rule);}
+.sumtbl th.l{text-align:left;}
+.sumtbl td{padding:9px 10px;border-bottom:1px solid var(--rule-soft);text-align:right;
+  font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--ink-2);}
+.sumtbl td.l{text-align:left;font-family:var(--ui);color:var(--ink);font-weight:500;}
+.sumtbl tr.tot td{background:var(--surface-2);font-weight:700;color:var(--ink);border-bottom:none;}
+.sumtbl tr.sub td{background:var(--surface-2);color:var(--muted);font-size:12px;}
+.sumtbl tr.sub td.l{padding-left:26px;font-weight:400;color:var(--ink-2);}
+.sumtbl thead tr.bands th{height:24px;padding:0 8px;text-align:left;text-transform:uppercase;
+  letter-spacing:.08em;font-size:10px;font-weight:700;border-bottom:1px solid var(--rule-soft);}
+.sumtbl thead tr.bands th.b-ref{background:var(--surface-2);color:var(--muted);}
+.sumtbl thead tr.bands th.b-edit{background:var(--accent-soft);color:var(--accent);}
+.exp{background:none;border:none;padding:0 6px 0 0;color:var(--accent);font-size:10px;}
+.accwrap{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:14px 16px 10px;
+  box-shadow:var(--shadow);display:flex;flex-direction:column;gap:11px;}
+.acchead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.acchead h4{margin:0;font-size:13.5px;font-weight:600;}
+.seg-ctl{display:flex;border:1px solid var(--rule);border-radius:5px;overflow:hidden;flex-shrink:0;}
+.seg-ctl button{height:30px;padding:0 10px;border:none;background:var(--surface);color:var(--muted);font-size:12px;font-weight:500;}
+.seg-ctl button.on{background:var(--accent-soft);color:var(--accent);font-weight:600;}
+.seg-ctl button+button{border-left:1px solid var(--rule);}
+.seg-ctl.sm button{height:24px;padding:0 7px;font-size:11px;}
+
+/* ══ EXCEPTION LIST (Home Section 1 — flagged lines needing a decision, P-21/P-22) ══ */
+.exc-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--rule-soft);font-size:12.5px;}
+.exc-row:last-child{border-bottom:none;}
+.exc-main{flex:1;min-width:0;}
+.exc-main .d1{font-weight:600;color:var(--ink);}
+.exc-main .d2{color:var(--muted);font-size:11.5px;}
+.exc-dev{font-family:var(--mono);font-size:12px;font-weight:600;white-space:nowrap;}
+.exc-dev.over{color:var(--crit);} .exc-dev.under{color:var(--warn);}
+.exc-acts{display:flex;gap:6px;flex-shrink:0;}
+
+/* ══ WORKBOOK ══ */
+.wb{flex:1;display:flex;overflow:hidden;min-height:0;}
+.rail{width:262px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--rule);
+  display:flex;flex-direction:column;overflow:hidden;transition:width .16s ease;}
+.rail.collapsed{width:46px;}
+.rail-head{height:44px;flex-shrink:0;display:flex;align-items:center;gap:8px;padding:0 8px 0 14px;border-bottom:1px solid var(--rule);}
+.rail-head .t{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);flex:1;white-space:nowrap;}
+.rail-head .cnt{font-family:var(--mono);font-size:10.5px;font-weight:600;background:var(--accent-soft);
+  color:var(--accent);padding:2px 6px;border-radius:9px;}
+.rail-toggle{width:26px;height:26px;flex-shrink:0;border:none;border-radius:5px;background:transparent;
+  color:var(--muted);font-size:14px;display:flex;align-items:center;justify-content:center;}
+.rail-toggle:hover{background:var(--surface-2);color:var(--ink);}
+.rail.collapsed .rail-head{padding:0 10px;}
+.rail.collapsed .rail-head .t,.rail.collapsed .rail-head .cnt,.rail.collapsed .rail-body,.rail.collapsed .rail-foot{display:none;}
+.rail-stub{display:none;flex-direction:column;align-items:center;gap:10px;padding:12px 0;}
+.rail.collapsed .rail-stub{display:flex;}
+.rail-stub .sb{writing-mode:vertical-rl;font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.rail-stub .sc{font-family:var(--mono);font-size:10.5px;font-weight:600;background:var(--accent-soft);
+  color:var(--accent);padding:2px 5px;border-radius:8px;}
+.rail-body{flex:1;overflow-y:auto;padding:12px 14px 20px;display:flex;flex-direction:column;gap:13px;}
+.rail-body::-webkit-scrollbar{width:7px;}
+.rail-body::-webkit-scrollbar-thumb{background:var(--rule);border-radius:4px;}
+.frow{display:flex;flex-direction:column;gap:5px;}
+.frow .fl{font-size:11.5px;font-weight:600;color:var(--ink-2);display:flex;align-items:baseline;gap:6px;}
+.frow .fl .clr{margin-left:auto;font-size:10.5px;color:var(--accent);background:none;border:none;padding:0;text-decoration:underline;}
+.ms{position:relative;}
+.ms-btn{width:100%;height:32px;padding:0 9px;border:1px solid var(--rule);border-radius:5px;
+  background:var(--surface);color:var(--ink);font-size:12.5px;display:flex;align-items:center;gap:6px;text-align:left;}
+.ms-btn:hover{border-color:var(--muted);}
+.ms-btn.act{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:500;}
+.ms-btn .lbl{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ms-btn .lbl.dim{color:var(--muted);}
+.ms-btn .ca{font-size:9px;opacity:.7;}
+.ms-pop{display:none;position:absolute;top:35px;left:0;right:0;z-index:40;background:var(--surface);
+  border:1px solid var(--rule);border-radius:6px;box-shadow:var(--shadow-lg);max-height:300px;overflow:hidden;flex-direction:column;}
+.ms.open .ms-pop{display:flex;}
+.ms-search{padding:8px;border-bottom:1px solid var(--rule-soft);}
+.ms-search input{width:100%;height:30px;padding:0 9px;border:1px solid var(--rule);border-radius:4px;
+  font-size:12.5px;background:var(--surface);color:var(--ink);}
+.ms-search input:focus{outline:none;border-color:var(--accent);}
+.ms-list{overflow-y:auto;padding:4px 0;}
+.ms-list::-webkit-scrollbar{width:7px;}
+.ms-list::-webkit-scrollbar-thumb{background:var(--rule);border-radius:4px;}
+.ms-opt{display:flex;align-items:flex-start;gap:8px;padding:6px 11px;font-size:12.5px;width:100%;
+  background:none;border:none;text-align:left;color:var(--ink);}
+.ms-opt:hover{background:var(--surface-2);}
+.ms-opt .bx{width:14px;height:14px;flex-shrink:0;margin-top:2px;border:1.5px solid var(--rule);border-radius:3px;
+  display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;}
+.ms-opt.on .bx{background:var(--accent);border-color:var(--accent);}
+.ms-opt .tx{flex:1;min-width:0;}
+.ms-opt .t1{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ms-opt .t2{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ms-opt .n{font-family:var(--mono);font-size:10.5px;color:var(--muted);flex-shrink:0;margin-top:1px;}
+.ms-foot{padding:7px 9px;border-top:1px solid var(--rule-soft);display:flex;gap:8px;align-items:center;}
+.ms-foot .c{font-size:11px;color:var(--muted);margin-left:auto;}
+.ms-empty{padding:16px 12px;text-align:center;font-size:12px;color:var(--muted);}
+.rail-foot{padding:10px 14px;border-top:1px solid var(--rule);display:flex;gap:8px;}
+
+.wb-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+.strip{height:48px;flex-shrink:0;display:flex;align-items:center;gap:9px;padding:0 14px;
+  background:var(--surface);border-bottom:1px solid var(--rule);overflow-x:auto;}
+.strip::-webkit-scrollbar{height:0;}
+.vsel{height:32px;padding:0 8px;border:1px solid var(--rule);border-radius:5px;background:var(--surface);
+  color:var(--ink);font-size:12.5px;font-weight:600;flex-shrink:0;}
+.srch{position:relative;flex-shrink:0;}
+.srch input{width:230px;height:32px;padding:0 10px 0 30px;border:1px solid var(--rule);border-radius:5px;
+  font-size:12.5px;background:var(--surface);color:var(--ink);}
+.srch input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+.srch .ic{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px;pointer-events:none;}
+.aft{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;}
+.ftok{display:inline-flex;align-items:center;gap:6px;background:var(--accent-soft);color:var(--accent);
+  border:1px solid var(--accent-line);border-radius:13px;padding:3px 8px 3px 10px;font-size:11.5px;font-weight:500;white-space:nowrap;}
+.ftok.srt{background:var(--surface-2);color:var(--ink-2);border-color:var(--rule);}
+.ftok button{background:none;border:none;color:inherit;font-size:13px;line-height:1;padding:0;opacity:.6;}
+.ftok button:hover{opacity:1;}
+.strip .sep{width:1px;height:24px;background:var(--rule);flex-shrink:0;}
+.strip .right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.rescount{font-size:12px;color:var(--muted);white-space:nowrap;}
+.rescount b{color:var(--ink);font-family:var(--mono);font-weight:600;}
+
+.grid-wrap{flex:1;overflow:auto;min-height:0;background:var(--canvas);}
+.grid-wrap::-webkit-scrollbar{width:10px;height:10px;}
+.grid-wrap::-webkit-scrollbar-thumb{background:#BCC8D2;border-radius:5px;}
+table.grid{border-collapse:separate;border-spacing:0;width:100%;min-width:1020px;background:var(--surface);}
+table.grid thead th{position:sticky;top:26px;z-index:6;background:var(--surface-2);border-bottom:1px solid var(--rule);
+  font-size:11px;font-weight:600;color:var(--muted);padding:0;height:38px;white-space:nowrap;}
+table.grid thead tr.bands th{height:26px;top:0;z-index:7;font-size:10px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;text-align:left;border-bottom:1px solid var(--rule-soft);padding:0 8px;}
+table.grid thead tr.bands th.b-ref{background:var(--surface-2);color:var(--muted);}
+table.grid thead tr.bands th.b-edit{background:var(--accent-soft);color:var(--accent);}
+.sortbtn{width:100%;height:38px;padding:0 8px;background:none;border:none;color:inherit;font:inherit;
+  display:flex;align-items:center;justify-content:flex-end;gap:4px;}
+.sortbtn.l{justify-content:flex-start;}
+.sortbtn:hover{background:var(--rule-soft);color:var(--ink);}
+.sortbtn .ar{font-size:9px;opacity:0;}
+.sortbtn:hover .ar{opacity:.45;}
+.sortbtn.on{color:var(--accent);font-weight:700;}
+.sortbtn.on .ar{opacity:1;}
+th.idc,td.idc{position:sticky;left:0;z-index:5;background:var(--surface);border-right:1px solid var(--rule);
+  text-align:left;min-width:276px;max-width:276px;}
+thead th.idc{z-index:8;background:var(--surface-2);}
+table.grid tbody td{padding:0 8px;border-bottom:1px solid var(--rule-soft);height:40px;vertical-align:middle;
+  text-align:right;font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--ink-2);}
+table.grid tbody tr:hover td{background:#F6FAFD;}
+table.grid tbody tr:hover td.idc{background:#F0F7FC;}
+table.grid tbody tr.exc td.idc{box-shadow:inset 3px 0 0 var(--warn);}
+table.grid tbody tr.isadd td.idc{box-shadow:inset 3px 0 0 var(--add);}
+table.grid tbody tr.dealer-row td{background:var(--surface-2);}
+table.grid tbody tr.dealer-row:hover td{background:#EEF3F7;}
+table.grid tbody tr.grp-row td{background:var(--accent-soft);font-weight:700;color:var(--ink);border-bottom:1px solid var(--accent-line);}
+table.grid tbody tr.grp-row td.idc{background:var(--accent-soft);}
+table.grid tbody tr.filtered-total td{background:var(--accent-soft);border-top:2px solid var(--accent-line);font-weight:700;color:var(--ink);}
+table.grid tbody tr.filtered-total td.idc{background:var(--accent-soft);}
+table.grid tbody tr.filtered-total .total-note{display:block;margin-top:2px;font-size:9.5px;font-weight:500;color:var(--muted);}
+table.grid tbody tr.grp-row .exp-tg{color:var(--accent-2);}
+table.grid.compact tbody td{height:31px;}
+table.grid.compact .id-meta{display:none;}
+.id-cell{display:flex;align-items:center;gap:9px;padding:5px 0;}
+.id-txt{min-width:0;flex:1;}
+.id-desc{font-family:var(--ui);font-size:12.5px;font-weight:500;color:var(--ink);line-height:1.25;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.id-meta{display:flex;align-items:center;gap:7px;margin-top:1px;}
+.id-code{font-family:var(--mono);font-size:10.5px;color:var(--accent);font-weight:500;}
+.id-sm{font-size:10.5px;color:var(--muted);}
+.seg-dot{font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px;font-family:var(--ui);}
+.sg-R{background:var(--ok-soft);color:var(--ok);}
+.sg-S{background:var(--warn-soft);color:var(--warn);}
+.sg-D{background:var(--crit-soft);color:var(--crit);}
+.addtag{font-size:9.5px;font-weight:700;padding:1px 5px;border-radius:3px;background:var(--add-soft);color:var(--add);}
+.id-btn{width:22px;height:22px;flex-shrink:0;border:1px solid var(--rule);border-radius:4px;background:var(--surface);
+  color:var(--muted);font-size:11px;display:flex;align-items:center;justify-content:center;}
+.id-btn:hover{border-color:var(--accent);color:var(--accent);}
+.exp-tg{width:20px;height:20px;flex-shrink:0;border:none;background:transparent;color:var(--accent);
+  font-size:10px;display:flex;align-items:center;justify-content:center;}
+td.ref .aged{color:var(--warn);font-weight:600;}
+td.ref .aged.hot{color:var(--crit);}
+td.ref.txt{font-family:var(--ui);font-size:11.5px;text-align:left;color:var(--ink-2);white-space:nowrap;}
+td.sepL{border-left:1px solid var(--rule);}
+th.bsep,td.bsep{border-left:1px solid var(--rule);}
+.bandbtn{width:100%;height:26px;padding:0 8px;background:none;border:none;color:inherit;font:inherit;
+  display:flex;align-items:center;gap:5px;text-align:left;}
+.bandbtn:hover{background:rgba(0,0,0,.05);}
+.bandbtn .bm{font-size:8px;opacity:.6;}
+.colpop{position:absolute;top:34px;right:0;z-index:45;width:318px;background:var(--surface);
+  border:1px solid var(--rule);border-radius:7px;box-shadow:var(--shadow-lg);overflow:hidden;}
+.cp-sec{padding:11px 13px;border-bottom:1px solid var(--rule-soft);}
+.cp-lbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.cp-presets{display:flex;flex-wrap:wrap;gap:5px;}
+.chipx{padding:4px 10px;border-radius:13px;font-size:11.5px;font-weight:500;border:1px solid var(--rule);
+  background:var(--surface);color:var(--ink-2);}
+.chipx:hover{border-color:var(--accent);color:var(--accent);}
+.chipx.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+.cp-row{display:flex;align-items:center;gap:10px;padding:5px 0;}
+.cp-row.dis{opacity:.55;}
+.cp-n{font-size:12.5px;color:var(--ink);flex:1;min-width:0;}
+.cp-c{font-size:10.5px;color:var(--muted);margin-left:6px;font-family:var(--mono);}
+.cp-note{font-size:10.5px;color:var(--muted);text-align:right;max-width:130px;line-height:1.3;}
+.cp-foot{padding:9px 13px;font-size:11px;color:var(--muted);background:var(--surface-2);}
+.cellin{width:52px;height:26px;padding:0 6px;border:1px solid var(--rule);border-radius:4px;text-align:right;
+  font-family:var(--mono);font-size:12.5px;background:var(--surface);color:var(--ink);font-variant-numeric:tabular-nums;}
+.cellin:hover{border-color:var(--muted);}
+.cellin:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+.cellin:disabled{background:var(--surface-2);color:var(--muted);border-color:var(--rule-soft);}
+.cellin.ovr{border-color:var(--warn);background:var(--warn-soft);}
+.carry{display:block;font-family:var(--mono);font-size:9.5px;color:var(--muted);text-align:right;margin-top:1px;line-height:1;}
+td.tot{font-weight:600;color:var(--ink);background:var(--surface-2);}
+td.gtot{font-weight:700;color:var(--accent);background:var(--accent-soft);}
+.empty-state{padding:56px 24px;text-align:center;color:var(--muted);}
+.empty-state .t{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:5px;}
+.reason-inl{display:flex;align-items:center;gap:5px;margin-top:2px;}
+.reason-inl input{width:100%;height:22px;padding:0 6px;border:1px solid var(--warn);border-radius:3px;
+  font-size:10.5px;background:var(--surface);color:var(--ink);}
+.reason-flag{font-size:9px;font-weight:700;color:var(--warn);white-space:nowrap;}
+
+.commit{height:52px;flex-shrink:0;background:var(--surface);border-top:1px solid var(--rule);
+  display:flex;align-items:center;gap:16px;padding:0 16px;box-shadow:0 -2px 8px rgba(16,32,45,.05);overflow-x:auto;}
+.commit .stat{display:flex;align-items:baseline;gap:7px;white-space:nowrap;}
+.commit .stat .v{font-family:var(--mono);font-size:16px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;}
+.commit .stat .k{font-size:11.5px;color:var(--muted);}
+.commit .div{width:1px;height:24px;background:var(--rule);flex-shrink:0;}
+.commit .right{margin-left:auto;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.commit .saved{font-size:11.5px;color:var(--muted);white-space:nowrap;}
+
+.scrim{display:none;position:fixed;inset:0;background:rgba(16,32,45,.42);z-index:60;}
+.scrim.on{display:block;}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:396px;max-width:92vw;background:var(--surface);
+  z-index:61;box-shadow:var(--shadow-lg);display:none;flex-direction:column;}
+.drawer.on{display:flex;}
+.dr-head{padding:16px 18px 14px;border-bottom:1px solid var(--rule);display:flex;gap:12px;align-items:flex-start;}
+.dr-head h3{margin:0;font-size:15.5px;font-weight:600;line-height:1.3;}
+.dr-head .cd{font-family:var(--mono);font-size:11.5px;color:var(--accent);margin-top:3px;}
+.dr-close{width:28px;height:28px;flex-shrink:0;margin-left:auto;border:none;border-radius:5px;
+  background:transparent;color:var(--muted);font-size:16px;}
+.dr-close:hover{background:var(--surface-2);color:var(--ink);}
+.dr-body{flex:1;overflow-y:auto;padding:4px 18px 24px;}
+.dr-sec{padding:15px 0;border-bottom:1px solid var(--rule-soft);}
+.dr-sec:last-child{border-bottom:none;}
+.dr-sec h4{margin:0 0 9px;font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);}
+.dr-i{display:flex;align-items:baseline;gap:8px;font-size:12.5px;padding:4px 0;border-bottom:1px solid var(--rule-soft);}
+.dr-i .k{color:var(--muted);}
+.dr-i .v{margin-left:auto;font-family:var(--mono);font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;}
+.dr-i .v.w{color:var(--warn);} .dr-i .v.c{color:var(--crit);}
+.dr-src{font-size:11px;color:var(--muted);margin-top:8px;}
+
+.modal{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;padding:20px;
+  background:rgba(16,32,45,.48);}
+.modal.on{display:flex;}
+.mbox{background:var(--surface);border-radius:10px;width:100%;max-width:480px;max-height:86vh;
+  display:flex;flex-direction:column;box-shadow:var(--shadow-lg);overflow:hidden;}
+.mbox.wide{max-width:640px;}
+.mhead{padding:18px 20px 14px;border-bottom:1px solid var(--rule);}
+.mhead h3{margin:0;font-size:17px;font-weight:600;}
+.mhead .s{font-size:12.5px;color:var(--muted);margin-top:3px;}
+.mbody{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:14px;}
+.mrow{display:flex;align-items:baseline;gap:10px;font-size:13.5px;padding:7px 0;border-bottom:1px solid var(--rule-soft);}
+.mrow .k{color:var(--ink-2);}
+.mrow .v{margin-left:auto;font-family:var(--mono);font-weight:600;font-size:14.5px;color:var(--ink);font-variant-numeric:tabular-nums;}
+.notice{border-radius:6px;padding:11px 13px;font-size:12.5px;display:flex;gap:9px;align-items:flex-start;line-height:1.5;}
+.n-warn{background:var(--warn-soft);color:var(--warn);}
+.n-acc{background:var(--accent-soft);color:var(--accent-2);}
+.n-add{background:var(--add-soft);color:var(--add);}
+.mfoot{padding:14px 20px;border-top:1px solid var(--rule);display:flex;gap:10px;justify-content:flex-end;align-items:center;}
+.mfoot .l{margin-right:auto;font-size:12px;color:var(--muted);}
+.modal-search{padding:10px 20px;border-bottom:1px solid var(--rule-soft);}
+.modal-search input{width:100%;height:34px;padding:0 10px;border:1px solid var(--rule);border-radius:5px;font-size:12.5px;background:var(--surface);color:var(--ink);}
+.modal-list{max-height:280px;overflow-y:auto;}
+.modal-item{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--rule-soft);font-size:12.5px;}
+.toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(10px);z-index:80;
+  background:var(--bar);color:#fff;padding:10px 16px;border-radius:6px;font-size:13px;
+  box-shadow:var(--shadow-lg);opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;}}
+@media (max-width:900px){
+  .rail{position:absolute;left:0;top:0;bottom:52px;z-index:30;box-shadow:var(--shadow-lg);}
+  .rail.collapsed{width:46px;}
+  .tb-status .seg:nth-child(n+2){display:none;}
+  .srch input{width:160px;}
+}
+.col-collapse{border:0;background:transparent;color:inherit;font:inherit;font-weight:700;letter-spacing:inherit;text-transform:inherit;cursor:pointer;padding:0;white-space:nowrap}.col-collapse span{margin-left:4px;font-size:12px}.col-collapse.is-collapsed span{display:inline-block;transform:rotate(-90deg)}.tb-cycle{display:flex;align-items:center;gap:2px;padding:3px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:6px}.tb-cycle button{border:0;background:transparent;color:#BCD1E4;border-radius:4px;padding:5px 9px;font:600 10.5px var(--sans);cursor:pointer;white-space:nowrap}.tb-cycle button:hover{color:#fff;background:rgba(255,255,255,.10)}.tb-cycle button.on{background:var(--accent);color:#fff}.tb-cycle button small{font-size:9px;opacity:.82;margin-left:3px}/* Keep workbook navigation readable beside the cycle selector. */
+.topbar{min-width:max-content}.tb-nav{display:flex;flex-wrap:nowrap;min-width:max-content}.tb-nav button{white-space:nowrap;flex:0 0 auto}.tb-right{flex:0 0 auto}@media (max-width:1180px){#app{overflow-x:auto}.topbar{width:max-content;min-width:1180px}}</style>
+<style id="is-label-alignment">#ordGrid .idc{text-align:center;vertical-align:middle}#ordGrid .id-cell{justify-content:center}#ordGrid .id-txt{width:100%;text-align:center}#ordGrid .id-desc{text-align:center}.id-cell:has(.is-customer-name){position:relative;justify-content:center;align-items:center;padding:0 26px}.id-cell:has(.is-customer-name) .id-txt{width:100%;text-align:center}.is-customer-name{text-align:center}.id-cell:has(.is-customer-name) .id-btn{position:absolute;right:0}#gHead button[onclick="isSetSort('custName')"]{justify-content:center;text-align:center;width:100%}.col-collapse{border:0;background:transparent;color:inherit;font:inherit;font-weight:700;letter-spacing:inherit;text-transform:inherit;cursor:pointer;padding:0;white-space:nowrap}.col-collapse span{margin-left:4px;font-size:12px}.col-collapse.is-collapsed span{display:inline-block;transform:rotate(-90deg)}.tb-cycle{display:flex;align-items:center;gap:2px;padding:3px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:6px}.tb-cycle button{border:0;background:transparent;color:#BCD1E4;border-radius:4px;padding:5px 9px;font:600 10.5px var(--sans);cursor:pointer;white-space:nowrap}.tb-cycle button:hover{color:#fff;background:rgba(255,255,255,.10)}.tb-cycle button.on{background:var(--accent);color:#fff}.tb-cycle button small{font-size:9px;opacity:.82;margin-left:3px}/* Keep workbook navigation readable beside the cycle selector. */
+.topbar{min-width:max-content}.tb-nav{display:flex;flex-wrap:nowrap;min-width:max-content}.tb-nav button{white-space:nowrap;flex:0 0 auto}.tb-right{flex:0 0 auto}@media (max-width:1180px){#app{overflow-x:auto}.topbar{width:max-content;min-width:1180px}}</style></head>
+<body>
+<!-- ══ LOGIN (P-01) ══ -->
+<div id="login">
+  <div class="lg-shell">
+    <div>
+      <div class="lg-logo">VECV<span>plan</span></div>
+      <div class="lg-cycle"><span>S&amp;OP-1A</span><b>Jul 2026</b><span>· IS closes</span><b>19 Jul, 23:59 IST</b><span>· IB closes</span><b>15 Jul, 23:59 IST</b></div>
+    </div>
+    <form class="lg-card" onsubmit="doLogin(event)">
+      <h1>Sign in</h1>
+      <p class="sub">Employee code or work email.</p>
+      <div class="fld" id="fId">
+        <label for="lgId">Employee code or email</label>
+        <input id="lgId" type="text" value="S.MEHTA" autocomplete="username" oninput="clearErr()">
+        <span class="err">⚠ We don't recognise that code.</span>
+      </div>
+      <div class="fld" id="fPw">
+        <label for="lgPw">Password <button type="button" class="link hint" onclick="toast('A reset link would go to the address on file')">Forgot password?</button></label>
+        <input id="lgPw" type="password" value="demo-password" autocomplete="current-password" oninput="clearErr()">
+        <span class="err">⚠ Incorrect password. 4 attempts left before the account locks.</span>
+      </div>
+      <button type="submit" class="btn btn-primary" style="height:38px;justify-content:center;font-size:14px;">Sign in</button>
+      <div class="lg-or">or</div>
+      <button type="button" class="btn btn-ghost" style="height:38px;justify-content:center;font-size:13.5px;" onclick="doLogin(event)">Sign in with VECVNet SSO</button>
+      <p class="lg-foot">Trouble signing in? Contact Sales Planning support</p>
+    </form>
+    <p class="lg-note">Prototype · your role, module and scope come from your account · P-01, same login screen as every persona · role is chosen after sign-in via "Viewing as" (P-02)</p>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+  <div class="topbar">
+    <div class="tb-logo">VECV<span>plan</span></div>
+    <span class="tb-mod" id="tbMod">IS</span><div class="tb-cycle" aria-label="S&amp;OP cycle"><button id="cyc1A" class="on" onclick="setCycle('1A')">S&amp;OP-1A <small>Main</small></button><button id="cyc1B" onclick="setCycle('1B')">S&amp;OP-1B <small>Revision</small></button></div>
+    <nav class="tb-nav" id="tbNav"></nav>
+    <div class="tb-status" id="tbStatus"></div>
+    <div class="tb-right">
+      <button class="tb-icon" onclick="toggleTheme()" title="Light / dark">◐</button>
+      <div class="tb-user">
+        <div class="tb-av" id="tbAv">SM</div>
+        <div><div class="nm" id="tbName">S. Mehta</div><div class="rl" id="tbRole">ISO · Institutional Sales</div></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="signOut()" title="Sign out">Logout</button>
+    </div>
+  </div>
+
+  <div class="page">
+    <!-- HOME -->
+    <div class="view on" id="vHome">
+      <div class="wb"><div id="homeRailMount"></div>
+        <div class="home-scroll"><div class="home-inner" id="homeInner"></div></div>
+      </div>
+    </div>
+
+    <!-- WORKBOOK -->
+    <div class="view" id="vWb">
+      <div class="wb">
+        <div id="wbRailMount"><aside class="rail" id="rail">
+          <div class="rail-head">
+            <span class="t">Filters</span><span class="cnt" id="railCnt" style="display:none">0</span>
+            <button class="rail-toggle" onclick="toggleRail()" id="railBtn" title="Collapse">‹</button>
+          </div>
+          <div class="rail-stub" onclick="toggleRail()"><span class="sc" id="stubCnt" style="display:none">0</span><span class="sb">Filters</span></div>
+          <div class="rail-body" id="railBody"></div>
+          <div class="rail-foot">
+            <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" onclick="clearAll()">Clear all</button>
+          </div>
+        </aside></div>
+
+        <div class="wb-main">
+          <div class="strip" id="wbStrip"></div>
+          <div class="grid-wrap" id="gridWrap">
+            <table class="grid" id="grid"><thead id="gHead"></thead><tbody id="gBody"></tbody></table>
+            <div class="empty-state" id="gEmpty" style="display:none">
+              <div class="t">No lines match these filters</div>
+              <div>Clear a filter to bring lines back — nothing is touched.</div>
+              <div style="margin-top:12px"><button class="btn btn-ghost btn-sm" onclick="clearAll()">Clear all filters</button></div>
+            </div>
+          </div>
+          <div class="commit" id="commit"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ORDERS TRACKER (read-only; shared for IS and IB) -->
+    <div class="view" id="vOrders">
+      <div class="wb">
+        <div id="ordersRailMount"></div>
+        <div class="wb-main">
+          <div class="strip">
+            <div class="srch"><span class="ic">⌕</span><input id="ordQBox" type="text" placeholder="Search order, PO, customer or FERT" oninput="setOrderQuery(this.value)"></div>
+            <div class="right"><span class="rescount" id="ordResCount"></span></div>
+          </div>
+          <div class="notice n-acc" style="margin:10px 14px 0"><span>🔒</span><div><b>Read-only.</b> Order status is validated here — every cell is locked. No forecasting or projection entry on this screen.</div></div>
+          <div class="grid-wrap" style="margin-top:10px">
+            <table class="grid" id="ordGrid"><thead id="ordHead"></thead><tbody id="ordBody"></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="scrim" id="scrim" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer" aria-label="Line detail"></aside>
+
+<div class="modal" id="review"><div class="mbox">
+  <div class="mhead"><h3>Review &amp; submit</h3><div class="s" id="revSub"></div></div>
+  <div class="mbody" id="reviewBody"></div>
+  <div class="mfoot"><button class="btn btn-ghost" onclick="closeM('review')">Cancel</button>
+    <button class="btn btn-primary" id="revSubmitBtn" onclick="saveWorkbench()">Save</button></div>
+</div></div>
+
+<div class="modal" id="addFertM"><div class="mbox wide">
+  <div class="mhead"><h3>Add FERT to IB demand</h3><div class="s">Visible to the whole IB chain — not a one-way hand-up (Workshop 19 Aug 2026)</div></div>
+  <div class="mbody">
+    <div class="notice n-add"><span>ⓘ</span><div><b>Visible to the whole IB chain.</b> Whoever adds it, the FERT becomes visible to Country, Regional and Global Head alike.</div></div>
+    <div style="display:flex;gap:10px">
+      <div class="fld" style="flex:1"><label>Country</label><select id="addFertCountry" onchange="refreshAddFertDealers()"></select></div>
+      <div class="fld" style="flex:1"><label>Dealer</label><select id="addFertDealer"></select></div>
+    </div>
+  </div>
+  <div class="modal-search"><input type="text" placeholder="Search FERT code or description…" oninput="filterModalList(this.value)"></div>
+  <div class="modal-list" id="modalList"></div>
+  <div class="mfoot"><button class="btn btn-ghost" onclick="closeM('addFertM')">Cancel</button>
+    <button class="btn btn-primary" onclick="confirmAddFert()">Add selected</button></div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   VECVplan — IS (Institutional Sales) + IB (International Business), v1.
+   Built against Pattern Handoff v3 (baseline: Dealer Prototype v4.5,
+   ASM Prototype v1.3). Visual system, shell, filter rail, grid engine,
+   drawer, review modal and commit bar are ported from the ASM file
+   verbatim in shape (P-17) — this file supplies the IS and IB data and
+   screen content on top of that same system.
+
+   DIVERGENCE NOTES (flagged per the handoff doc's own process, called
+   out in chat rather than folded back into the handoff document per
+   your instruction):
+   · IB moderation now follows ASM's P-20/21/22 model end to end:
+     Country Head is the base submitter; Regional Head moderates ONE
+     consolidated number per FERT across the countries in their region;
+     Global Head moderates ONE consolidated number per FERT across all
+     regions. Each tier's own figure becomes fixed, read-only reference
+     to the tier above (expand a row to see it) — this replaces the old
+     Phase 0 "any tier can directly edit any row in scope" model.
+   · ASM's flagged-at-submission trigger reads a 3-month-average and an
+     ABP target that don't exist in IB's data model. IB's old sheet only
+     carries a separate offtake trend reference (L3/L6/L12/LYSM, kept
+     here as read-only context, not wired to flagging — D-01 is still
+     open on what IB's own tolerance reference should be). So a line
+     only enters IB's "needs a decision" list once a moderator's own
+     override strays >10% from what was actually submitted beneath it,
+     with no reason given yet — never purely from being an outlier on
+     entry, the way ASM's lines can be.
+   · ASM's flexible per-column band engine (summary/full toggle per
+     band, presets, column popover) is not fully replicated for IB/IS —
+     each grid instead shows a fixed, sensible column set with a simple
+     show/hide toggle per reference band in the filter rail. P-08's
+     substance (identity / reference / entry regions, and the
+     compare-band's addition that it never collapses below the entry
+     row's own period shape) is kept; the column-configuration UI
+     around it is simplified for this build.
+   · TOL=10 is reused as the same still-not-business-confirmed
+     placeholder as ASM (D-01 open); reason capture is free text
+     (D-04 open); there is no "accept as submitted" action for IB's
+     flagged lines (P-22, D-12 open) — same as ASM.
+   · IS has no moderation chain (single owner, per the pattern doc), so
+     P-20/21/22 do not apply to it. Its Home is shaped like a plain
+     submitter's (entry progress), not a moderator's (exceptions).
+────────────────────────────────────────────────────────────────── */
+const TOL=10; // shared deviation tolerance placeholder — reused from ASM, D-01 still open
+function num(v){ return (v||v===0)?v:'–'; }
+function clamp0(v){ return Math.max(0,v); }
+
+/* ════════ SHARED: toast / modal / theme / login / shell ════════ */
+let tt;
+function toast(m){ const el=document.getElementById('toast'); el.textContent=m; el.classList.add('on');
+  clearTimeout(tt); tt=setTimeout(()=>el.classList.remove('on'),2600); }
+function closeM(id){ document.getElementById(id).classList.remove('on'); }
+function toggleTheme(){
+  const r=document.documentElement;
+  const dark=r.getAttribute('data-theme')==='dark'||(!r.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme:dark)').matches);
+  r.setAttribute('data-theme',dark?'light':'dark');
+}
+function clearErr(){['fId','fPw'].forEach(i=>document.getElementById(i).classList.remove('invalid'));}
+
+/* ── persona registry (P-02: switching lives in a prototype control on Home, not product chrome) ── */
+const PERSONAS={
+  is_iso:{module:'is',label:'IS — ISO (Institutional Sales)',name:'S. Mehta',role:'ISO · Institutional Sales',av:'SM',scope:'Owned centrally by ISO / Central Planning — no country/regional/global cascade'},
+  ib_country:{module:'ib',tier:'country',label:'IB — Country Head (Bangladesh)',name:'A. Rahman',role:'IB Country Head · Bangladesh',av:'AR',country:'Bangladesh',region:'South Asia',scope:'Scope: Bangladesh'},
+  ib_region:{module:'ib',tier:'region',label:'IB — Regional Head (South Asia)',name:'R. Sharma',role:'IB Regional Head · South Asia',av:'RS',region:'South Asia',scope:'Scope: South Asia region'},
+  ib_global:{module:'ib',tier:'global',label:'IB — Global Head (All Countries)',name:'M. Iyer',role:'IB Global Head · All Countries',av:'MI',scope:'Scope: all countries'},
+};
+let persona='is_iso';
+let activeCycle='1A';
+function setCycle(c){
+  activeCycle=c;
+  const a=document.getElementById('cyc1A'),b=document.getElementById('cyc1B');
+  if(a)a.classList.toggle('on',c==='1A'); if(b)b.classList.toggle('on',c==='1B');
+  renderStatus(); render();
+  toast(c==='1A'?'S&OP-1A main cycle selected':'S&OP-1B revision cycle selected');
+}
+function doLogin(e){
+  if(e&&e.preventDefault)e.preventDefault();
+  if(!document.getElementById('lgId').value.trim()){document.getElementById('fId').classList.add('invalid');return;}
+  if(!document.getElementById('lgPw').value){document.getElementById('fPw').classList.add('invalid');return;}
+  document.getElementById('login').style.display='none';
+  document.getElementById('app').classList.add('on');
+  setPersona('is_iso');
+}
+function signOut(){document.getElementById('app').classList.remove('on');document.getElementById('login').style.display='flex';}
+function exportWorkbook(){
+  const cfg=PERSONAS[persona]; const rows=cfg.module==='ib'?IB_BASE:IS_DEMAND_DATA;
+  const cols=cfg.module==='ib' ? [['Dealer','dealer'],['Shipped to party','dealerName'],['Destination country name','country'],['Region','region'],['FERT Code','code'],['Description','desc'],['Backlog','past'],['Current','cur'],['M2 Aug','sub0'],['M3 Sep','sub1'],['M4 Oct','sub2'],['M5 Nov','sub3'],['M6 Dec','sub4']] : [['Customer code','custCode'],['Customer','custName'],['Region','region'],['FERT Code','code'],['Description','desc'],['Demand','demand'],['Plan Jul','override'],['Aug','aug'],['Sep','sep']];
+  const val=(r,k)=>k.startsWith('sub')?(r.sub?.[+k.slice(3)]||0):(r[k]??''); const quote=v=>'"'+String(v).replaceAll('"','""')+'"';
+  const csv=[cols.map(c=>quote(c[0])).join(','),...rows.map(r=>cols.map(c=>quote(val(r,c[1]))).join(','))].join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=(cfg.module==='ib'?'IB-indent':'IS-demand')+'-export.csv';a.click();URL.revokeObjectURL(a.href);toast('CSV export downloaded');
+}
+function openImport(){document.getElementById('importFile').click();}
+function importWorkbook(file){
+  if(!file)return; if(!/\.csv$/i.test(file.name)){toast('Choose a CSV export to import in this prototype.');return;}
+  const reader=new FileReader(); reader.onload=()=>{const lines=String(reader.result).trim().split(/\r?\n/);if(lines.length<2){toast('No import rows found.');return;}const h=lines.shift().split(',').map(x=>x.replace(/^"|"$/g,'').trim());const codeIdx=h.findIndex(x=>/FERT Code/i.test(x));let changed=0;lines.forEach(line=>{const cells=line.match(/("(?:[^"]|"")*"|[^,]*)/g)||[];const get=i=>String(cells[i]||'').replace(/^"|"$/g,'').replaceAll('""','"').trim();if(PERSONAS[persona].module==='ib'){const row=IB_BASE.find(r=>r.code===get(codeIdx));const mIdx=[2,3,4,5,6].map(m=>h.findIndex(x=>new RegExp('M'+m).test(x)));if(row){mIdx.forEach((ci,i)=>{if(ci>=0&&get(ci)!=='')row.sub[i]=Math.max(0,+get(ci)||0);});changed++;}}else{const row=IS_DEMAND_DATA.find(r=>r.code===get(codeIdx));const plan=h.findIndex(x=>/Plan Jul/i.test(x)),aug=h.findIndex(x=>/^Aug$/i.test(x)),sep=h.findIndex(x=>/^Sep$/i.test(x));if(row){if(plan>=0&&get(plan)!=='')row.override=Math.max(0,+get(plan)||0);if(aug>=0&&get(aug)!=='')row.aug=Math.max(0,+get(aug)||0);if(sep>=0&&get(sep)!=='')row.sep=Math.max(0,+get(sep)||0);changed++;}}});render();toast(`Imported ${changed} matching FERT row(s)`);};reader.readAsText(file);
+}
+function setPersona(p){
+  if(p==='dealer'||p==='asm'||p==='rsm'||p==='vh'){ toast('Opens a different prototype file — this file only builds IS and IB'); return; }
+  persona=p;
+  const cfg=PERSONAS[p];
+  document.getElementById('tbMod').textContent=cfg.module.toUpperCase();
+  document.getElementById('tbMod').className='tb-mod '+cfg.module;
+  document.getElementById('tbAv').textContent=cfg.av;
+  document.getElementById('tbName').textContent=cfg.name;
+  document.getElementById('tbRole').textContent=cfg.role;
+  buildNav();
+  go('home');
+}
+function buildNav(){
+  const cfg=PERSONAS[persona];
+  let html=`<button id="nvHome" onclick="go('home')">Home</button>`;
+  if(cfg.module==='is'){
+    html+=`<button id="nvWb" onclick="go('wb')">IS Demand Workbook</button>`;
+    html+=`<button id="nvOrders" onclick="go('orders')">IS Orders Tracker</button>`;
+  } else {
+    html+=`<button id="nvWb" onclick="go('wb')">IB Indent Workbook</button>`;
+    html+=`<button id="nvOrders" onclick="go('orders')">IB Orders Tracker</button>`;
+  }
+  document.getElementById('tbNav').innerHTML=html;
+}
+function go(v){
+  ['vHome','vWb','vOrders'].forEach(id=>document.getElementById(id).classList.toggle('on',id==='v'+v[0].toUpperCase()+v.slice(1)));
+  ['nvHome','nvWb','nvOrders'].forEach(id=>{const el=document.getElementById(id); if(el)el.classList.toggle('on',id==='nv'+v[0].toUpperCase()+v.slice(1));});
+  document.getElementById(v==='home'?'homeRailMount':'wbRailMount').appendChild(document.getElementById('rail'));
+  renderStatus();
+  render();
+}
+function renderStatus(){
+  const cfg=PERSONAS[persona];
+  const el=document.getElementById('tbStatus');
+  const cycleLabel=activeCycle==='1A'?'S&OP-1A':'S&OP-1B';
+  const cycleNote=activeCycle==='1A'?'Main planning cycle':'Revision cycle';
+  if(cfg.module==='is'){
+    el.innerHTML=`<span class="seg">${cycleLabel} · <b>Jul 2026</b></span><span class="seg">${cycleNote}</span><span class="seg">Cut-off <b>19 Jul, 23:59 IST</b></span><span class="seg">${cfg.scope}</span>`;
+  } else {
+    el.innerHTML=`<span class="seg">${cycleLabel} · <b>Jul 2026</b></span><span class="seg">${cycleNote}</span><span class="seg">M1 orders-only (locked)</span><span class="seg">${cfg.scope}</span>`;
+  }
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){closeDrawer();['review','addFertM'].forEach(closeM);} });
+
+/* ════════ SHARED FILTER-RAIL COMPONENT (P-05 — every filter is the same multiselect dropdown) ════════
+   Parameterised so both IS and IB use the identical control, rather than two bespoke ones. */
+let msOpen=null; const msQ={};
+function filterSet(scope,key){ return scope==='is'?ISF[key]:IBF[key]; }
+function toggleFilterVal(scope,key,val){
+  const s=filterSet(scope,key);
+  if(val==='__all__'){ s.clear(); } else if(s.has(val))s.delete(val); else s.add(val);
+  buildRail(); render();
+}
+function clearFilterKey(scope,key){ filterSet(scope,key).clear(); buildRail(); render(); }
+function toggleMs(uid){ msOpen=msOpen===uid?null:uid; buildRail(); if(msOpen){const el=document.getElementById('msq-'+uid); if(el)el.focus();} }
+function msFilter(uid,v){ msQ[uid]=v; const el=document.getElementById('msl-'+uid); if(el)el.innerHTML=lastMsRender[uid](); }
+document.addEventListener('click',()=>{ if(msOpen){msOpen=null;buildRail();} });
+const lastMsRender={};
+function msBlock(scope,key,label,opts,sel){
+  const uid=scope+'_'+key;
+  const renderOpts=()=>{
+    const s=(msQ[uid]||'').toLowerCase();
+    const filtered=opts.filter(o=>!s||String(o.t1).toLowerCase().includes(s)||String(o.t2||'').toLowerCase().includes(s));
+    if(!filtered.length)return '<div class="ms-empty">No match</div>';
+    return filtered.map(o=>{
+      const on=sel.has(o.v);
+      return `<button class="ms-opt${on?' on':''}" onclick="toggleFilterVal('${scope}','${key}','${o.v}')">
+        <span class="bx">${on?'✓':''}</span>
+        <span class="tx"><span class="t1">${o.t1}</span>${o.t2?`<span class="t2">${o.t2}</span>`:''}</span>
+        ${o.n!==undefined?`<span class="n">${o.n}</span>`:''}</button>`;
+    }).join('');
+  };
+  lastMsRender[uid]=renderOpts;
+  const selCount=sel.size, total=opts.length;
+  const lbl=selCount===0?'All':(selCount===1?(opts.find(o=>sel.has(o.v))||{t1:'1 selected'}).t1:selCount+' selected');
+  return `<div class="frow">
+    <div class="fl">${label}${selCount?`<button class="clr" onclick="clearFilterKey('${scope}','${key}')">clear</button>`:''}</div>
+    <div class="ms${msOpen===uid?' open':''}">
+      <button class="ms-btn${selCount?' act':''}" onclick="event.stopPropagation();toggleMs('${uid}')">
+        <span class="lbl${selCount?'':' dim'}">${lbl}</span><span class="ca">▾</span></button>
+      <div class="ms-pop" onclick="event.stopPropagation()">
+        <div class="ms-search"><input type="text" id="msq-${uid}" placeholder="Search ${label.toLowerCase()}…" value="${msQ[uid]||''}" oninput="msFilter('${uid}',this.value)"></div>
+        <div class="ms-list" id="msl-${uid}">${renderOpts()}</div>
+        <div class="ms-foot"><button class="btn btn-quiet btn-sm" onclick="clearFilterKey('${scope}','${key}')">Clear</button><span class="c">${selCount} of ${total}</span></div>
+      </div></div></div>`;
+}
+function toggleRail(){
+  railOpen=!railOpen;
+  document.getElementById('rail').classList.toggle('collapsed',!railOpen);
+  document.getElementById('railBtn').textContent=railOpen?'‹':'›';
+}
+let railOpen=true;
+
+/* ════════ SHARED SPREADSHEET-STYLE ENTRY (P-09: arrow keys, Enter, Ctrl/Cmd+D fill-down, paste) ════════
+   Generic over any grid whose editable cells share the class .cellin and carry data-fi/data-c, and
+   whose edits are applied through a supplied setter — used by both the IS demand grid and the IB
+   entry cells (Country submission cells and Regional/Global override cells alike). */
+function gridKeyGeneric(e,onCommit){
+  const t=e.target,c=t.dataset.c;
+  const all=[...document.querySelectorAll('.cellin')],idx=all.indexOf(t);
+  const coordsAt=n=>{const el=all[n]; return el?{fi:el.dataset.fi,c:el.dataset.c}:null;};
+  if(e.key==='ArrowDown'||e.key==='Enter'){
+    const el=all.find(el=>el.dataset.c===c&&all.indexOf(el)>idx);
+    if(el){e.preventDefault(); const tc=coordsAt(all.indexOf(el)); onCommit(tc.fi,tc.c,true);}
+  } else if(e.key==='ArrowUp'){
+    const el=all.filter(el=>el.dataset.c===c&&all.indexOf(el)<idx).pop();
+    if(el){e.preventDefault(); const tc=coordsAt(all.indexOf(el)); onCommit(tc.fi,tc.c,true);}
+  } else if(e.key==='ArrowLeft'&&t.selectionStart===0){
+    const tc=coordsAt(idx-1); if(tc){e.preventDefault(); onCommit(tc.fi,tc.c,true);}
+  } else if(e.key==='ArrowRight'&&t.selectionStart===t.value.length){
+    const tc=coordsAt(idx+1); if(tc){e.preventDefault(); onCommit(tc.fi,tc.c,true);}
+  } else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='d'){
+    e.preventDefault();
+    const p=all.filter(el=>el.dataset.c===c&&all.indexOf(el)<idx).pop();
+    if(p){t.value=p.value;t.dispatchEvent(new Event('input'));toast('Filled down from the line above');}
+  }
+}
+function focusCell(fi,c){ const el=document.querySelector(`.cellin[data-fi="${fi}"][data-c="${c}"]`); if(el){el.focus();el.select();} }
+
+/* ══════════════════════════════════════════════════════════════════
+   IS MODULE — Institutional Sales. Single owner (ISO / Central
+   Planning), no country/regional/global cascade (per the pattern doc:
+   "IS, EPS, NPI, single owner"). Columns carried over unchanged from
+   VECVplan-IS-Workbench-Phase0.html for column parity (P-19): Customer
+   Code/Name, Region, FERT Code/Description, Demand, Opn Stock, Jun
+   Commit, Net Qty (computed), Override, M2·Aug, M3·Sep. ══ */
+const IS_DEMAND_DATA=[
+  {vert:"LMD",custCode:"0001348953",custName:"The Executive Officer",region:"IS South1",code:"94203523",desc:"Pro2050 PLUS D HSD 12FT BSVI AC DW PRM#",demand:1,opnStock:0,junCommit:0,override:1,aug:1,sep:0},
+  {vert:"LMD",custCode:"0001350035",custName:"General Manager",region:"IS South2",code:"94900443",desc:"Pro2095 F 16FT WTANK BSVI AC NGB 5S WTL",demand:1,opnStock:0,junCommit:0,override:1,aug:0,sep:0},
+  {vert:"LMD",custCode:"0001350047",custName:"S.P. Central Stores, PHQ",region:"IS North2",code:"94900443",desc:"Pro2095 F 16FT WTANK BSVI AC NGB 5S WTL",demand:1,opnStock:0,junCommit:0,override:1,aug:0,sep:0},
+  {vert:"LMD",custCode:"0001350321",custName:"The Commissioner",region:"IS South1",code:"92052842",desc:"Pro 2095XP G MSC BSVI AC 5S POR PRM",demand:1,opnStock:0,junCommit:0,override:1,aug:0,sep:0},
+  {vert:"LMD",custCode:"0001350321",custName:"The Commissioner",region:"IS South1",code:"94703496",desc:"Pro2075 D CBC 12FT AB BSVI AC DW 5S PRM#",demand:60,opnStock:0,junCommit:0,override:60,aug:0,sep:0},
+  {vert:"LMD",custCode:"0001350321",custName:"The Commissioner",region:"IS South1",code:"94903498",desc:"Pro2095 E CBC 14FT BSVI AC AC POR PRM#",demand:88,opnStock:0,junCommit:0,override:88,aug:0,sep:0},
+  {vert:"LMD",custCode:"0001350688",custName:"Sr. Manager, Mail Motor Service",region:"IS West",code:"92052842",desc:"Pro2095XP G MSC BSVI AC 5S POR RX#",demand:6,opnStock:0,junCommit:0,override:6,aug:6,sep:0},
+  {vert:"LMD",custCode:"0001350812",custName:"Directorate General of Border",region:"IS North",code:"99753255",desc:"Pro2114XP H20FT BSVI RB 7S WTMS AC#",demand:5,opnStock:0,junCommit:0,override:5,aug:5,sep:0},
+  {vert:"LMD",custCode:"0001351613",custName:"Manager, Mail Motor Service",region:"IS South2",code:"94303150",desc:"Pro2059 E MSC 14FT BSVI AC AC POR PRM",demand:2,opnStock:0,junCommit:0,override:2,aug:2,sep:0},
+  {vert:"LMD",custCode:"0001351747",custName:"Superintendent of Post",region:"IS East",code:"92200941",desc:"Pro 2059XP M SLP CBC BSVI SRSS WTL RX",demand:1,opnStock:0,junCommit:0,override:1,aug:0,sep:0},
+  {vert:"HD",custCode:"0001347365",custName:"TPS Infrastructure Ltd.",region:"IS West",code:"93205040",desc:"Pro6019XPT F BSVIDW 11X20 8.5B UTEBPRM",demand:2,opnStock:0,junCommit:0,override:2,aug:2,sep:0},
+  {vert:"Bus",custCode:"0001344268",custName:"Union of India through DIG",region:"IS South1",code:"96051543",desc:"Skl Pro 3011L Stf 3L Dd BSVI",demand:10,opnStock:4,junCommit:0,override:6,aug:10,sep:10},
+  {vert:"Bus",custCode:"0001344365",custName:"Union of India through Gr",region:"IS South1",code:"96051543",desc:"Skl Pro 3011L Stf 3L Dd BSVI",demand:16,opnStock:0,junCommit:0,override:16,aug:16,sep:0},
+  {vert:"Bus",custCode:"0001349109",custName:"Director General of Police",region:"IS North",code:"94758561",desc:"PRO 2075F PRI VAN 4G BSVI ABS NB#",demand:7,opnStock:0,junCommit:0,override:7,aug:0,sep:0},
+];
+let isUid=0; IS_DEMAND_DATA.forEach(d=>d.i=isUid++);
+const IS_ORDERS_DATA=[
+  {region:"IS East",ordNo:"1112899503",creDate:"21 May 2026",poNo:"GEMC-511687790051190",cname:"CWM, Jamalpur",color:"Dazzling White",code:"91909006",desc:"Pro6019XPT F BSVIDW 11X20 8.5B UTEBPRM",ordQty:2,shipped:0,openQty:2,curStock:0,reqDate:"21 May 2026",edd:"TBC"},
+  {region:"IS South1",ordNo:"1112904629",creDate:"2 Jun 2026",poNo:"GEMC-511687725619175",cname:"The Executive Officer",color:"Neptune Blue",code:"94203523",desc:"Pro2050 PLUS D HSD 12FT BSVI AC DW PRM#",ordQty:1,shipped:0,openQty:1,curStock:0,reqDate:"13 Jun 2026",edd:"TBC"},
+  {region:"IS North",ordNo:"1112899663",creDate:"27 Mar 2026",poNo:"GEMC-511687736303038",cname:"Director General of Police",color:"New Golden Brown",code:"94900443",desc:"Pro2095 F 16FT WTANK BSVI AC NGB 5S WTL",ordQty:7,shipped:0,openQty:7,curStock:0,reqDate:"31 Mar 2026",edd:"TBC"},
+  {region:"IS South1",ordNo:"1112899286",creDate:"31 Mar 2026",poNo:"GEMC-511687741607218",cname:"S.P. Central Stores, PHQ",color:"New Golden Brown",code:"94900443",desc:"Pro2095 F 16FT WTANK BSVI AC NGB 5S WTL",ordQty:1,shipped:0,openQty:1,curStock:0,reqDate:"31 Mar 2026",edd:"TBC"},
+  {region:"IS South1",ordNo:"1112860447",creDate:"31 Dec 2025",poNo:"MMS",cname:"The Commissioner",color:"Post Office Red",code:"92052842",desc:"Pro 2095XP G MSC BSVI AC 5S POR PRM",ordQty:1,shipped:0,openQty:1,curStock:2,reqDate:"31 Dec 2025",edd:"TBC"},
+  {region:"IS South1",ordNo:"1112879579",creDate:"3 Mar 2026",poNo:"350321",cname:"The Commissioner",color:"Shiny White",code:"93509671",desc:"Pro3019 J SLPHSD 20FT BSVI NGB 7S WTL",ordQty:1,shipped:0,openQty:1,curStock:0,reqDate:"6 Mar 2026",edd:"TBC"},
+  {region:"IS South1",ordNo:"1112888039",creDate:"18 Mar 2026",poNo:"350321",cname:"The Commissioner",color:"Dazzling White",code:"94203523",desc:"Pro2050 PLUS D HSD 12FT BSVI AC DW PRM#",ordQty:1,shipped:0,openQty:1,curStock:0,reqDate:"18 Mar 2026",edd:"TBC"},
+  {region:"IS South1",ordNo:"1112882291",creDate:"31 Mar 2026",poNo:"350321",cname:"The Commissioner",color:"Post Office Red",code:"94303150",desc:"Pro2059 E MSC 14FT BSVI AC AC POR PRM",ordQty:1,shipped:0,openQty:1,curStock:0,reqDate:"31 Mar 2026",edd:"TBC"},
+  {region:"IS South1",ordNo:"1112889192",creDate:"8 Apr 2026",poNo:"350321",cname:"The Commissioner",color:"Dazzling White",code:"94703496",desc:"Pro2075 D CBC 12FT AB BSVI AC DW 5S PRM#",ordQty:60,shipped:0,openQty:60,curStock:0,reqDate:"8 Apr 2026",edd:"TBC"},
+  {region:"IS South1",ordNo:"1112882186",creDate:"8 Apr 2026",poNo:"350321",cname:"The Commissioner",color:"Dazzling White",code:"94903498",desc:"Pro2095 E CBC 14FT BSVI AC AC POR PRM#",ordQty:88,shipped:0,openQty:88,curStock:0,reqDate:"18 May 2026",edd:"TBC"},
+  {region:"IS North",ordNo:"1112899596",creDate:"21 May 2026",poNo:"GEMC-511687764929196",cname:"Sr. Manager, Mail Motor Service",color:"Rivara Blue",code:"99753255",desc:"Pro2114XP H20FT BSVI RB 7S WTMS AC#",ordQty:5,shipped:0,openQty:5,curStock:62,reqDate:"21 May 2026",edd:"TBC"},
+  {region:"IS South1",ordNo:"1112899821",creDate:"22 May 2026",poNo:"GEMC-511687816156601",cname:"Union of India through DIG",color:"New Golden Brown",code:"94703635",desc:"Pro2075 E TCST BSVI PS NGB BASE #",ordQty:43,shipped:0,openQty:43,curStock:0,reqDate:"22 May 2026",edd:"TBC"},
+];
+const ISF={region:new Set(),vert:new Set()};
+let isQ='', isSortKey=null, isSortDir=-1, isSubmitted=false;
+function isNetQty(d){ return (d.demand||0)-(d.opnStock||0)-(d.junCommit||0); }
+const IS_SORTV={custName:d=>d.custName,region:d=>d.region,code:d=>d.code,demand:d=>d.demand,opnStock:d=>d.opnStock||0,
+  junCommit:d=>d.junCommit||0,netQty:isNetQty,override:d=>d.override||0,aug:d=>d.aug||0,sep:d=>d.sep||0};
+function isPass(d,skip){
+  if(skip!=='region'&&ISF.region.size&&!ISF.region.has(d.region))return false;
+  if(skip!=='vert'&&ISF.vert.size&&!ISF.vert.has(d.vert))return false;
+  if(isQ){const s=isQ.toLowerCase(); if(!(d.code.toLowerCase().includes(s)||d.desc.toLowerCase().includes(s)||d.custName.toLowerCase().includes(s)))return false;}
+  return true;
+}
+function isOptCount(key,val){ return IS_DEMAND_DATA.filter(d=>isPass(d,key)&&d[key]===val).length; }
+function isRows(){
+  let r=IS_DEMAND_DATA.filter(d=>isPass(d));
+  if(isSortKey){ const fn=IS_SORTV[isSortKey]; r=[...r].sort((a,b)=>{const x=fn(a),y=fn(b); return (typeof x==='string'?x.localeCompare(y):x-y)*isSortDir;}); }
+  return r;
+}
+function isActiveCount(){ return ISF.region.size+ISF.vert.size; }
+function isClearAll(){ ISF.region.clear(); ISF.vert.clear(); isQ=''; isSortKey=null; buildRail(); render(); }
+function isSetSort(k){ if(isSortKey===k){ if(isSortDir===-1)isSortDir=1; else isSortKey=null; } else {isSortKey=k;isSortDir=-1;} render(); }
+function isSetQ(v){ isQ=v; render(); }
+
+function buildIsRail(){
+  const regions=[...new Set(IS_DEMAND_DATA.map(d=>d.region))].sort();
+  const verts=[...new Set(IS_DEMAND_DATA.map(d=>d.vert))];
+  const host=document.getElementById('railBody');
+  host.innerHTML=
+    msBlock('is','region','Region',regions.map(v=>({v,t1:v,n:isOptCount('region',v)})),ISF.region)+
+    msBlock('is','vert','Vertical',verts.map(v=>({v,t1:v,n:isOptCount('vert',v)})),ISF.vert);
+  const n=isActiveCount();
+  ['railCnt','stubCnt'].forEach(id=>{const el=document.getElementById(id); el.style.display=n?'':'none'; el.textContent=n;});
+}
+function isTh(k,label,left){
+  const on=isSortKey===k;
+  return `<th><button class="sortbtn${left?' l':''}" onclick="isSetSort('${k}')" title="Sort by ${label}">${label}<span class="ar">${on?(isSortDir===-1?'▼':'▲'):'▼'}</span></button></th>`;
+}
+function isHead(){
+  return `<tr class="bands">
+      <th class="idc b-ref">Customer</th><th class="b-ref">Customer</th><th class="b-ref">Region</th><th class="b-ref">FERT</th><th class="b-ref">FERT</th>
+      <th class="b-ref bsep" colspan="4">Jul Plan · reference</th>
+      <th class="b-edit bsep" colspan="3">Projections · editable</th></tr>
+    <tr><th class="idc"><button class="sortbtn l${isSortKey==='custName'?' on':''}" onclick="isSetSort('custName')">Customer<span class="ar">${isSortKey==='custName'?(isSortDir===-1?'▼':'▲'):'▼'}</span></button></th>
+      <th>Customer Code</th>${isTh('region','Region')}${isTh('code','FERT Code')}<th class="l">Description</th>
+      ${isTh('demand','Demand')}${isTh('opnStock','Opn Stock')}${isTh('junCommit','Jun Commit')}${isTh('netQty','Net Qty')}
+      ${isTh('override','Override')}${isTh('aug','M2 · Aug')}${isTh('sep','M3 · Sep')}</tr>`;
+}
+function isCell(d,c){
+  const vals=[d.override,d.aug||0,d.sep||0];
+  return `<td class="sepL"><input class="cellin" type="number" min="0" inputmode="numeric" data-fi="${d.i}" data-c="${c}"
+    value="${vals[c]}" onfocus="this.select()" oninput="isEdit(${d.i},${c},this.value)" onkeydown="gridKeyGeneric(event,(fi,cc)=>{render();focusCell(fi,cc);})" onblur="setTimeout(render,0)"></td>`;
+}
+function isRowHtml(d){
+  const net=isNetQty(d);
+  return `<tr>
+    <td class="idc"><div class="id-cell"><div class="id-txt">
+      <div class="id-desc is-customer-name" title="${d.custName}">${d.custName}</div>
+      </div>
+      <button class="id-btn" onclick="isOpenDrawer(${d.i})" title="Line detail">ⓘ</button></div></td>
+    <td class="ref txt">${d.custCode}</td><td class="ref txt">${d.region}</td><td class="ref">${d.code}</td><td class="ref txt" title="${d.desc}">${d.desc}</td>
+    <td class="ref">${num(d.demand)}</td><td class="ref">${num(d.opnStock||0)}</td><td class="ref">${num(d.junCommit||0)}</td>
+    <td class="ref" style="font-weight:700;color:var(--ink)">${net}</td>
+    ${isCell(d,0)}${isCell(d,1)}${isCell(d,2)}</tr>`;
+}
+function isEdit(fi,c,val){
+  const d=IS_DEMAND_DATA.find(x=>x.i===+fi); if(!d)return;
+  const v=clamp0(parseInt(val)||0);
+  if(c==0)d.override=v; else if(c==1)d.aug=v; else d.sep=v;
+}
+
+function isRenderStrip(){
+  const el=document.getElementById('wbStrip');
+  el.innerHTML=`<div class="srch"><span class="ic">⌕</span><input id="qBox" type="text" placeholder="Search customer, code or description" value="${isQ}" oninput="isSetQ(this.value)"></div>
+    <div class="aft" id="aft"></div>
+    <div class="right"><button class="btn btn-ghost btn-sm" onclick="openImport()">Import CSV</button><button class="btn btn-ghost btn-sm" onclick="exportWorkbook()">Export CSV</button><span class="sep"></span><span class="rescount" id="resCount"></span></div>`;
+  isRenderTokens();
+}
+function isRenderTokens(){
+  const t=[];
+  const add=(lbl,fn)=>t.push(`<span class="ftok">${lbl}<button onclick="${fn}">×</button></span>`);
+  ISF.region.forEach(v=>add(v,`toggleFilterVal('is','region','${v}')`));
+  ISF.vert.forEach(v=>add(v,`toggleFilterVal('is','vert','${v}')`));
+  if(isQ)add('"'+isQ+'"',`document.getElementById('qBox').value='';isSetQ('')`);
+  if(isSortKey)add('Sorted: '+isSortKey+' '+(isSortDir===-1?'high→low':'low→high'),`isSetSort('${isSortKey}');isSetSort('${isSortKey}')`);
+  document.getElementById('aft').innerHTML=t.length?`<span class="sep"></span>`+t.join('')+`<button class="btn btn-quiet btn-sm" onclick="isClearAll()">Clear all</button>`:'';
+}
+function isRenderGrid(){
+  const rs=isRows();
+  document.getElementById('gHead').innerHTML=isHead();
+  const sum=k=>rs.reduce((a,d)=>a+(d[k]||0),0);
+  const net=rs.reduce((a,d)=>a+isNetQty(d),0);
+  const total=rs.length?`<tr class="filtered-total"><td class="idc">Filtered view total<span class="total-note">${rs.length} line${rs.length===1?'':'s'}</span></td><td colspan="4"></td><td>${sum('demand')}</td><td>${sum('opnStock')}</td><td>${sum('junCommit')}</td><td>${net}</td><td>${sum('override')}</td><td>${sum('aug')}</td><td>${sum('sep')}</td></tr>`:'';
+  document.getElementById('gBody').innerHTML=rs.length?rs.map(isRowHtml).join('')+total:'';
+  document.getElementById('gEmpty').style.display=rs.length?'none':'';
+  document.getElementById('grid').style.display=rs.length?'':'none';
+  document.getElementById('resCount').innerHTML=`<b>${rs.length}</b> of ${IS_DEMAND_DATA.length} lines`;
+  isRenderCommit();
+  decorateIbBands();
+}
+function isRenderCommit(){
+  const totOverride=IS_DEMAND_DATA.reduce((a,d)=>a+(d.override||0),0);
+  const totDemand=IS_DEMAND_DATA.reduce((a,d)=>a+d.demand,0);
+  const totAug=IS_DEMAND_DATA.reduce((a,d)=>a+(d.aug||0),0), totSep=IS_DEMAND_DATA.reduce((a,d)=>a+(d.sep||0),0);
+  const filtered=isActiveCount()>0||!!isQ;
+  const el=document.getElementById('commit');
+  if(isSubmitted){
+    el.innerHTML=`<div class="stat"><span class="v" style="color:var(--ok)">✓</span><span class="k">IS demand submitted · ${IS_DEMAND_DATA.length} lines · ${totOverride} units</span></div>
+      <div class="right"><button class="btn btn-ghost btn-sm" onclick="isReopen()">Reopen</button></div>`;
+    return;
+  }
+  el.innerHTML=`<div class="stat"><span class="v">${IS_DEMAND_DATA.length}</span><span class="k">lines</span></div>
+    <div class="stat"><span class="v">${totDemand}</span><span class="k">demand</span></div>
+    <div class="stat"><span class="v">${totOverride}</span><span class="k">override</span></div>
+    <div class="stat"><span class="v">${totAug}</span><span class="k">Aug</span></div>
+    <div class="stat"><span class="v">${totSep}</span><span class="k">Sep</span></div>
+    <div class="right">${filtered?`<span class="saved" style="color:var(--warn)">⚠ Totals are for all ${IS_DEMAND_DATA.length} lines, not the filtered view</span>`:`<span class="saved">Saved just now</span>`}
+      <button class="btn btn-primary btn-sm" onclick="saveWorkbench()">Save</button></div>`;
+}
+function isOpenDrawer(i){
+  const d=IS_DEMAND_DATA.find(x=>x.i===i); if(!d)return;
+  const net=isNetQty(d);
+  document.getElementById('drawer').innerHTML=`
+    <div class="dr-head"><div><h3>${d.custName}</h3><div class="cd">${d.custCode} · ${d.region}</div></div>
+      <button class="dr-close" onclick="closeDrawer()" aria-label="Close">×</button></div>
+    <div class="dr-body">
+      <div class="dr-sec"><h4>FERT</h4>
+        <div class="dr-i"><span class="k">Code</span><span class="v">${d.code}</span></div>
+        <div class="dr-i" style="display:block"><span class="k">Description</span><div class="v" style="font-weight:400;text-align:left;margin-top:3px">${d.desc}</div></div>
+        <div class="dr-i"><span class="k">Vertical</span><span class="v"><span class="seg-dot sg-R">${d.vert}</span></span></div></div>
+      <div class="dr-sec"><h4>Jul Plan — reference</h4>
+        <div class="dr-i"><span class="k">Demand</span><span class="v">${d.demand}</span></div>
+        <div class="dr-i"><span class="k">Opening stock</span><span class="v">${d.opnStock||0}</span></div>
+        <div class="dr-i"><span class="k">Jun commit</span><span class="v">${d.junCommit||0}</span></div>
+        <div class="dr-i"><span class="k">Net Qty</span><span class="v" style="font-weight:700">${net}</span></div>
+        <div class="dr-src">◷ Net Qty = Demand − Opening Stock − Jun Commit, from the ISO submission sheet.</div></div>
+      <div class="dr-sec"><h4>Your entry — editable</h4>
+        <div class="dr-i"><span class="k">Override</span><span class="v">${d.override}${d.override!==net?' <span style="color:var(--warn);font-size:10px">≠ Net Qty</span>':''}</span></div>
+        <div class="dr-i"><span class="k">M2 · Aug</span><span class="v">${d.aug||0}</span></div>
+        <div class="dr-i"><span class="k">M3 · Sep</span><span class="v">${d.sep||0}</span></div>
+        <div class="dr-src">◷ Owned centrally by ISO — no country/regional/global moderation on this line.</div></div>
+    </div>`;
+  document.getElementById('drawer').classList.add('on');
+  document.getElementById('scrim').classList.add('on');
+}
+function closeDrawer(){document.getElementById('drawer').classList.remove('on');document.getElementById('scrim').classList.remove('on');}
+function isOpenReview(){
+  const totOverride=IS_DEMAND_DATA.reduce((a,d)=>a+(d.override||0),0);
+  const totDemand=IS_DEMAND_DATA.reduce((a,d)=>a+d.demand,0);
+  const totAug=IS_DEMAND_DATA.reduce((a,d)=>a+(d.aug||0),0), totSep=IS_DEMAND_DATA.reduce((a,d)=>a+(d.sep||0),0);
+  const filtered=isActiveCount()>0||!!isQ;
+  const zeroLines=IS_DEMAND_DATA.filter(d=>!d.override&&!d.aug&&!d.sep).length;
+  document.getElementById('revSub').textContent=`S&OP-1A · July 2026 · Institutional Sales · ${PERSONAS.is_iso.name}`;
+  document.getElementById('reviewBody').innerHTML=`
+    ${filtered?`<div class="notice n-warn"><span>⚠</span><div><b>You have filters applied.</b> Submitting sends the <b>full</b> IS demand book — all ${IS_DEMAND_DATA.length} lines — not just what's on screen.</div></div>`:''}
+    ${zeroLines?`<div class="notice n-warn"><span>⚠</span><div><b>${zeroLines} line${zeroLines>1?'s':''} at zero</b> across override, Aug and Sep. They go up as zero.</div></div>`:''}
+    <div>
+      <div class="mrow"><span class="k">Lines</span><span class="v">${IS_DEMAND_DATA.length}</span></div>
+      <div class="mrow"><span class="k">Jul Plan demand</span><span class="v">${totDemand}</span></div>
+      <div class="mrow"><span class="k">Override (Jul)</span><span class="v">${totOverride}</span></div>
+      <div class="mrow"><span class="k">M2 · August</span><span class="v">${totAug}</span></div>
+      <div class="mrow"><span class="k">M3 · September</span><span class="v">${totSep}</span></div>
+    </div>
+    <div class="notice n-acc"><span>ⓘ</span><div>No prior-cycle figure exists in the source sheet for IS, so this review has no vs-last-cycle comparison the way the dealer/ASM screens do.</div></div>
+    <div class="notice n-acc"><span>→</span><div>IS is owned centrally by ISO — there is no country/regional/global moderation above this. You can reopen and resubmit until <b>19 Jul, 23:59 IST</b>.</div></div>`;
+  document.getElementById('revSubmitBtn').disabled=false;
+  document.getElementById('revSubmitBtn').setAttribute('onclick','isDoSubmit()');
+  document.getElementById('review').classList.add('on');
+}
+function isDoSubmit(){ isSubmitted=true; closeM('review'); render(); toast('IS demand submitted'); }
+function isReopen(){ isSubmitted=false; render(); toast('Reopened — resubmit before the cut-off'); }
+
+/* ── IS Orders Tracker (read-only) ── */
+let isOrdQ='';
+function isSetOrdQ(v){ isOrdQ=v; isRenderOrders(); }
+function isOrdRows(){
+  return IS_ORDERS_DATA.filter(d=>{
+    if(ISF.region.size&&!ISF.region.has(d.region))return false;
+    if(!isOrdQ)return true;
+    const s=isOrdQ.toLowerCase();
+    return d.ordNo.toLowerCase().includes(s)||d.poNo.toLowerCase().includes(s)||d.cname.toLowerCase().includes(s)||d.code.toLowerCase().includes(s)||d.desc.toLowerCase().includes(s);
+  });
+}
+function isRenderOrders(){
+  const rs=isOrdRows();
+  document.getElementById('ordHead').innerHTML=`<tr class="bands"><th class="idc b-ref">Order</th><th class="b-ref" colspan="3">Order</th><th class="b-ref" colspan="3">Customer</th><th class="b-ref" colspan="2">FERT</th><th class="b-ref bsep" colspan="4">Quantity · Delivery</th></tr>
+    <tr><th class="idc l">Order No.</th><th class="l">Created</th><th class="l">PO No.</th><th class="l">Region</th><th class="l">Customer</th><th class="l">Colour</th><th class="l">FERT Code</th><th class="l">Description</th>
+    <th>Order Qty</th><th>Shipped</th><th>Open Bal.</th><th>Cur Stock</th><th class="l">EDD</th></tr>`;
+  const rows=rs.map(d=>`<tr>
+    <td class="idc"><div class="id-cell"><div class="id-txt"><div class="id-desc">${d.ordNo}</div>
+      </div></div></td>
+    <td class="ref txt">${d.creDate}</td><td class="ref txt">${d.poNo}</td><td class="ref txt">${d.region}</td><td class="ref txt">${d.cname}</td><td class="ref txt">${d.color}</td><td class="ref">${d.code}</td><td class="ref txt" title="${d.desc}">${d.desc}</td>
+    <td class="ref">${d.ordQty}</td><td class="ref">${d.shipped}</td>
+    <td class="ref" style="color:${d.openQty>0?'var(--warn)':'var(--ok)'};font-weight:600">${d.openQty}</td>
+    <td class="ref">${d.curStock}</td><td class="ref txt" style="color:${d.edd==='TBC'?'var(--warn)':'var(--ok)'};font-weight:600">${d.edd}</td></tr>`).join('');
+  const sum=k=>rs.reduce((a,d)=>a+(d[k]||0),0);
+  const total=rs.length?`<tr class="filtered-total"><td class="idc">Filtered view total<span class="total-note">${rs.length} order${rs.length===1?'':'s'}</span></td><td colspan="7"></td><td>${sum('ordQty')}</td><td>${sum('shipped')}</td><td>${sum('openQty')}</td><td>${sum('curStock')}</td><td></td></tr>`:'';
+  document.getElementById('ordBody').innerHTML=rows+total;
+  document.getElementById('ordResCount').innerHTML=`<b>${rs.length}</b> of ${IS_ORDERS_DATA.length} orders`;
+}
+
+/* ── shared Home "Viewing as" control (P-02) ── */
+function protoStripHtml(){
+  return `<div class="proto-strip">
+    <span class="pl">Prototype control</span>
+    <label for="personaSel">Viewing as</label>
+    <select id="personaSel" onchange="setPersona(this.value)">
+      <option value="is_iso"${persona==='is_iso'?' selected':''}>${PERSONAS.is_iso.label}</option>
+      <option value="ib_country"${persona==='ib_country'?' selected':''}>${PERSONAS.ib_country.label}</option>
+      <option value="ib_region"${persona==='ib_region'?' selected':''}>${PERSONAS.ib_region.label}</option>
+      <option value="ib_global"${persona==='ib_global'?' selected':''}>${PERSONAS.ib_global.label}</option>
+    </select>
+    <span class="np">Persona switching lives here, not in the product chrome — P-02</span>
+  </div>`;
+}
+
+/* ── IS Home (P-04: entry-progress shape, like a plain submitter — IS has no exceptions to
+   moderate, so Section 1 is entry progress, never a triage list) ── */
+const IS_ROLL_GB=[['vert','Vertical'],['region','Region'],['custName','Customer']];
+let isRollBy='vert', isRollOpen=new Set();
+function isSetRollBy(k){ isRollBy=k; isRollOpen=new Set(); isRenderHome(); }
+function isToggleRollRow(k){ isRollOpen.has(k)?isRollOpen.delete(k):isRollOpen.add(k); isRenderHome(); }
+function isRollVals(fs){
+  return {demand:fs.reduce((a,d)=>a+d.demand,0), net:fs.reduce((a,d)=>a+isNetQty(d),0),
+    override:fs.reduce((a,d)=>a+(d.override||0),0), aug:fs.reduce((a,d)=>a+(d.aug||0),0), sep:fs.reduce((a,d)=>a+(d.sep||0),0)};
+}
+function isRollRowCells(v){ return `<td>${v.demand}</td><td>${v.net}</td><td style="font-weight:700;color:var(--ink)">${v.override}</td><td>${v.aug}</td><td>${v.sep}</td>`; }
+function isRenderRollup(){
+  const host=document.getElementById('isRollTbl'); if(!host)return;
+  const src=IS_DEMAND_DATA;
+  const keys=[...new Set(src.map(d=>d[isRollBy]))].sort();
+  let h=`<thead><tr><th class="l">${{vert:'Vertical',region:'Region',custName:'Customer'}[isRollBy]}</th><th>Lines</th>
+    <th>Demand</th><th>Net Qty</th><th>Override</th><th>Aug</th><th>Sep</th></tr></thead><tbody>`;
+  keys.forEach(k=>{
+    const fs=src.filter(d=>d[isRollBy]===k);
+    const open=isRollOpen.has(k);
+    h+=`<tr><td class="l"><button class="exp" onclick="isToggleRollRow('${k}')" aria-label="Expand">${open?'▼':'▶'}</button>${k}</td>
+      <td>${fs.length}</td>${isRollRowCells(isRollVals(fs))}</tr>`;
+    if(open)fs.forEach(d=>{
+      h+=`<tr class="sub"><td class="l">${d.custName} <span style="font-family:var(--mono);color:var(--muted)">${d.code}</span></td>
+        <td>1</td>${isRollRowCells(isRollVals([d]))}</tr>`;
+    });
+  });
+  const tv=isRollVals(src);
+  h+=`<tr class="tot"><td class="l">Total</td><td>${src.length}</td>${isRollRowCells(tv)}</tbody>`;
+  host.innerHTML=h;
+}
+function isRenderHome(){
+  const host=document.getElementById('homeInner');
+  const totOverride=IS_DEMAND_DATA.reduce((a,d)=>a+(d.override||0),0);
+  const totDemand=IS_DEMAND_DATA.reduce((a,d)=>a+d.demand,0);
+  const tbcOrders=IS_ORDERS_DATA.filter(d=>d.edd==='TBC').length;
+  const verts=[...new Set(IS_DEMAND_DATA.map(d=>d.vert))];
+  const vertRows=verts.map(v=>{
+    const fs=IS_DEMAND_DATA.filter(d=>d.vert===v);
+    const q=fs.reduce((a,d)=>a+(d.override||0),0);
+    return `<div class="kv-row"><span class="nm">${v}</span><span class="pill p-ok">${fs.length} lines</span><span class="vl">${q} units</span></div>`;
+  }).join('');
+  const delta=totOverride-totDemand, pct=totDemand?Math.round(delta/totDemand*100):0;
+  host.innerHTML=`
+    ${protoStripHtml()}
+    <div class="home-head">
+      <div><h1>Good day, ${PERSONAS.is_iso.name}</h1>
+        <div class="sub">July 2026 · Institutional Sales · owned centrally by ISO / Central Planning · ${IS_DEMAND_DATA.length} customer lines</div></div>
+      <div class="right"><button class="btn btn-primary" onclick="go('wb')">Continue to IS Demand Workbook →</button></div>
+    </div>
+    <div class="zone"><span class="zl">Demand entry progress</span><span class="zr"></span>
+      <span class="zn">${isSubmitted?'Submitted':totOverride+' units entered · closes 19 Jul'}</span></div>
+    <div class="cards">
+      <div class="card lead">
+        <h3>IS demand — July 2026</h3>
+        <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;">
+          <div><div class="big">${totOverride}</div><div class="cap">override units, all customers</div></div>
+          <div><div class="big sm">${totDemand}</div><div class="cap">Jul Plan demand, for reference</div></div>
+          <div style="margin-left:auto"><span class="pill ${isSubmitted?'p-ok':'p-warn'}">${isSubmitted?'Submitted':'In progress'}</span></div>
+        </div>
+        <div class="cap">No country/regional/global moderation above this — whatever is here at <b>19 Jul, 23:59 IST</b> goes up as-is.</div>
+        <div class="acts">
+          <button class="btn btn-primary btn-sm" onclick="go('wb')">Open demand workbook</button>
+          <button class="btn btn-ghost btn-sm" onclick="saveWorkbench()">Save</button>
+        </div>
+      </div>
+      <div class="card" style="cursor:pointer" onclick="go('orders')">
+        <h3>Orders awaiting confirmed delivery</h3>
+        <div class="big" style="color:${tbcOrders?'var(--warn)':'var(--ok)'}">${tbcOrders}</div>
+        <div class="cap">of ${IS_ORDERS_DATA.length} orders with EDD still To Be Confirmed</div>
+        <div class="acts"><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();go('orders')">Open Orders Tracker →</button></div>
+      </div>
+      <div class="card"><h3>By vertical</h3>${vertRows}</div>
+    </div>
+
+    <div class="zone"><span class="zl">Summary</span><span class="zr"></span></div>
+    <div class="cards">
+      <div class="card">
+        <h3>Override vs Jul Plan demand</h3>
+        <div style="display:flex;align-items:flex-end;gap:16px;">
+          <div><div class="big sm">${totOverride}</div><div class="cap">override, all lines</div></div>
+          <div><div class="big sm">${totDemand}</div><div class="cap">Jul Plan demand</div></div>
+        </div>
+        <div class="cap"><span class="pill ${Math.abs(pct)<=TOL?'p-ok':'p-warn'}">${delta>0?'+':''}${delta} units · ${pct>0?'+':''}${pct}%</span> vs the sheet's own Jul Plan demand</div>
+      </div>
+    </div>
+    <div class="zone"><span class="zl">Rollup</span><span class="zr"></span></div>
+    <div class="card" style="padding:12px 14px 10px;gap:10px">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font-size:11.5px;font-weight:600;color:var(--ink-2)">Group by</span>
+        <div class="seg-ctl">${IS_ROLL_GB.map(([k,l])=>`<button class="${isRollBy===k?'on':''}" onclick="isSetRollBy('${k}')">${l}</button>`).join('')}</div>
+      </div>
+      <div style="overflow-x:auto"><table class="sumtbl" id="isRollTbl"></table></div>
+    </div>`;
+  isRenderRollup();
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   IB MODULE — International Business. Country Head → Regional Head →
+   Global Head. Per your decision, this now follows ASM's P-20/21/22
+   model rather than the old Phase 0 "edit rights follow scope, same
+   shared cell" model:
+     · Country Head is the base submitter — enters dealer×FERT figures
+       directly for their own country (spreadsheet-style, P-09).
+     · Regional Head moderates ONE consolidated number per FERT for
+       the whole region — the group being moderated is "a set of
+       countries" (P-20's own wording for IB). Each country's own
+       aggregated submission becomes fixed, read-only reference,
+       revealed by expanding the row.
+     · Global Head moderates ONE consolidated number per FERT across
+       all regions — each region's own current figure (whether or not
+       the Regional Head already overrode it) becomes read-only
+       reference the same way.
+   M1 (past + current month, firm orders) is always locked at
+   every tier — nobody moderates it, same as the old Phase 0 file.
+   Column parity (P-19) against VECVplan-IB-Workbench-Phase0.html:
+   Dealer, Country, FERT, Vehicle attributes, Trend—Offtake
+   (L3/L6/L12/LYSM), Past/Current/M1, M2–M6 forecast, Add FERT (P-11)
+   all carried over; only the moderation mechanics above changed. ══ */
+const IB_BASE=[
+  {dealer:"1XV1002",dealerName:"RUNNER-DHAKA",country:"Bangladesh",region:"South Asia",code:"85200676",desc:"Pro3015 M SLP CBC BS3 TY PRM CKD EXP",vert:"LMD",mpg:"Pro 3015",tonnage:"15T",fuel:"Diesel",ac:"NonAC",seg:"R",tol3:7,tol6:5,tol12:6,toly:0,past:20,cur:30,sub:[15,15,14,12,10]},
+  {dealer:"1XV1002",dealerName:"RUNNER-DHAKA",country:"Bangladesh",region:"South Asia",code:"85209275",desc:"Pro 3015 J CBC BS3 NABS TY PRM CKD EXP",vert:"LMD",mpg:"Pro 3015",tonnage:"15T",fuel:"Diesel",ac:"NonAC",seg:"S",tol3:17,tol6:12,tol12:18,toly:40,past:40,cur:30,sub:[20,20,18,16,14]},
+  {dealer:"1XV1002",dealerName:"RUNNER-DHAKA",country:"Bangladesh",region:"South Asia",code:"85605599",desc:"Pro1095XP H CBC BS3 AB PS TY 4.7 PRM EXP",vert:"LMD",mpg:"Pro 1095XP",tonnage:"9T",fuel:"Diesel",ac:"AC",seg:"S",tol3:3,tol6:5,tol12:12,toly:5,past:26,cur:0,sub:[10,10,9,8,7]},
+  {dealer:"1XV1002",dealerName:"RUNNER-DHAKA",country:"Bangladesh",region:"South Asia",code:"85855569",desc:"Pro1080XPT C 3.5FBT BS3 AB PS TY PRM EXP",vert:"LMD",mpg:"Pro 1080XPT",tonnage:"8T",fuel:"Diesel",ac:"AC",seg:"S",tol3:3,tol6:7,tol12:12,toly:0,past:20,cur:20,sub:[10,10,9,8,7]},
+  {dealer:"1XV1002",dealerName:"RUNNER-DHAKA",country:"Bangladesh",region:"South Asia",code:"85900999",desc:"Pro1075 H CBC RHD BS3 AB PRM EXP TY",vert:"LMD",mpg:"Pro 1075",tonnage:"7.5T",fuel:"Diesel",ac:"NonAC",seg:"R",tol3:3,tol6:7,tol12:5,toly:10,past:20,cur:0,sub:[15,15,14,12,10]},
+  {dealer:"1XV1002",dealerName:"RUNNER-DHAKA",country:"Bangladesh",region:"South Asia",code:"86001693",desc:"Pro1055 C1 CBC BS3 4.7 HB TY PRM EXP",vert:"LMD",mpg:"Pro 1055",tonnage:"5.5T",fuel:"Diesel",ac:"NonAC",seg:"D",tol3:10,tol6:23,tol12:14,toly:0,past:15,cur:0,sub:[10,10,9,8,7]},
+  {dealer:"1XV1002",dealerName:"RUNNER-DHAKA",country:"Bangladesh",region:"South Asia",code:"86001694",desc:"Pro1055 C1 CBC BS3 4.7 HB PB PRM EXP",vert:"LMD",mpg:"Pro 1055",tonnage:"5.5T",fuel:"Diesel",ac:"NonAC",seg:"D",tol3:12,tol6:38,tol12:30,toly:0,past:19,cur:0,sub:[15,15,14,12,10]},
+  {dealer:"1V3333",dealerName:"HIMALAYAN MOTORS",country:"Nepal",region:"South Asia",code:"85900385",desc:"Pro 1075 F CBC RHD BS3 AB PS TY PRM EXP",vert:"LMD",mpg:"Pro 1075",tonnage:"7.5T",fuel:"Diesel",ac:"AC",seg:"R",tol3:8,tol6:10,tol12:9,toly:12,past:32,cur:20,sub:[12,12,11,10,8]},
+  {dealer:"1V7035",dealerName:"EVEREST TRUCKS",country:"Nepal",region:"South Asia",code:"86306204",desc:"Pro 1112XP G CBC 17FT BS3 PS TY PRM EXP",vert:"LMD",mpg:"Pro 1112XP",tonnage:"11T",fuel:"Diesel",ac:"NonAC",seg:"D",tol3:0,tol6:1,tol12:2,toly:0,past:10,cur:0,sub:[0,0,0,0,0]},
+  {dealer:"1XL3340",dealerName:"CEYLON AUTO",country:"Sri Lanka",region:"South Asia",code:"80709022",desc:"Skyline Pro LMD Bus 32-Seater CNG",vert:"Bus",mpg:"Skyline Pro 3008",tonnage:"Bus",fuel:"CNG",ac:"AC",seg:"S",tol3:2,tol6:3,tol12:4,toly:0,past:0,cur:0,sub:[6,4,4,3,3]},
+  {dealer:"1XA2201",dealerName:"EASTAFRICA FLEET",country:"Kenya",region:"Africa",code:"94203523",desc:"Pro 2049 HD Tipper BS6",vert:"HD",mpg:"HD Tipper",tonnage:"49T",fuel:"Diesel",ac:"NonAC",seg:"R",tol3:5,tol6:8,tol12:6,toly:4,past:14,cur:8,sub:[8,6,5,5,4]},
+  {dealer:"1XA2214",dealerName:"NAIROBI FREIGHT",country:"Kenya",region:"Africa",code:"85808341",desc:"Pro 2080 LX F DSD E3 LHD 16FT AB DW EXP",vert:"LMD",mpg:"Pro 2080",tonnage:"20T",fuel:"Diesel",ac:"AC",seg:"S",tol3:3,tol6:4,tol12:5,toly:2,past:6,cur:2,sub:[4,4,4,3,3]},
+  {dealer:"1XN4410",dealerName:"LAGOS MOTORS",country:"Nigeria",region:"Africa",code:"85803055",desc:"Pro2080 G DSD LHD 18FT E3 DW BASE EXP",vert:"LMD",mpg:"Pro 2080",tonnage:"20T",fuel:"Diesel",ac:"NonAC",seg:"R",tol3:1,tol6:2,tol12:2,toly:1,past:20,cur:20,sub:[10,10,9,8,7]},
+  {dealer:"1XN4422",dealerName:"ABUJA TRUCKS",country:"Nigeria",region:"Africa",code:"87903769",desc:"Pro 2070 F DSD E3 LHD 16FT HB DW PRM",vert:"LMD",mpg:"Pro 2070",tonnage:"20T",fuel:"Diesel",ac:"NonAC",seg:"D",tol3:2,tol6:2,tol12:2,toly:0,past:2,cur:2,sub:[2,2,2,2,1]},
+  {dealer:"1XM5501",dealerName:"ZAYANI MOTORS W.L.L.",country:"Bahrain",region:"Middle East",code:"86003100",desc:"Pro2055XP C CBC E4 LHD HB TEL DW PRM",vert:"LMD",mpg:"Pro 2055XP",tonnage:"21T",fuel:"Diesel",ac:"AC",seg:"S",tol3:0,tol6:0,tol12:0,toly:0,past:0,cur:5,sub:[3,2,2,2,1]},
+  {dealer:"1XM5501",dealerName:"ZAYANI MOTORS W.L.L.",country:"Bahrain",region:"Middle East",code:"86003103",desc:"Pro2055XP D DSD E4 LHD 12FT HB DW PRM",vert:"LMD",mpg:"Pro 2055XP",tonnage:"21T",fuel:"Diesel",ac:"AC",seg:"S",tol3:0,tol6:0,tol12:1,toly:0,past:1,cur:3,sub:[2,2,2,2,1]},
+  {dealer:"1XM5512",dealerName:"MANNAI CORPORATION W.L.L.",country:"Qatar",region:"Middle East",code:"85601347",desc:"Pro 2095XP H DSD LHD E5 AB PTO DW PRM",vert:"LMD",mpg:"Pro 2095XP",tonnage:"21T",fuel:"Diesel",ac:"AC",seg:"R",tol3:1,tol6:1,tol12:0,toly:0,past:8,cur:0,sub:[4,4,4,3,3]},
+  {dealer:"1XM5512",dealerName:"MANNAI CORPORATION W.L.L.",country:"Qatar",region:"Middle East",code:"86007366",desc:"Pro2065XP E CBC LHD E5 HB PS DW PRM",vert:"LMD",mpg:"Pro 2065XP",tonnage:"21T",fuel:"Diesel",ac:"AC",seg:"S",tol3:0,tol6:0,tol12:0,toly:0,past:6,cur:0,sub:[3,3,3,2,2]},
+];
+let ibUid=0; IB_BASE.forEach(r=>{r.i=ibUid++; r.isAdded=false;});
+const IB_ADDABLE=[
+  {code:"85605599",desc:"Pro1095XP H CBC BS3 AB PS TY 4.7 PRM EXP",vert:"LMD",seg:"S",mpg:"Pro 1095XP",tonnage:"9T",fuel:"Diesel",ac:"AC"},
+  {code:"84109653",desc:"Pro 2090 J E3 AB ABS EXP",vert:"LMD",seg:"R",mpg:"Pro 2090",tonnage:"9T",fuel:"Diesel",ac:"NonAC"},
+  {code:"91408025",desc:"Pro 6028XPT G BSVI DWPRM 11X20 16BB SE",vert:"HD",seg:"S",mpg:"Pro 6028",tonnage:"28T",fuel:"Diesel",ac:"AC"},
+  {code:"96051543",desc:"Skl Pro 3011L Stf 3L Dd BSVI EXP",vert:"Bus",seg:"R",mpg:"Skyline Pro",tonnage:"11T",fuel:"Diesel",ac:"AC"},
+  {code:"93509671",desc:"Pro3019 J SLPHSD 20FT BSVI NGB 7S WTL EXP",vert:"HD",seg:"D",mpg:"Pro 3019",tonnage:"19T",fuel:"Diesel",ac:"NonAC"},
+  {code:"85203906",desc:"Pro3015 J SLP HSD PS BS3 EXP",vert:"LMD",seg:"S",mpg:"Pro 3015",tonnage:"15T",fuel:"Diesel",ac:"NonAC"},
+];
+const IB_COUNTRY_OF_REGION={"Bangladesh":"South Asia","Nepal":"South Asia","Sri Lanka":"South Asia","Kenya":"Africa","Nigeria":"Africa","Bahrain":"Middle East","Qatar":"Middle East"};
+const IB_ROLE_LABEL={ib_country:"Country Head",ib_region:"Regional Head",ib_global:"Global Head"};
+const IB_FWD_MONTHS=[['aug','M2 · Aug'],['sep','M3 · Sep'],['oct','M4 · Oct'],['nov','M5 · Nov'],['dec','M6 · Dec']];
+/* Phase 0 parity: this is a genuine view control, not a cosmetic filter. */
+let ibShowFwdMonths=true;
+function ibVisibleFwdMonths(){ return IB_FWD_MONTHS.map(([key,label],idx)=>({key,label,idx})).filter(m=>ibShowFwdMonths||m.idx<2); }
+function ibSetForecastView(show){ ibShowFwdMonths=show; buildRail(); render(); }
+function sumMonths(fn){ return IB_FWD_MONTHS.reduce((a,_,idx)=>a+fn(idx),0); }
+function ibM1(r){ return (r.past||0)+(r.cur||0); }
+function ibM1Ref(rows){
+  const past=rows.reduce((a,r)=>a+(r.past||0),0), cur=rows.reduce((a,r)=>a+(r.cur||0),0);
+  return {past,cur,total:past+cur};
+}
+function regionKey(region,code){ return region+'|'+code; }
+function ibRowsForCountry(country){ return IB_BASE.filter(r=>r.country===country); }
+function ibRowsForRegion(region){ return IB_BASE.filter(r=>r.region===region); }
+
+/* ── consolidation (P-20) ── */
+let IB_REGION_OVR={}, IB_REGION_REASON={}, IB_GLOBAL_OVR={}, IB_GLOBAL_REASON={};
+function countrySubmitted(country,code,mIdx){ return IB_BASE.filter(r=>r.country===country&&r.code===code).reduce((a,r)=>a+(r.sub[mIdx]||0),0); }
+function regionSubmittedFromCountries(region,code,mIdx){
+  const countries=[...new Set(IB_BASE.filter(r=>r.region===region&&r.code===code).map(r=>r.country))];
+  return countries.reduce((a,c)=>a+countrySubmitted(c,code,mIdx),0);
+}
+function regionV(region,code,mIdx){
+  const ovr=IB_REGION_OVR[regionKey(region,code)];
+  return (ovr&&ovr[mIdx]!==null&&ovr[mIdx]!==undefined)?ovr[mIdx]:regionSubmittedFromCountries(region,code,mIdx);
+}
+function regionIsOverridden(region,code){ const ovr=IB_REGION_OVR[regionKey(region,code)]; return !!ovr&&ovr.some(v=>v!==null&&v!==undefined); }
+function globalSubmittedFromRegions(code,mIdx){
+  const regions=[...new Set(IB_BASE.filter(r=>r.code===code).map(r=>r.region))];
+  return regions.reduce((a,rg)=>a+regionV(rg,code,mIdx),0);
+}
+function globalV(code,mIdx){
+  const ovr=IB_GLOBAL_OVR[code];
+  return (ovr&&ovr[mIdx]!==null&&ovr[mIdx]!==undefined)?ovr[mIdx]:globalSubmittedFromRegions(code,mIdx);
+}
+function globalIsOverridden(code){ const ovr=IB_GLOBAL_OVR[code]; return !!ovr&&ovr.some(v=>v!==null&&v!==undefined); }
+
+/* ── exceptions (P-21/22): a line only ever needs a decision once the moderator's OWN override
+   strays outside ±TOL% of what was submitted beneath it — see the divergence note at the top of
+   this file on why there's no separate "flagged purely on entry" case for IB, unlike ASM. ── */
+function regionSubmittedTotal(region,code){ return sumMonths(idx=>regionSubmittedFromCountries(region,code,idx)); }
+function regionCurrentTotal(region,code){ return sumMonths(idx=>regionV(region,code,idx)); }
+function regionDeviationPct(region,code){ const base=regionSubmittedTotal(region,code); if(!base)return 0; return Math.round((regionCurrentTotal(region,code)-base)/base*100); }
+function regionNeedsReason(region,code){ return regionIsOverridden(region,code)&&Math.abs(regionDeviationPct(region,code))>TOL&&!IB_REGION_REASON[regionKey(region,code)]; }
+function regionOpen(region,code){ return regionNeedsReason(region,code); }
+function regionFlagExplain(region,code){ const pct=regionDeviationPct(region,code); if(Math.abs(pct)<=TOL)return null; return `Your override is ${Math.abs(pct)}% ${pct>0?'above':'below'} what the countries in ${region} submitted`; }
+function globalSubmittedTotal(code){ return sumMonths(idx=>globalSubmittedFromRegions(code,idx)); }
+function globalCurrentTotal(code){ return sumMonths(idx=>globalV(code,idx)); }
+function globalDeviationPct(code){ const base=globalSubmittedTotal(code); if(!base)return 0; return Math.round((globalCurrentTotal(code)-base)/base*100); }
+function globalNeedsReason(code){ return globalIsOverridden(code)&&Math.abs(globalDeviationPct(code))>TOL&&!IB_GLOBAL_REASON[code]; }
+function globalOpen(code){ return globalNeedsReason(code); }
+function globalFlagExplain(code){ const pct=globalDeviationPct(code); if(Math.abs(pct)<=TOL)return null; return `Your override is ${Math.abs(pct)}% ${pct>0?'above':'below'} what the regions submitted`; }
+
+/* ── catalogues: one entry per FERT in scope, text attributes shown only where every underlying
+   row agrees (P-19 addition's spirit — a group header never silently guesses) ── */
+function ibMeta(rowsForCode){
+  const r0=rowsForCode[0];
+  const agree=k=>rowsForCode.every(r=>r[k]===r0[k])?r0[k]:'–';
+  return {desc:r0.desc,vert:agree('vert'),mpg:agree('mpg'),tonnage:agree('tonnage'),fuel:agree('fuel'),ac:agree('ac'),seg:agree('seg'),
+    tol3:rowsForCode.reduce((a,r)=>a+(r.tol3||0),0),tol6:rowsForCode.reduce((a,r)=>a+(r.tol6||0),0),
+    tol12:rowsForCode.reduce((a,r)=>a+(r.tol12||0),0),toly:rowsForCode.reduce((a,r)=>a+(r.toly||0),0),
+    isAdded:rowsForCode.some(r=>r.isAdded)};
+}
+function regionCatalogue(region){
+  const rows=ibRowsForRegion(region);
+  const codes=[...new Set(rows.map(r=>r.code))];
+  return codes.map(code=>({code,region,...ibMeta(rows.filter(r=>r.code===code))}));
+}
+function globalCatalogue(){
+  const codes=[...new Set(IB_BASE.map(r=>r.code))];
+  return codes.map(code=>({code,...ibMeta(IB_BASE.filter(r=>r.code===code))}));
+}
+
+/* ── filters (P-05), shared shape across all three IB tiers ── */
+const IBF={fert:new Set(),vert:new Set(),seg:new Set(),mpg:new Set(),tonnage:new Set(),fuel:new Set(),ac:new Set(),flag:new Set(),country:new Set(),region:new Set()};
+let ibQ='', ibSortKey=null, ibSortDir=-1, ibGroupBy='fert', ibGroupOpen=new Set(), ibExpanded=new Set();
+const IB_SEGNAME={R:'Runner',S:'Repeater',D:'Stranger'};
+function ibAttrPass(obj){
+  if(IBF.fert.size&&!IBF.fert.has(obj.code))return false;
+  if(IBF.vert.size&&!IBF.vert.has(obj.vert))return false;
+  if(IBF.seg.size&&!IBF.seg.has(obj.seg))return false;
+  if(IBF.mpg.size&&!IBF.mpg.has(obj.mpg))return false;
+  if(IBF.tonnage.size&&!IBF.tonnage.has(obj.tonnage))return false;
+  if(IBF.fuel.size&&!IBF.fuel.has(obj.fuel))return false;
+  if(IBF.ac.size&&!IBF.ac.has(obj.ac))return false;
+  if(ibQ){const s=ibQ.toLowerCase(); if(!(obj.code.toLowerCase().includes(s)||(obj.desc||'').toLowerCase().includes(s)||(obj.dealerName||'').toLowerCase().includes(s)))return false;}
+  return true;
+}
+function ibActiveCount(){ return IBF.fert.size+IBF.vert.size+IBF.seg.size+IBF.mpg.size+IBF.tonnage.size+IBF.fuel.size+IBF.ac.size+IBF.flag.size+IBF.country.size+IBF.region.size; }
+function ibClearAll(){ Object.values(IBF).forEach(s=>s.clear()); ibQ=''; ibSortKey=null; buildRail(); render(); }
+function ibSetQ(v){ ibQ=v; render(); }
+function ibSetSort(k){ if(ibSortKey===k){ if(ibSortDir===-1)ibSortDir=1; else ibSortKey=null; } else {ibSortKey=k;ibSortDir=-1;} render(); }
+function ibSetGroupBy(k){ ibGroupBy=k; ibGroupOpen=new Set(); render(); }
+function ibToggleGroup(k){ ibGroupOpen.has(k)?ibGroupOpen.delete(k):ibGroupOpen.add(k); render(); }
+function ibToggleExpand(k){ ibExpanded.has(k)?ibExpanded.delete(k):ibExpanded.add(k); render(); }
+
+function ibCountryRows(){
+  const cfg=PERSONAS.ib_country;
+  let rows=ibRowsForCountry(cfg.country).filter(ibAttrPass);
+  if(IBF.country.size&&!IBF.country.has(cfg.country))rows=[];
+  if(ibSortKey==='dealer')rows=[...rows].sort((a,b)=>a.dealerName.localeCompare(b.dealerName)*ibSortDir);
+  else if(ibSortKey==='code')rows=[...rows].sort((a,b)=>a.code.localeCompare(b.code)*ibSortDir);
+  else if(ibSortKey==='m1')rows=[...rows].sort((a,b)=>(ibM1(a)-ibM1(b))*ibSortDir);
+  else if(ibSortKey==='tot')rows=[...rows].sort((a,b)=>(r=>ibM1(r)+r.sub.reduce((a,b)=>a+b,0))(a)-((r=>ibM1(r)+r.sub.reduce((a,b)=>a+b,0))(b))*ibSortDir);
+  return rows;
+}
+function ibRegionEntries(){
+  const cfg=PERSONAS.ib_region;
+  let entries=regionCatalogue(cfg.region).filter(ibAttrPass);
+  if(IBF.country.size)entries=entries.filter(e=>IB_BASE.some(r=>r.region===cfg.region&&r.code===e.code&&IBF.country.has(r.country)));
+  if(IBF.flag.size)entries=entries.filter(e=>regionOpen(e.region,e.code));
+  if(ibSortKey==='code')entries=[...entries].sort((a,b)=>a.code.localeCompare(b.code)*ibSortDir);
+  else if(ibSortKey==='tot')entries=[...entries].sort((a,b)=>(regionCurrentTotal(a.region,a.code)-regionCurrentTotal(b.region,b.code))*ibSortDir);
+  return entries;
+}
+function ibGlobalEntries(){
+  let entries=globalCatalogue().filter(ibAttrPass);
+  if(IBF.country.size)entries=entries.filter(e=>IB_BASE.some(r=>r.code===e.code&&IBF.country.has(r.country)));
+  if(IBF.region.size)entries=entries.filter(e=>IB_BASE.some(r=>r.code===e.code&&IBF.region.has(r.region)));
+  if(IBF.flag.size)entries=entries.filter(e=>globalOpen(e.code));
+  if(ibSortKey==='code')entries=[...entries].sort((a,b)=>a.code.localeCompare(b.code)*ibSortDir);
+  else if(ibSortKey==='tot')entries=[...entries].sort((a,b)=>(globalCurrentTotal(a.code)-globalCurrentTotal(b.code))*ibSortDir);
+  return entries;
+}
+function ibTierRows(){
+  const t=PERSONAS[persona].tier;
+  if(t==='country')return ibCountryRows();
+  if(t==='region')return ibRegionEntries();
+  return ibGlobalEntries();
+}
+function ibExceptionEntries(){
+  const t=PERSONAS[persona].tier;
+  if(t==='region')return regionCatalogue(PERSONAS.ib_region.region).filter(e=>regionOpen(e.region,e.code));
+  if(t==='global')return globalCatalogue().filter(e=>globalOpen(e.code));
+  return [];
+}
+
+function buildIbRail(){
+  const t=PERSONAS[persona].tier;
+  const host=document.getElementById('railBody');
+  const scopeRows=t==='country'?ibRowsForCountry(PERSONAS.ib_country.country):(t==='region'?ibRowsForRegion(PERSONAS.ib_region.region):IB_BASE);
+  const codes=[...new Set(scopeRows.map(r=>r.code))].sort();
+  const verts=[...new Set(scopeRows.map(r=>r.vert))];
+  const segs=[...new Set(scopeRows.map(r=>r.seg))];
+  const mpgs=[...new Set(scopeRows.map(r=>r.mpg))].sort();
+  const tonnages=[...new Set(scopeRows.map(r=>r.tonnage))];
+  const fuels=[...new Set(scopeRows.map(r=>r.fuel))];
+  const acs=[...new Set(scopeRows.map(r=>r.ac))];
+  let html='';
+  if(t==='country'){
+    /* Kept visible for Phase 0 parity even though this persona has one country in scope. */
+    const c=PERSONAS.ib_country.country;
+    html+=msBlock('ib','country','Country',[{v:c,t1:c,t2:PERSONAS.ib_country.region}],IBF.country);
+  } else if(t==='global'){
+    const countries=Object.keys(IB_COUNTRY_OF_REGION).sort();
+    const regions=[...new Set(Object.values(IB_COUNTRY_OF_REGION))];
+    html+=msBlock('ib','region','Region',regions.map(v=>({v,t1:v})),IBF.region);
+    html+=msBlock('ib','country','Country',countries.map(v=>({v,t1:v,t2:IB_COUNTRY_OF_REGION[v]})),IBF.country);
+  } else if(t==='region'){
+    const countries=[...new Set(scopeRows.map(r=>r.country))].sort();
+    html+=msBlock('ib','country','Country',countries.map(v=>({v,t1:v,t2:PERSONAS.ib_region.region})),IBF.country);
+  }
+  /* Forecast columns remain in the grid; the Show/Hide filter has been removed. */
+  if(t==='region'||t==='global'){
+    const opts=t==='region'?[['fert','By FERT'],['country','By Country']]:[['fert','By FERT'],['country','By Country'],['region','By Region']];
+    html+=`<div class="frow"><div class="fl">Group by</div><div class="sb-chips" style="display:flex;flex-wrap:wrap;gap:5px">${opts.map(([k,l])=>`<button class="chipx${ibGroupBy===k?' on':''}" onclick="ibSetGroupBy('${k}')">${l}</button>`).join('')}</div></div>`;
+  }
+  if(t!=='country'){
+    html+=`<div class="frow"><div class="fl">Status</div><div class="sb-chips" style="display:flex;flex-wrap:wrap;gap:5px">
+      <button class="chipx${!IBF.flag.size?' on':''}" onclick="toggleFilterVal('ib','flag','__all__')">All</button>
+      <button class="chipx${IBF.flag.has('needs')?' on':''}" onclick="toggleFilterVal('ib','flag','needs')">Needs a decision</button>
+    </div></div>`;
+  }
+  html+=msBlock('ib','fert','FERT',codes.map(v=>({v,t1:v})),IBF.fert);
+  html+=msBlock('ib','vert','Vertical',verts.map(v=>({v,t1:v})),IBF.vert);
+  html+=msBlock('ib','seg','Eicher segment',segs.map(v=>({v,t1:IB_SEGNAME[v]||v})),IBF.seg);
+  html+=msBlock('ib','mpg','MPG model',mpgs.map(v=>({v,t1:v})),IBF.mpg);
+  html+=msBlock('ib','tonnage','Tonnage',tonnages.map(v=>({v,t1:v})),IBF.tonnage);
+  if(fuels.length>1)html+=msBlock('ib','fuel','Fuel',fuels.map(v=>({v,t1:v})),IBF.fuel);
+  /* Cabin remains a visible attribute but is intentionally not a filter. */
+  /* Main workbook search remains available; duplicate filter-panel search removed. */
+  host.innerHTML=html;
+  const n=ibActiveCount();
+  ['railCnt','stubCnt'].forEach(id=>{const el=document.getElementById(id); el.style.display=n?'':'none'; el.textContent=n;});
+}
+/* IBF.flag uses the value 'needs' via toggleFilterVal, which is a plain Set toggle — 'needs' is
+   the only flag value offered, so treat any non-empty size as "Needs a decision" only. */
+
+/* ── edit handlers ── */
+function ibCountryEdit(rowId,mIdx,val){
+  const r=IB_BASE.find(x=>x.i===+rowId); if(!r)return;
+  r.sub[+mIdx]=clamp0(parseInt(val)||0);
+}
+function ibRegionEdit(region,code,mIdx,val){
+  const v=clamp0(parseInt(val)||0), key=regionKey(region,code);
+  if(!IB_REGION_OVR[key])IB_REGION_OVR[key]=[null,null,null,null,null];
+  const def=regionSubmittedFromCountries(region,code,+mIdx);
+  IB_REGION_OVR[key][+mIdx]=(v===def)?null:v;
+}
+function ibGlobalEdit(code,mIdx,val){
+  const v=clamp0(parseInt(val)||0);
+  if(!IB_GLOBAL_OVR[code])IB_GLOBAL_OVR[code]=[null,null,null,null,null];
+  const def=globalSubmittedFromRegions(code,+mIdx);
+  IB_GLOBAL_OVR[code][+mIdx]=(v===def)?null:v;
+}
+function ibSetRegionReason(region,code,val){ IB_REGION_REASON[regionKey(region,code)]=val; render(); }
+function ibSetGlobalReason(code,val){ IB_GLOBAL_REASON[code]=val; render(); }
+function ibPad(n){ return '<td class="ref">–</td>'.repeat(n); }
+/* ISO-style column bands: a folded group retains its first column as an anchor. */
+const foldedIbBands=new Set();
+function ibBandScope(){return persona+'|'+ibVisibleFwdMonths().length;}
+function ibBandGroups(){const table=document.getElementById('grid');let start=0;return [...table.tHead.rows[0].cells].map((cell,i)=>{const n=Number(cell.dataset.fullSpan||cell.colSpan);const group={cell,i,start,n,label:(cell.dataset.bandLabel||cell.textContent.trim()).replace(/[⌄▾▸]\\s*$/,'')};start+=n;return group;});}
+function toggleIbBand(index){const key=ibBandScope()+'|'+index;foldedIbBands.has(key)?foldedIbBands.delete(key):foldedIbBands.add(key);render();}
+function decorateIbBands(){const table=document.getElementById('grid');if(!table||!table.tHead||!table.tHead.rows.length)return;const groups=ibBandGroups(),scope=ibBandScope(),hidden=new Set();groups.forEach(g=>{g.cell.dataset.fullSpan=g.n;g.cell.dataset.bandLabel=g.label;if(g.n<2)return;const folded=foldedIbBands.has(scope+'|'+g.i);if(folded)for(let i=g.start+1;i<g.start+g.n;i++)hidden.add(i);const button=document.createElement('button');button.className='bandbtn';button.type='button';button.textContent=g.label+' '+(folded?'▸':'▾');button.title=(folded?'Expand ':'Collapse ')+g.label;button.setAttribute('aria-expanded',String(!folded));button.onclick=()=>toggleIbBand(g.i);g.cell.replaceChildren(button);g.cell.colSpan=folded?1:g.n;});[...table.rows].slice(1).forEach(row=>{let pos=0;[...row.cells].forEach(cell=>{const span=Number(cell.dataset.fullSpan||cell.colSpan);cell.dataset.fullSpan=span;let visible=0;for(let i=pos;i<pos+span;i++)if(!hidden.has(i))visible++;cell.style.display=visible?'':'none';cell.colSpan=Math.max(1,visible);pos+=span;});});}
+const IB_COLLAPSED_COLUMNS=new Set();
+function ibColumnRange(group){
+  const tier=PERSONAS[persona].tier, n=ibVisibleFwdMonths().length;
+  if(tier==='country'){const m={market:[2,5],vehicle:[7,5],trend:[12,4],m1:[16,3],future:[19,n+1]};return m[group];}
+  const m={vehicle:[2,5],trend:[7,4],m1:[11,3],future:[14,n+1]};return m[group];
+}
+function ibApplyCollapsedColumns(){
+  document.querySelectorAll('#gHead tr:not(.bands),#gBody tr').forEach(row=>{const cells=[...row.children];cells.forEach(cell=>cell.style.display='');IB_COLLAPSED_COLUMNS.forEach(group=>{const range=ibColumnRange(group);if(!range)return;for(let i=range[0]-1;i<range[0]-1+range[1]&&i<cells.length;i++)cells[i].style.display='none';});});
+  document.querySelectorAll('.col-collapse').forEach(btn=>{const m=btn.getAttribute('onclick').match(/'([^']+)'/);btn.classList.toggle('is-collapsed',!!(m&&IB_COLLAPSED_COLUMNS.has(m[1])));});
+}
+function ibToggleColumns(group){IB_COLLAPSED_COLUMNS.has(group)?IB_COLLAPSED_COLUMNS.delete(group):IB_COLLAPSED_COLUMNS.add(group);ibApplyCollapsedColumns();}
+function ibSortTh(key,label){
+  const on=ibSortKey===key;
+  return `<button class="sortbtn" onclick="ibSetSort('${key}')">${label}<span class="ar">${on?(ibSortDir===-1?'▼':'▲'):'▼'}</span></button>`;
+}
+function ibCountryCell(r,mIdx){
+  return `<td class="${mIdx===0?'sepL':''}"><input class="cellin" type="number" min="0" data-fi="${r.i}" data-c="${mIdx}"
+    value="${r.sub[mIdx]||0}" onfocus="this.select()" oninput="ibCountryEdit(${r.i},${mIdx},this.value)"
+    onkeydown="gridKeyGeneric(event,(fi,cc)=>{render();focusCell(fi,cc);})" onblur="setTimeout(render,0)"></td>`;
+}
+function ibRegionCell(e,mIdx){
+  const cur=regionV(e.region,e.code,mIdx), def=regionSubmittedFromCountries(e.region,e.code,mIdx);
+  const ovrArr=IB_REGION_OVR[regionKey(e.region,e.code)];
+  const isOvr=ovrArr&&ovrArr[mIdx]!==null&&ovrArr[mIdx]!==undefined;
+  return `<td class="${mIdx===0?'sepL':''}"><input class="cellin${isOvr?' ovr':''}" type="number" min="0" data-fi="${e.code}" data-c="${mIdx}"
+    value="${cur}" onfocus="this.select()" oninput="ibRegionEdit('${e.region}','${e.code}',${mIdx},this.value)"
+    onkeydown="gridKeyGeneric(event,(fi,cc)=>{render();focusCell(fi,cc);})" onblur="setTimeout(render,0)">
+    ${def!==cur?`<span class="carry">was ${def}</span>`:''}</td>`;
+}
+function ibGlobalCell(e,mIdx){
+  const cur=globalV(e.code,mIdx), def=globalSubmittedFromRegions(e.code,mIdx);
+  const ovrArr=IB_GLOBAL_OVR[e.code];
+  const isOvr=ovrArr&&ovrArr[mIdx]!==null&&ovrArr[mIdx]!==undefined;
+  return `<td class="${mIdx===0?'sepL':''}"><input class="cellin${isOvr?' ovr':''}" type="number" min="0" data-fi="${e.code}" data-c="${mIdx}"
+    value="${cur}" onfocus="this.select()" oninput="ibGlobalEdit('${e.code}',${mIdx},this.value)"
+    onkeydown="gridKeyGeneric(event,(fi,cc)=>{render();focusCell(fi,cc);})" onblur="setTimeout(render,0)">
+    ${def!==cur?`<span class="carry">was ${def}</span>`:''}</td>`;
+}
+
+/* ── headers (P-08: identity / reference / entry) ── */
+function ibCountryHead(){
+  return `<tr class="bands">
+    <th class="idc b-ref">Vehicle · FERT</th>
+    <th class="b-ref bsep" colspan="5">Market attributes</th>
+    <th class="b-ref bsep" colspan="5">Vehicle attributes</th>
+    <th class="b-ref bsep" colspan="4">Trend — Offtake</th>
+    <th class="b-ref bsep" colspan="3">M1 · Jul 26 (locked)</th>
+    <th class="b-edit bsep" colspan="${ibVisibleFwdMonths().length}">M2–M6 Forecast</th>
+    <th class="b-edit">&nbsp;</th></tr>
+  <tr><th class="idc l"><button class="sortbtn l${ibSortKey==='dealer'?' on':''}" onclick="ibSetSort('dealer')">Vehicle<span class="ar">${ibSortKey==='dealer'?(ibSortDir===-1?'▼':'▲'):'▼'}</span></button><button class="sortbtn l${ibSortKey==='code'?' on':''}" onclick="ibSetSort('code')">FERT code<span class="ar">${ibSortKey==='code'?(ibSortDir===-1?'▼':'▲'):'▼'}</span></button></th>
+    <th>Dealer</th><th>Shipped to party</th><th>Destination country name</th><th>Region</th><th class="bsep">Vertical</th>
+    <th>MPG</th><th>Tonnage</th><th>Fuel</th><th>Cabin</th><th class="bsep">Eicher segment</th>
+    <th class="bsep">L3</th><th>L6</th><th>L12</th><th>LYSM</th>
+    <th class="bsep">Backlog</th><th>Current</th><th>${ibSortTh('m1','M1 Total')}</th>
+    ${ibVisibleFwdMonths().map(m=>`<th${m.idx===0?' class="bsep"':''}>${m.label}</th>`).join('')}
+    <th>${ibSortTh('tot','Total')}</th></tr>`;
+}
+function ibRegionHead(){
+  return `<tr class="bands">
+    <th class="idc b-ref">FERT</th>
+    <th class="b-ref bsep" colspan="5">Vehicle attributes</th>
+    <th class="b-ref bsep" colspan="4">Trend — Offtake</th>
+    <th class="b-ref bsep" colspan="3">M1 · Jul 26 (locked)</th>
+    <th class="b-edit bsep" colspan="${ibVisibleFwdMonths().length+1}">M2–M6 Forecast</th></tr>
+  <tr><th class="idc l">${ibSortTh('code','FERT')}</th>
+    <th>MPG</th><th>Tonnage</th><th>Fuel</th><th>Cabin</th><th class="bsep">Eicher segment</th>
+    <th class="bsep">L3</th><th>L6</th><th>L12</th><th>LYSM</th>
+    <th class="bsep">Backlog</th><th>Current</th><th>M1 Total</th>
+    ${ibVisibleFwdMonths().map(m=>`<th${m.idx===0?' class="bsep"':''}>${m.label}</th>`).join('')}<th>${ibSortTh('tot','Total')}</th></tr>`;
+}
+function ibGlobalHead(){
+  return `<tr class="bands">
+    <th class="idc b-ref">FERT</th>
+    <th class="b-ref bsep" colspan="5">Vehicle attributes</th>
+    <th class="b-ref bsep" colspan="4">Trend — Offtake</th>
+    <th class="b-ref bsep" colspan="3">M1 · Jul 26 (locked)</th>
+    <th class="b-edit bsep" colspan="${ibVisibleFwdMonths().length+1}">M2–M6 Forecast</th></tr>
+  <tr><th class="idc l">${ibSortTh('code','FERT')}</th>
+    <th>MPG</th><th>Tonnage</th><th>Fuel</th><th>Cabin</th><th class="bsep">Eicher segment</th>
+    <th class="bsep">L3</th><th>L6</th><th>L12</th><th>LYSM</th>
+    <th class="bsep">Backlog</th><th>Current</th><th>M1 Total</th>
+    ${ibVisibleFwdMonths().map(m=>`<th${m.idx===0?' class="bsep"':''}>${m.label}</th>`).join('')}<th>${ibSortTh('tot','Total')}</th></tr>`;
+}
+
+/* ── rows ── */
+function ibCountryRowHtml(r){
+  const m1=ibM1(r), grand=m1+r.sub.reduce((a,b)=>a+b,0);
+  return `<tr class="${r.isAdded?'isadd':''}">
+    <td class="idc"><div class="id-cell"><div class="id-txt">
+      <div class="id-desc" title="${r.desc}">${r.desc}</div>
+      <div class="id-meta"><span class="id-code">${r.code}</span>${r.isAdded?'<span class="addtag">ADDED</span>':''}</div></div>
+      <button class="id-btn" onclick="ibOpenDrawer('country',${r.i})" title="Line detail">ⓘ</button></div></td>
+    <td class="ref txt">${r.dealer}</td><td class="ref txt">${r.dealerName}</td><td class="ref txt">${r.country}</td><td class="ref txt">${r.region}</td><td class="ref txt bsep">${r.vert}</td>
+    <td class="ref bsep txt">${r.mpg}</td><td class="ref txt">${r.tonnage}</td><td class="ref txt">${r.fuel}</td><td class="ref txt">${r.ac==='AC'?'AC':'Non-AC'}</td><td class="ref txt bsep">${IB_SEGNAME[r.seg]||r.seg}</td>
+    <td class="ref bsep">${num(r.tol3)}</td><td class="ref">${num(r.tol6)}</td><td class="ref">${num(r.tol12)}</td><td class="ref">${num(r.toly)}</td>
+    <td class="ref bsep">${num(r.past)}</td><td class="ref">${num(r.cur)}</td><td class="ref" style="font-weight:700;color:var(--ink)">${m1}</td>
+    ${ibVisibleFwdMonths().map(m=>ibCountryCell(r,m.idx)).join('')}
+    <td class="gtot">${grand}</td></tr>`;
+}
+function ibBannerRow(tier,scopeKey,code){
+  const needsReason = tier==='region'?regionNeedsReason(scopeKey,code):globalNeedsReason(code);
+  const reason = tier==='region'?IB_REGION_REASON[regionKey(scopeKey,code)]:IB_GLOBAL_REASON[code];
+  const explain = tier==='region'?regionFlagExplain(scopeKey,code):globalFlagExplain(code);
+  let inner='';
+  if(needsReason){
+    inner=`<span class="reason-flag">${explain} — reason needed:</span>
+      <input type="text" placeholder="Why this override…" value="${reason||''}" oninput="${tier==='region'?`ibSetRegionReason('${scopeKey}','${code}',this.value)`:`ibSetGlobalReason('${code}',this.value)`}">`;
+  } else if(reason){
+    inner=`<span style="font-size:10px;color:var(--muted)">Reason: ${reason}</span>`;
+  } else return '';
+  return `<tr><td class="idc" style="padding-left:30px" colspan="99"><div class="reason-inl" style="margin-top:0">${inner}</div></td></tr>`;
+}
+function ibRegionRowHtml(e){
+  const isOpen=ibExpanded.has(e.code), exc=regionOpen(e.region,e.code);
+  const cur=regionCurrentTotal(e.region,e.code), sub=regionSubmittedTotal(e.region,e.code);
+  const m1=ibM1Ref(IB_BASE.filter(r=>r.region===e.region&&r.code===e.code));
+  const main=`<tr class="${exc?'exc':''}${e.isAdded?' isadd':''}">
+    <td class="idc"><div class="id-cell">
+      <button class="exp-tg" onclick="ibToggleExpand('${e.code}')" title="${isOpen?'Collapse':'Expand to country breakdown'}">${isOpen?'▼':'▶'}</button>
+      <div class="id-txt"><div class="id-desc" title="${e.desc}">${e.desc}</div>
+      <div class="id-meta"><span class="id-code">${e.code}</span>
+      ${e.isAdded?'<span class="addtag">ADDED</span>':''}
+      ${exc?`<button class="reason-flag" style="border:none;background:none;padding:0;cursor:pointer;font:inherit;font-size:9px;font-weight:700" onclick="ibOpenDrawer('region','${e.code}')" title="Why this needs a decision">NEEDS DECISION</button>`:''}</div></div>
+      <button class="id-btn" onclick="ibOpenDrawer('region','${e.code}')" title="Line detail">ⓘ</button></div></td>
+    <td class="ref bsep txt">${e.mpg}</td><td class="ref txt">${e.tonnage}</td><td class="ref txt">${e.fuel}</td><td class="ref txt">${e.ac==='AC'?'AC':(e.ac==='NonAC'?'Non-AC':e.ac)}</td><td class="ref txt bsep">${IB_SEGNAME[e.seg]||e.seg}</td>
+    <td class="ref bsep">${num(e.tol3)}</td><td class="ref">${num(e.tol6)}</td><td class="ref">${num(e.tol12)}</td><td class="ref">${num(e.toly)}</td>
+    <td class="ref bsep">${m1.past}</td><td class="ref">${m1.cur}</td><td class="ref" style="font-weight:700">${m1.total}</td>
+    ${ibVisibleFwdMonths().map(m=>ibRegionCell(e,m.idx)).join('')}
+    <td class="gtot">${cur}</td></tr>`;
+  const banner=ibBannerRow('region',e.region,e.code);
+  let subRows='';
+  if(isOpen){
+    const countries=[...new Set(IB_BASE.filter(r=>r.region===e.region&&r.code===e.code).map(r=>r.country))];
+    subRows=countries.map(c=>{
+      const vals=ibVisibleFwdMonths().map(m=>countrySubmitted(c,e.code,m.idx));
+      const tot=sumMonths(i=>countrySubmitted(c,e.code,i));
+      const dealerRows=IB_BASE.filter(r=>r.region===e.region&&r.country===c&&r.code===e.code).map(d=>{
+        const dealerVals=ibVisibleFwdMonths().map(m=>d.sub[m.idx]||0), dealerTot=d.sub.reduce((a,b)=>a+b,0);
+        return `<tr class="dealer-row"><td class="idc" style="padding-left:52px"><div style="font-size:10.5px;font-weight:600">↳ ${d.dealer} · ${d.dealerName}</div><div style="font-size:9.5px;color:var(--muted)">${d.vert} · ${d.code} · read-only reference</div></td>
+          ${ibPad(12)}${dealerVals.map((v,i)=>`<td class="${i===0?'sepL':''}" style="color:var(--muted)">${v}</td>`).join('')}<td class="tot" style="color:var(--ink-2)">${dealerTot}</td><td class="gtot" style="background:var(--surface-2)"></td></tr>`;
+      }).join('');
+      return `<tr class="dealer-row"><td class="idc" style="padding-left:30px"><div style="font-size:11.5px;font-weight:600">↳ ${c}</div>
+        <div style="font-size:10px;color:var(--muted)">as submitted, read-only</div></td>
+        ${ibPad(12)}
+        ${vals.map((v,i)=>`<td class="${i===0?'sepL':''}" style="color:var(--muted)">${v}</td>`).join('')}
+        <td class="tot" style="color:var(--ink-2)">${tot}</td>
+        ${ibPad(ibVisibleFwdMonths().length)}
+        <td class="gtot" style="background:var(--surface-2)"></td></tr>`+dealerRows;
+    }).join('');
+  }
+  return main+banner+subRows;
+}
+function ibGlobalRowHtml(e){
+  const isOpen=ibExpanded.has(e.code), exc=globalOpen(e.code);
+  const cur=globalCurrentTotal(e.code), sub=globalSubmittedTotal(e.code);
+  const m1=ibM1Ref(IB_BASE.filter(r=>r.code===e.code));
+  const main=`<tr class="${exc?'exc':''}${e.isAdded?' isadd':''}">
+    <td class="idc"><div class="id-cell">
+      <button class="exp-tg" onclick="ibToggleExpand('${e.code}')" title="${isOpen?'Collapse':'Expand to region breakdown'}">${isOpen?'▼':'▶'}</button>
+      <div class="id-txt"><div class="id-desc" title="${e.desc}">${e.desc}</div>
+      <div class="id-meta"><span class="id-code">${e.code}</span>
+      ${e.isAdded?'<span class="addtag">ADDED</span>':''}
+      ${exc?`<button class="reason-flag" style="border:none;background:none;padding:0;cursor:pointer;font:inherit;font-size:9px;font-weight:700" onclick="ibOpenDrawer('global','${e.code}')" title="Why this needs a decision">NEEDS DECISION</button>`:''}</div></div>
+      <button class="id-btn" onclick="ibOpenDrawer('global','${e.code}')" title="Line detail">ⓘ</button></div></td>
+    <td class="ref bsep txt">${e.mpg}</td><td class="ref txt">${e.tonnage}</td><td class="ref txt">${e.fuel}</td><td class="ref txt">${e.ac==='AC'?'AC':(e.ac==='NonAC'?'Non-AC':e.ac)}</td><td class="ref txt bsep">${IB_SEGNAME[e.seg]||e.seg}</td>
+    <td class="ref bsep">${num(e.tol3)}</td><td class="ref">${num(e.tol6)}</td><td class="ref">${num(e.tol12)}</td><td class="ref">${num(e.toly)}</td>
+    <td class="ref bsep">${m1.past}</td><td class="ref">${m1.cur}</td><td class="ref" style="font-weight:700">${m1.total}</td>
+    ${ibVisibleFwdMonths().map(m=>ibGlobalCell(e,m.idx)).join('')}
+    <td class="gtot">${cur}</td></tr>`;
+  const banner=ibBannerRow('global',null,e.code);
+  let subRows='';
+  if(isOpen){
+    const regions=[...new Set(IB_BASE.filter(r=>r.code===e.code).map(r=>r.region))];
+    subRows=regions.map(rg=>{
+      const vals=ibVisibleFwdMonths().map(m=>regionV(rg,e.code,m.idx));
+      const tot=sumMonths(i=>regionV(rg,e.code,i));
+      const countryRows=[...new Set(IB_BASE.filter(r=>r.region===rg&&r.code===e.code).map(r=>r.country))].map(c=>{
+        const countryVals=ibVisibleFwdMonths().map(m=>countrySubmitted(c,e.code,m.idx)), countryTot=sumMonths(i=>countrySubmitted(c,e.code,i));
+        const dealerRows=IB_BASE.filter(r=>r.region===rg&&r.country===c&&r.code===e.code).map(d=>{
+          const dealerVals=ibVisibleFwdMonths().map(m=>d.sub[m.idx]||0), dealerTot=d.sub.reduce((a,b)=>a+b,0);
+          return `<tr class="dealer-row"><td class="idc" style="padding-left:72px"><div style="font-size:10.5px;font-weight:600">↳ ${d.dealer} · ${d.dealerName}</div><div style="font-size:9.5px;color:var(--muted)">${d.vert} · ${d.code} · read-only reference</div></td>${ibPad(12)}${dealerVals.map((v,i)=>`<td class="${i===0?'sepL':''}" style="color:var(--muted)">${v}</td>`).join('')}<td class="tot" style="color:var(--ink-2)">${dealerTot}</td><td class="gtot" style="background:var(--surface-2)"></td></tr>`;
+        }).join('');
+        return `<tr class="dealer-row"><td class="idc" style="padding-left:52px"><div style="font-size:10.5px;font-weight:600">↳ ${c}</div><div style="font-size:9.5px;color:var(--muted)">country submission · read-only</div></td>${ibPad(12)}${countryVals.map((v,i)=>`<td class="${i===0?'sepL':''}" style="color:var(--muted)">${v}</td>`).join('')}<td class="tot" style="color:var(--ink-2)">${countryTot}</td><td class="gtot" style="background:var(--surface-2)"></td></tr>`+dealerRows;
+      }).join('');
+      return `<tr class="dealer-row"><td class="idc" style="padding-left:30px"><div style="font-size:11.5px;font-weight:600">↳ ${rg}</div>
+        <div style="font-size:10px;color:var(--muted)">region's current figure, read-only${regionIsOverridden(rg,e.code)?' · includes a Regional Head override':''}</div></td>
+        ${ibPad(12)}
+        ${vals.map((v,i)=>`<td class="${i===0?'sepL':''}" style="color:var(--muted)">${v}</td>`).join('')}
+        <td class="tot" style="color:var(--ink-2)">${tot}</td>
+        ${ibPad(ibVisibleFwdMonths().length)}
+        <td class="gtot" style="background:var(--surface-2)"></td></tr>`+countryRows;
+    }).join('');
+  }
+  return main+banner+subRows;
+}
+/* A filter narrows the table; Group by reorganises the visible lines.  Keep this separate so the
+   two controls do not masquerade as each other. */
+function ibGroupedRows(entries,tier,rowFn){
+  if(ibGroupBy==='fert')return entries.map(rowFn).join('');
+  let groups=[];
+  if(ibGroupBy==='country'){
+    const scope=tier==='region'?ibRowsForRegion(PERSONAS.ib_region.region):IB_BASE;
+    groups=[...new Set(scope.map(r=>r.country))].filter(c=>!IBF.country.size||IBF.country.has(c));
+    return groups.map(country=>{
+      const list=entries.filter(e=>IB_BASE.some(r=>r.code===e.code&&r.country===country&&(tier!=='region'||r.region===PERSONAS.ib_region.region)));
+      return list.length?`<tr class="dealer-row"><td class="idc" colspan="99" style="font-weight:700;color:var(--ink);background:var(--surface-2);padding:8px 14px">Country: ${country} <span style="font-size:10px;font-weight:500;color:var(--muted)">· ${list.length} FERT${list.length===1?'':'s'}</span></td></tr>${list.map(rowFn).join('')}`:'';
+    }).join('');
+  }
+  groups=[...new Set(IB_BASE.map(r=>r.region))].filter(region=>!IBF.region.size||IBF.region.has(region));
+  return groups.map(region=>{
+    const list=entries.filter(e=>IB_BASE.some(r=>r.code===e.code&&r.region===region));
+    return list.length?`<tr class="dealer-row"><td class="idc" colspan="99" style="font-weight:700;color:var(--ink);background:var(--surface-2);padding:8px 14px">Region: ${region} <span style="font-size:10px;font-weight:500;color:var(--muted)">· ${list.length} FERT${list.length===1?'':'s'}</span></td></tr>${list.map(rowFn).join('')}`:'';
+  }).join('');
+}
+function ibRenderGrid(){
+  const t=PERSONAS[persona].tier;
+  const head=document.getElementById('gHead'), body=document.getElementById('gBody');
+  let rowsHtml='', headHtml='', count=0, totalCount=0;
+  if(t==='country'){
+    const rows=ibCountryRows();
+    headHtml=ibCountryHead(); rowsHtml=rows.map(ibCountryRowHtml).join('');
+    count=rows.length; totalCount=ibRowsForCountry(PERSONAS.ib_country.country).length;
+  } else if(t==='region'){
+    const entries=ibRegionEntries();
+    headHtml=ibRegionHead(); rowsHtml=ibGroupedRows(entries,'region',ibRegionRowHtml);
+    count=entries.length; totalCount=regionCatalogue(PERSONAS.ib_region.region).length;
+  } else {
+    const entries=ibGlobalEntries();
+    headHtml=ibGlobalHead(); rowsHtml=ibGroupedRows(entries,'global',ibGlobalRowHtml);
+    count=entries.length; totalCount=globalCatalogue().length;
+  }
+  head.innerHTML=headHtml;
+  body.innerHTML=rowsHtml;
+  document.getElementById('gEmpty').style.display=count?'none':'';
+  document.getElementById('grid').style.display=count?'':'none';
+  document.getElementById('resCount').innerHTML=`<b>${count}</b> of ${totalCount} lines`;
+  ibRenderCommit();
+  decorateIbBands();
+}
+function ibRenderTokens(){
+  const t=[];
+  const add=(lbl,scope,key,val)=>t.push(`<span class="ftok">${lbl}<button onclick="toggleFilterVal('${scope}','${key}','${val}')">×</button></span>`);
+  ['fert','vert','seg','mpg','tonnage','fuel','ac','country','region'].forEach(k=>{ IBF[k].forEach(v=>add(v,'ib',k,v)); });
+  if(IBF.flag.size)add('Needs a decision','ib','flag','needs');
+  if(ibQ)t.push(`<span class="ftok">"${ibQ}"<button onclick="document.getElementById('qBox').value='';ibSetQ('')">×</button></span>`);
+  if(ibSortKey)t.push(`<span class="ftok srt">Sorted: ${ibSortKey} ${ibSortDir===-1?'high→low':'low→high'}<button onclick="ibSetSort('${ibSortKey}');ibSetSort('${ibSortKey}')">×</button></span>`);
+  document.getElementById('aft').innerHTML=t.length?`<span class="sep"></span>`+t.join('')+`<button class="btn btn-quiet btn-sm" onclick="ibClearAll()">Clear all</button>`:'';
+}
+function ibRenderStrip(){
+  const el=document.getElementById('wbStrip');
+  el.innerHTML=`<div class="srch"><span class="ic">⌕</span><input id="qBox" type="text" placeholder="Search FERT, description or dealer" value="${ibQ}" oninput="ibSetQ(this.value)"></div>
+    <div class="aft" id="aft"></div>
+    <div class="right"><button class="btn btn-ghost btn-sm" onclick="openImport()">Import CSV</button><button class="btn btn-ghost btn-sm" onclick="exportWorkbook()">Export CSV</button><button class="btn btn-add btn-sm" onclick="openAddFert()">+ Add FERT</button><span class="sep"></span><span class="rescount" id="resCount"></span></div>`;
+  ibRenderTokens();
+}
+function ibRenderCommit(){
+  const t=PERSONAS[persona].tier;
+  const el=document.getElementById('commit');
+  let lines,totEntry,excCount;
+  const filtered=ibActiveCount()>0||!!ibQ;
+  if(t==='country'){
+    const view=filtered?ibCountryRows():ibRowsForCountry(PERSONAS.ib_country.country);
+    lines=view.length; totEntry=view.reduce((a,r)=>a+r.sub.reduce((x,y)=>x+y,0),0); excCount=0;
+  } else if(t==='region'){
+    const view=filtered?ibRegionEntries():regionCatalogue(PERSONAS.ib_region.region);
+    lines=view.length; totEntry=view.reduce((a,e)=>a+regionCurrentTotal(e.region,e.code),0);
+    excCount=view.filter(e=>regionOpen(e.region,e.code)).length;
+  } else {
+    const view=filtered?ibGlobalEntries():globalCatalogue();
+    lines=view.length; totEntry=view.reduce((a,e)=>a+globalCurrentTotal(e.code),0);
+    excCount=view.filter(e=>globalOpen(e.code)).length;
+  }
+  el.innerHTML=`<div class="stat"><span class="v">${lines}</span><span class="k">lines</span></div>
+    <div class="stat"><span class="v">${totEntry}</span><span class="k">${filtered?'filtered ':' '}M2–M6 total</span></div>
+    ${excCount?`<div class="div"></div><div class="stat"><span class="v" style="color:var(--warn)">${excCount}</span><span class="k">needing a decision</span></div>`:''}
+    <div class="right">${filtered?`<span class="saved" style="color:var(--warn)">Filtered-view total · submission still includes the full scope</span>`:`<span class="saved">Saved just now</span>`}
+      <button class="btn btn-primary btn-sm" onclick="saveWorkbench()">Save</button></div>`;
+}
+
+/* ── drawer (P-10, with the plain-language deviation addition) ── */
+function ibOpenDrawer(tier,key){
+  let html;
+  if(tier==='country'){
+    const r=IB_BASE.find(x=>x.i===+key); if(!r)return;
+    const m1=ibM1(r);
+    html=`<div class="dr-head"><div><h3>${r.desc}</h3><div class="cd">${r.code} · ${r.dealerName}</div></div>
+      <button class="dr-close" onclick="closeDrawer()" aria-label="Close">×</button></div>
+    <div class="dr-body">
+      <div class="dr-sec"><h4>Vehicle</h4>
+        <div class="dr-i"><span class="k">Eicher segment</span><span class="v"><span class="seg-dot sg-${r.seg}">${IB_SEGNAME[r.seg]||r.seg}</span></span></div>
+        <div class="dr-i"><span class="k">MPG model</span><span class="v">${r.mpg}</span></div>
+        <div class="dr-i"><span class="k">Tonnage</span><span class="v">${r.tonnage}</span></div>
+        <div class="dr-i"><span class="k">Fuel · cabin</span><span class="v">${r.fuel} · ${r.ac==='AC'?'AC':'Non-AC'}</span></div></div>
+      <div class="dr-sec"><h4>M1 — Jul 26 (locked)</h4>
+        <div class="dr-i"><span class="k">Past (backlog)</span><span class="v">${r.past}</span></div>
+        <div class="dr-i"><span class="k">Current month</span><span class="v">${r.cur}</span></div>
+        <div class="dr-i"><span class="k">M1 total</span><span class="v" style="font-weight:700">${m1}</span></div>
+        <div class="dr-src">◷ Firm orders — never editable, at any tier.</div></div>
+      <div class="dr-sec"><h4>Your submission — M2–M6</h4>
+        ${IB_FWD_MONTHS.map(([k,l],i)=>`<div class="dr-i"><span class="k">${l}</span><span class="v">${r.sub[i]}</span></div>`).join('')}
+        <div class="dr-src">◷ Becomes fixed, read-only reference to your Regional Head once entered.</div></div>
+      <div class="dr-sec"><h4>Reference — trend (offtake)</h4>
+        <div class="dr-i"><span class="k">L3</span><span class="v">${num(r.tol3)}</span></div>
+        <div class="dr-i"><span class="k">L6</span><span class="v">${num(r.tol6)}</span></div>
+        <div class="dr-i"><span class="k">L12</span><span class="v">${num(r.tol12)}</span></div>
+        <div class="dr-i"><span class="k">LYSM</span><span class="v">${num(r.toly)}</span></div></div>
+    </div>`;
+  } else if(tier==='region'){
+    const e=regionCatalogue(PERSONAS.ib_region.region).find(x=>x.code===key); if(!e)return;
+    const exc=regionOpen(e.region,e.code);
+    html=`<div class="dr-head"><div><h3>${e.desc}</h3><div class="cd">${e.code}</div></div>
+      <button class="dr-close" onclick="closeDrawer()" aria-label="Close">×</button></div>
+    <div class="dr-body">
+      <div class="dr-sec"><h4>Vehicle</h4>
+        <div class="dr-i"><span class="k">Eicher segment</span><span class="v"><span class="seg-dot sg-${e.seg}">${IB_SEGNAME[e.seg]||e.seg}</span></span></div>
+        <div class="dr-i"><span class="k">MPG model</span><span class="v">${e.mpg}</span></div>
+        <div class="dr-i"><span class="k">Tonnage</span><span class="v">${e.tonnage}</span></div>
+        <div class="dr-i"><span class="k">Fuel · cabin</span><span class="v">${e.fuel} · ${e.ac==='AC'?'AC':(e.ac==='NonAC'?'Non-AC':e.ac)}</span></div></div>
+      <div class="dr-sec"><h4>Regional consolidation — this cycle</h4>
+        <div class="dr-i"><span class="k">Total M2–M6 (region)</span><span class="v">${regionCurrentTotal(e.region,e.code)}${regionIsOverridden(e.region,e.code)?' <span style="color:var(--warn);font-size:10px">overridden</span>':''}</span></div>
+        ${exc?`<div class="dr-i" style="display:block"><span class="k">Why this needs a decision</span><div class="v" style="font-weight:400;color:var(--warn);text-align:left;margin-top:3px">${regionFlagExplain(e.region,e.code)}</div></div>`:''}
+        ${IB_REGION_REASON[regionKey(e.region,e.code)]?`<div class="dr-i"><span class="k">Reason</span><span class="v" style="font-weight:400">${IB_REGION_REASON[regionKey(e.region,e.code)]}</span></div>`:''}
+        <div class="dr-src">◷ You moderate this one consolidated number per FERT for the whole region, not each country's line.</div></div>
+      <div class="dr-sec"><h4>By country — as submitted, read-only</h4>
+        ${[...new Set(IB_BASE.filter(r=>r.region===e.region&&r.code===e.code).map(r=>r.country))].map(c=>
+          `<div class="dr-i"><span class="k">${c}</span><span class="v">${IB_FWD_MONTHS.reduce((a,_,i)=>a+countrySubmitted(c,e.code,i),0)}</span></div>`).join('')}
+        <div class="dr-src">◷ Country Head submissions · fixed once entered.</div></div>
+      <div class="dr-sec"><h4>Reference — trend (offtake)</h4>
+        <div class="dr-i"><span class="k">L3</span><span class="v">${num(e.tol3)}</span></div>
+        <div class="dr-i"><span class="k">L6</span><span class="v">${num(e.tol6)}</span></div>
+        <div class="dr-i"><span class="k">L12</span><span class="v">${num(e.tol12)}</span></div>
+        <div class="dr-i"><span class="k">LYSM</span><span class="v">${num(e.toly)}</span></div></div>
+    </div>`;
+  } else {
+    const e=globalCatalogue().find(x=>x.code===key); if(!e)return;
+    const exc=globalOpen(e.code);
+    html=`<div class="dr-head"><div><h3>${e.desc}</h3><div class="cd">${e.code}</div></div>
+      <button class="dr-close" onclick="closeDrawer()" aria-label="Close">×</button></div>
+    <div class="dr-body">
+      <div class="dr-sec"><h4>Vehicle</h4>
+        <div class="dr-i"><span class="k">Eicher segment</span><span class="v"><span class="seg-dot sg-${e.seg}">${IB_SEGNAME[e.seg]||e.seg}</span></span></div>
+        <div class="dr-i"><span class="k">MPG model</span><span class="v">${e.mpg}</span></div>
+        <div class="dr-i"><span class="k">Tonnage</span><span class="v">${e.tonnage}</span></div>
+        <div class="dr-i"><span class="k">Fuel · cabin</span><span class="v">${e.fuel} · ${e.ac==='AC'?'AC':(e.ac==='NonAC'?'Non-AC':e.ac)}</span></div></div>
+      <div class="dr-sec"><h4>Global consolidation — this cycle</h4>
+        <div class="dr-i"><span class="k">Total M2–M6 (global)</span><span class="v">${globalCurrentTotal(e.code)}${globalIsOverridden(e.code)?' <span style="color:var(--warn);font-size:10px">overridden</span>':''}</span></div>
+        ${exc?`<div class="dr-i" style="display:block"><span class="k">Why this needs a decision</span><div class="v" style="font-weight:400;color:var(--warn);text-align:left;margin-top:3px">${globalFlagExplain(e.code)}</div></div>`:''}
+        ${IB_GLOBAL_REASON[e.code]?`<div class="dr-i"><span class="k">Reason</span><span class="v" style="font-weight:400">${IB_GLOBAL_REASON[e.code]}</span></div>`:''}
+        <div class="dr-src">◷ You moderate this one consolidated number per FERT globally, not each region's line.</div></div>
+      <div class="dr-sec"><h4>By region — current figure, read-only</h4>
+        ${[...new Set(IB_BASE.filter(r=>r.code===e.code).map(r=>r.region))].map(rg=>
+          `<div class="dr-i"><span class="k">${rg}</span><span class="v">${regionCurrentTotal(rg,e.code)}</span></div>`).join('')}
+        <div class="dr-src">◷ Each region's own current total, whether or not its Regional Head has overridden it.</div></div>
+      <div class="dr-sec"><h4>Reference — trend (offtake)</h4>
+        <div class="dr-i"><span class="k">L3</span><span class="v">${num(e.tol3)}</span></div>
+        <div class="dr-i"><span class="k">L6</span><span class="v">${num(e.tol6)}</span></div>
+        <div class="dr-i"><span class="k">L12</span><span class="v">${num(e.tol12)}</span></div>
+        <div class="dr-i"><span class="k">LYSM</span><span class="v">${num(e.toly)}</span></div></div>
+    </div>`;
+  }
+  document.getElementById('drawer').innerHTML=html;
+  document.getElementById('drawer').classList.add('on');
+  document.getElementById('scrim').classList.add('on');
+}
+
+/* ── review & submit (P-13) ── */
+let ibSubmitted={ib_country:false,ib_region:false,ib_global:false};
+function ibOpenReview(){
+  const t=PERSONAS[persona].tier;
+  const filtered=ibActiveCount()>0||!!ibQ;
+  let lines,totEntry,excCount,scopeLabel,recv;
+  if(t==='country'){
+    const all=ibRowsForCountry(PERSONAS.ib_country.country);
+    lines=all.length; totEntry=all.reduce((a,r)=>a+r.sub.reduce((x,y)=>x+y,0),0); excCount=0;
+    scopeLabel=PERSONAS.ib_country.country; recv='R. Sharma, Regional Head South Asia';
+  } else if(t==='region'){
+    const all=regionCatalogue(PERSONAS.ib_region.region);
+    lines=all.length; totEntry=all.reduce((a,e)=>a+regionCurrentTotal(e.region,e.code),0);
+    excCount=all.filter(e=>regionOpen(e.region,e.code)).length;
+    scopeLabel=PERSONAS.ib_region.region+' region'; recv='M. Iyer, Global Head';
+  } else {
+    const all=globalCatalogue();
+    lines=all.length; totEntry=all.reduce((a,e)=>a+globalCurrentTotal(e.code),0);
+    excCount=all.filter(e=>globalOpen(e.code)).length;
+    scopeLabel='all countries'; recv='ISO / Central Planning';
+  }
+  document.getElementById('revSub').textContent=`S&OP-1A · July 2026 · IB ${IB_ROLE_LABEL[persona]} · ${scopeLabel}`;
+  document.getElementById('reviewBody').innerHTML=`
+    ${filtered?`<div class="notice n-warn"><span>⚠</span><div><b>You have filters applied.</b> Submitting sends the <b>full</b> scope — all ${lines} lines — not just what's on screen.</div></div>`:''}
+    ${excCount?`<div class="notice n-warn"><span>⚠</span><div><b>${excCount} line${excCount>1?'s':''} still need${excCount===1?'s':''} a decision</b> — give a reason for the override before you submit.</div></div>`:''}
+    <div>
+      <div class="mrow"><span class="k">Lines</span><span class="v">${lines}</span></div>
+      <div class="mrow"><span class="k">M2–M6 total</span><span class="v">${totEntry}</span></div>
+    </div>
+    <div class="notice n-acc"><span>→</span><div>Goes to <b>${recv}</b>. You can reopen and resubmit until the cut-off.</div></div>`;
+  document.getElementById('revSubmitBtn').disabled=excCount>0;
+  document.getElementById('revSubmitBtn').setAttribute('onclick','ibDoSubmit()');
+  document.getElementById('review').classList.add('on');
+}
+function ibDoSubmit(){ ibSubmitted[persona]=true; closeM('review'); render(); toast('IB '+IB_ROLE_LABEL[persona]+' submission sent'); }
+function ibReopen(){ ibSubmitted[persona]=false; render(); toast('Reopened'); }
+
+/* ── Add FERT (P-11) — IB's shared-visibility persistence rule carried over unchanged ── */
+function ibAddableCountries(){
+  const t=PERSONAS[persona].tier;
+  if(t==='country')return [PERSONAS.ib_country.country];
+  if(t==='region')return Object.keys(IB_COUNTRY_OF_REGION).filter(c=>IB_COUNTRY_OF_REGION[c]===PERSONAS.ib_region.region);
+  return Object.keys(IB_COUNTRY_OF_REGION);
+}
+function ibDealersFor(country){
+  const seen=new Map();
+  IB_BASE.filter(r=>r.country===country).forEach(r=>{ if(!seen.has(r.dealer))seen.set(r.dealer,r.dealerName); });
+  if(!seen.size)seen.set('NEW-'+country.slice(0,3).toUpperCase(),'(new dealer — to be assigned)');
+  return [...seen.entries()];
+}
+function openAddFert(){
+  const csel=document.getElementById('addFertCountry');
+  csel.innerHTML=ibAddableCountries().map(c=>`<option value="${c}">${c}</option>`).join('');
+  csel.onchange=refreshAddFertDealers;
+  refreshAddFertDealers();
+  renderModalList('');
+  document.getElementById('addFertM').classList.add('on');
+}
+function refreshAddFertDealers(){
+  const c=document.getElementById('addFertCountry').value;
+  document.getElementById('addFertDealer').innerHTML=ibDealersFor(c).map(([code,name])=>`<option value="${code}">${code} — ${name}</option>`).join('');
+}
+function renderModalList(q){
+  const country=document.getElementById('addFertCountry')?.value;
+  const existing=new Set(IB_BASE.filter(r=>r.country===country).map(r=>r.code));
+  const items=IB_ADDABLE.filter(f=>!q||f.code.toLowerCase().includes(q)||f.desc.toLowerCase().includes(q));
+  document.getElementById('modalList').innerHTML=items.length?items.map(f=>{
+    const dup=existing.has(f.code);
+    return `<label class="modal-item" style="${dup?'opacity:.45':''}"><input type="checkbox" value="${f.code}" ${dup?'disabled':''}>
+      <div><div class="id-code">${f.code}</div><div style="font-size:11px">${f.desc}</div></div>
+      <span style="margin-left:auto;display:flex;gap:6px;align-items:center">${dup?'<span style="font-size:9px;color:var(--muted)">already in list</span>':''}<span class="seg-dot sg-${f.seg}">${IB_SEGNAME[f.seg]||f.seg}</span></span></label>`;
+  }).join(''):'<div style="padding:20px;text-align:center;color:var(--muted);font-size:11px">No matching FERT in the catalogue.</div>';
+}
+function filterModalList(q){renderModalList(q.toLowerCase());}
+function confirmAddFert(){
+  const checked=[...document.querySelectorAll('#modalList input:checked')];
+  if(!checked.length){ closeM('addFertM'); return; }
+  const country=document.getElementById('addFertCountry').value;
+  const dealerCode=document.getElementById('addFertDealer').value;
+  const dealerName=(ibDealersFor(country).find(([c])=>c===dealerCode)||[,''])[1];
+  const region=IB_COUNTRY_OF_REGION[country]||PERSONAS.ib_region.region;
+  checked.forEach(ch=>{
+    const f=IB_ADDABLE.find(x=>x.code===ch.value); if(!f)return;
+    IB_BASE.push({i:ibUid++,dealer:dealerCode,dealerName,country,region,code:f.code,desc:f.desc,vert:f.vert,mpg:f.mpg,
+      tonnage:f.tonnage,fuel:f.fuel,ac:f.ac,seg:f.seg,tol3:0,tol6:0,tol12:0,toly:0,past:0,cur:0,sub:[0,0,0,0,0],
+      isAdded:true,addedBy:persona,addedByLabel:IB_ROLE_LABEL[persona]});
+  });
+  closeM('addFertM');
+  buildRail(); render();
+  toast(`Added ${checked.length} FERT(s) for ${country}. Visible to the whole IB chain — not a one-way hand-up.`);
+}
+function ibReviewLine(code){
+  IBF.fert=new Set([code]);
+  go('wb');
+  buildRail();
+  ibExpanded.add(code);
+  render();
+}
+
+/* ── IB Home — Country Head (submitter-shaped, P-04: entry progress, no exceptions to
+   moderate at this tier — the Country Head IS the source of the numbers) ── */
+function ibRollupHtml(rows,groupLabel){
+  const key=groupLabel==='Shipped to party'?'dealerName':(groupLabel==='Region'?'region':'country');
+  const groups=[...new Set(rows.map(r=>r[key]))].sort();
+  const totals=r=>({backlog:r.reduce((a,x)=>a+(x.past||0),0),current:r.reduce((a,x)=>a+(x.cur||0),0),forecast:r.reduce((a,x)=>a+x.sub.reduce((b,v)=>b+(v||0),0),0)});
+  const all=totals(rows);
+  return `<div class="zone"><span class="zl">Rollup</span><span class="zr">Totals and subtotals for the current scope</span></div><div class="accwrap"><table class="sumtbl"><thead><tr><th>${groupLabel}</th><th>FERT lines</th><th>Backlog</th><th>Current</th><th>M2–M6 total</th><th>Grand total</th></tr></thead><tbody>${groups.map(g=>{const list=rows.filter(r=>r[key]===g),t=totals(list);return `<tr><td>${g}</td><td>${list.length}</td><td>${t.backlog}</td><td>${t.current}</td><td>${t.forecast}</td><td>${t.backlog+t.current+t.forecast}</td></tr>`;}).join('')}<tr class="tot"><td>Total</td><td>${rows.length}</td><td>${all.backlog}</td><td>${all.current}</td><td>${all.forecast}</td><td>${all.backlog+all.current+all.forecast}</td></tr></tbody></table></div>`;
+}
+function ibRenderHomeCountry(host){
+  const cfg=PERSONAS.ib_country;
+  const rows=ibRowsForCountry(cfg.country);
+  const totUnits=rows.reduce((a,r)=>a+r.sub.reduce((x,y)=>x+y,0),0);
+  const totM1=rows.reduce((a,r)=>a+ibM1(r),0);
+  const dealers=[...new Set(rows.map(r=>r.dealerName))];
+  const dealerRows=dealers.map(dn=>{
+    const fs=rows.filter(r=>r.dealerName===dn);
+    const q=fs.reduce((a,r)=>a+r.sub.reduce((x,y)=>x+y,0),0);
+    return `<div class="kv-row"><span class="nm">${dn}</span><span class="pill p-ok">${fs.length} line${fs.length===1?'':'s'}</span><span class="vl">${q} units, M2–M6</span></div>`;
+  }).join('');
+  const submitted=ibSubmitted.ib_country;
+  host.innerHTML=`
+    ${protoStripHtml()}
+    <div class="home-head">
+      <div><h1>Good day, ${cfg.name}</h1>
+        <div class="sub">July 2026 · International Business · ${cfg.country} · ${rows.length} dealer-FERT line${rows.length===1?'':'s'} across ${dealers.length} dealer${dealers.length===1?'':'s'}</div></div>
+      <div class="right"><button class="btn btn-primary" onclick="go('wb')">Continue to IB Indent Workbook →</button></div>
+    </div>
+    <div class="zone"><span class="zl">Indent entry progress</span><span class="zr"></span>
+      <span class="zn">${submitted?'Submitted':totUnits+' units entered, M2–M6 · closes 15 Jul'}</span></div>
+    <div class="cards">
+      <div class="card lead">
+        <h3>${cfg.country} indent — Aug–Dec 2026</h3>
+        <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;">
+          <div><div class="big">${totUnits}</div><div class="cap">units entered, M2–M6</div></div>
+          <div><div class="big sm">${totM1}</div><div class="cap">M1 (past + current), locked orders</div></div>
+          <div style="margin-left:auto"><span class="pill ${submitted?'p-ok':'p-warn'}">${submitted?'Submitted':'In progress'}</span></div>
+        </div>
+        <div class="cap">Goes to <b>R. Sharma, Regional Head South Asia</b> at <b>15 Jul, 23:59 IST</b>. They set one consolidated number per FERT for the whole region — your figures stay visible underneath as fixed reference.</div>
+        <div class="acts">
+          <button class="btn btn-primary btn-sm" onclick="go('wb')">Open indent workbook</button>
+          <button class="btn btn-ghost btn-sm" onclick="saveWorkbench()">Save</button>
+          ${submitted?`<button class="btn btn-ghost btn-sm" onclick="ibReopen()">Reopen</button>`:''}
+        </div>
+      </div>
+      <div class="card"><h3>Your dealers</h3>${dealerRows}</div>
+      <div class="card">
+        <h3>Add a FERT</h3>
+        <div class="cap">Not selling something that should be on this list? Add it here — it becomes visible to the whole IB chain (Country, Regional and Global Head alike), not a one-way hand-up.</div>
+        <div class="acts"><button class="btn btn-ghost btn-sm" onclick="openAddFert()">+ Add FERT</button></div>
+      </div>
+    </div>
+    <div class="zone"><span class="zl">Summary</span><span class="zr"></span></div>
+    <div class="cards">
+      <div class="card">
+        <h3>M1 vs M2–M6</h3>
+        <div style="display:flex;align-items:flex-end;gap:16px;">
+          <div><div class="big sm">${totM1}</div><div class="cap">M1, locked orders (past + current)</div></div>
+          <div><div class="big sm">${totUnits}</div><div class="cap">M2–M6, your forward entry</div></div>
+        </div>
+        <div class="cap" style="color:var(--muted)">M1 is never moderated at any tier — it is firm order data, not a plan.</div>
+      </div>
+    </div>
+    ${ibRollupHtml(rows,'Shipped to party')}`;
+}
+
+/* ── IB Home — Regional / Global Head (moderator-shaped, P-04: Section 1 is a triage list of
+   lines needing a decision, not entry progress — these tiers set ONE number per FERT for the
+   group they oversee, they don't enter dealer-level detail themselves).
+   P-21: the attention panel below offers two group-bys on the SAME exception set — By FERT
+   (each flagged line, expandable to the submitted/current figure behind it) and by the tier's
+   own group unit (By country for the Regional Head, By region for the Global Head). ── */
+let ibAttnOpen=false, ibAttnView='fert', ibAttnExpanded=new Set(), ibAttnExpandedGroup=new Set();
+function ibToggleAttn(){
+  ibAttnOpen=!ibAttnOpen;
+  const btn=document.getElementById('ibAttnBtn'); if(btn)btn.textContent=(ibAttnOpen?'▾':'▸')+' Review flagged lines';
+  const panel=document.getElementById('ibAttnPanel'); if(panel)panel.style.display=ibAttnOpen?'':'none';
+  if(ibAttnOpen)ibRenderHome();
+}
+function ibSetAttnView(v){ ibAttnView=v; ibAttnExpanded=new Set(); ibAttnExpandedGroup=new Set(); ibRenderHome(); }
+function ibToggleAttnLine(code){ ibAttnExpanded.has(code)?ibAttnExpanded.delete(code):ibAttnExpanded.add(code); ibRenderHome(); }
+function ibToggleAttnGroup(g){ ibAttnExpandedGroup.has(g)?ibAttnExpandedGroup.delete(g):ibAttnExpandedGroup.add(g); ibRenderHome(); }
+
+function ibAttnGroupsForTier(tier,cfg){
+  if(tier==='region')return [...new Set(Object.keys(IB_COUNTRY_OF_REGION).filter(c=>IB_COUNTRY_OF_REGION[c]===cfg.region))];
+  return [...new Set(IB_BASE.map(r=>r.region))];
+}
+function ibAttnLineRow(e,tier){
+  const explain=tier==='region'?regionFlagExplain(e.region,e.code):globalFlagExplain(e.code);
+  const open=ibAttnExpanded.has(e.code);
+  let rowsHtml='';
+  if(open){
+    if(tier==='region'){
+      const countries=[...new Set(IB_BASE.filter(r=>r.region===e.region&&r.code===e.code).map(r=>r.country))];
+      rowsHtml=countries.map(c=>`<tr class="sub"><td class="l" colspan="2">↳ ${c}</td><td class="l">submitted</td>
+        <td style="font-family:var(--mono)">${IB_FWD_MONTHS.reduce((a,_,i)=>a+countrySubmitted(c,e.code,i),0)} <span style="color:var(--muted)">(M2–M6)</span></td></tr>`).join('');
+    } else {
+      const regions=[...new Set(IB_BASE.filter(r=>r.code===e.code).map(r=>r.region))];
+      rowsHtml=regions.map(rg=>`<tr class="sub"><td class="l" colspan="2">↳ ${rg}</td><td class="l">current figure</td>
+        <td style="font-family:var(--mono)">${regionCurrentTotal(rg,e.code)} <span style="color:var(--muted)">(M2–M6)</span></td></tr>`).join('');
+    }
+  }
+  return `<tr><td class="l"><button class="exp" onclick="ibToggleAttnLine('${e.code}')" aria-label="Expand">${open?'▼':'▶'}</button>${e.desc}
+      <span style="font-family:var(--mono);color:var(--muted)">${e.code}</span></td>
+    <td class="l">${e.vert}</td>
+    <td class="l">${explain||''}</td>
+    <td><button class="btn btn-ghost btn-sm" onclick="ibReviewLine('${e.code}')">Review →</button></td></tr>${rowsHtml}`;
+}
+function ibRenderAttnPanel(tier,cfg,excEntries){
+  const host=document.getElementById('ibAttnPanel'); if(!host)return;
+  if(!excEntries.length){
+    host.innerHTML=`<div class="accwrap"><div class="cap" style="color:var(--ok)">✓ Nothing outside tolerance right now — nothing to review.</div></div>`;
+    return;
+  }
+  const groupLabel=tier==='region'?'By country':'By region';
+  const tabs=`<div class="seg-ctl">
+    <button class="${ibAttnView==='fert'?'on':''}" onclick="ibSetAttnView('fert')">By FERT</button>
+    <button class="${ibAttnView==='group'?'on':''}" onclick="ibSetAttnView('group')">${groupLabel}</button>
+  </div>`;
+  let body;
+  if(ibAttnView==='fert'){
+    body=`<table class="sumtbl">
+      <thead><tr><th class="l">FERT</th><th class="l">Vertical</th><th class="l">Why it's flagged</th><th></th></tr></thead>
+      <tbody>${excEntries.map(e=>ibAttnLineRow(e,tier)).join('')}</tbody>
+    </table>`;
+  } else {
+    const groups=ibAttnGroupsForTier(tier,cfg);
+    body=`<table class="sumtbl">
+      <thead><tr><th class="l">${tier==='region'?'Country':'Region'}</th><th>Lines flagged</th><th class="l"></th><th></th></tr></thead>
+      <tbody>${groups.map(g=>{
+        const touching=excEntries.filter(e=>tier==='region'?IB_BASE.some(r=>r.country===g&&r.code===e.code):IB_BASE.some(r=>r.region===g&&r.code===e.code));
+        if(!touching.length)return '';
+        const open=ibAttnExpandedGroup.has(g);
+        const rowsHtml=open?touching.map(e=>{
+          const val=tier==='region'?IB_FWD_MONTHS.reduce((a,_,i)=>a+countrySubmitted(g,e.code,i),0):regionCurrentTotal(g,e.code);
+          const lbl=tier==='region'?'submitted':'current figure';
+          return `<tr class="sub"><td class="l" colspan="2">${e.desc} <span style="font-family:var(--mono);color:var(--muted)">${e.code}</span></td>
+            <td class="l" style="font-family:var(--mono)">${val} ${lbl} (M2–M6)</td>
+            <td><button class="btn btn-ghost btn-sm" onclick="ibReviewLine('${e.code}')">Review →</button></td></tr>`;
+        }).join(''):'';
+        return `<tr><td class="l"><button class="exp" onclick="ibToggleAttnGroup('${g}')" aria-label="Expand">${open?'▼':'▶'}</button>${g}</td>
+          <td>${touching.length}</td><td class="l"></td><td></td></tr>${rowsHtml}`;
+      }).join('')}</tbody>
+    </table>`;
+  }
+  host.innerHTML=`<div class="accwrap">
+    <div class="acchead">
+      <h4>Lines needing a decision</h4>
+      ${tabs}
+      <span style="margin-left:auto;font-size:11.5px;color:var(--muted)">${ibAttnView==='fert'?`Expand a line to see each ${tier==='region'?"country's submitted":"region's current"} figure behind it`:`Expand a ${tier==='region'?'country':'region'} to see its figure on each flagged line`}</span>
+    </div>
+    ${body}
+  </div>`;
+}
+function ibRenderHomeModerator(host,tier){
+  const cfg=PERSONAS[persona];
+  const catalogue=tier==='region'?regionCatalogue(cfg.region):globalCatalogue();
+  const currentOf=code=>tier==='region'?regionCurrentTotal(cfg.region,code):globalCurrentTotal(code);
+  const submittedOf=code=>tier==='region'?regionSubmittedTotal(cfg.region,code):globalSubmittedTotal(code);
+  const totCurrent=catalogue.reduce((a,e)=>a+currentOf(e.code),0);
+  const totSubmitted=catalogue.reduce((a,e)=>a+submittedOf(e.code),0);
+  const excEntries=ibExceptionEntries();
+  const byVert={}; excEntries.forEach(e=>{byVert[e.vert]=(byVert[e.vert]||0)+1;});
+  const receiver=tier==='region'?'M. Iyer, Global Head':'ISO / Central Planning';
+  const cutoff=tier==='region'?'15 Jul, 23:59 IST':'17 Jul, 23:59 IST';
+  const groups=ibAttnGroupsForTier(tier,cfg);
+  const groupRows=groups.map(g=>{
+    const fs=tier==='region'?ibRowsForCountry(g):ibRowsForRegion(g);
+    const codes=[...new Set(fs.map(r=>r.code))];
+    const q=tier==='region'?codes.reduce((a,c)=>a+IB_FWD_MONTHS.reduce((x,_,i)=>x+countrySubmitted(g,c,i),0),0):codes.reduce((a,c)=>a+regionCurrentTotal(g,c),0);
+    return `<div class="kv-row"><span class="nm">${g}</span><span class="pill p-ok">${codes.length} FERT${codes.length===1?'':'s'}</span><span class="vl">${q} units, M2–M6</span></div>`;
+  }).join('');
+  const submitted=ibSubmitted[persona];
+  host.innerHTML=`
+    ${protoStripHtml()}
+    <div class="home-head">
+      <div><h1>Good day, ${cfg.name}</h1>
+        <div class="sub">July 2026 · International Business · ${cfg.scope} · ${catalogue.length} FERT${catalogue.length===1?'':'s'} across ${groups.length} ${tier==='region'?'countries':'regions'}</div></div>
+      <div class="right"><button class="btn btn-primary" onclick="go('wb')">Continue to IB Indent Workbook →</button></div>
+    </div>
+    <div class="zone"><span class="zl">Consolidation progress</span><span class="zr"></span>
+      <span class="zn">${submitted?'Submitted':totCurrent+' units set, M2–M6 · closes '+cutoff}</span></div>
+    <div class="cards">
+      <div class="card lead">
+        <h3>${tier==='region'?cfg.region+' consolidation':'Global consolidation'} — Aug–Dec 2026</h3>
+        <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;">
+          <div><div class="big">${totCurrent}</div><div class="cap">units, current consolidated total</div></div>
+          <div><div class="big sm">${totSubmitted}</div><div class="cap">as submitted beneath you, for reference</div></div>
+          <div style="margin-left:auto"><span class="pill ${submitted?'p-ok':'p-warn'}">${submitted?'Submitted':'In progress'}</span></div>
+        </div>
+        <div class="cap">You set ONE consolidated number per FERT for the whole ${tier==='region'?'region':'company'} — not each ${tier==='region'?"country's":"region's"} line separately. Goes to <b>${receiver}</b> at <b>${cutoff}</b>.</div>
+        <div class="acts">
+          <button class="btn btn-primary btn-sm" onclick="go('wb')">Open indent workbook</button>
+          <button class="btn btn-ghost btn-sm" onclick="saveWorkbench()">Save</button>
+          ${submitted?`<button class="btn btn-ghost btn-sm" onclick="ibReopen()">Reopen</button>`:''}
+        </div>
+      </div>
+      <div class="card attn" style="cursor:pointer" onclick="ibToggleAttn()">
+        <h3>Lines needing a decision</h3>
+        <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap">
+          <div><div class="big" style="color:${excEntries.length?'var(--warn)':'var(--ok)'}">${excEntries.length}</div><div class="cap">FERT line${excEntries.length===1?'':'s'} flagged, ${tier==='region'?'region':'company'}-wide</div></div>
+        </div>
+        <div class="cap" style="color:var(--muted)">${excEntries.length?Object.entries(byVert).map(([v,n])=>`${n} in ${v}`).join(' · '):'✓ Nothing outside tolerance right now.'}</div>
+        <div class="acts"><button class="btn btn-ghost btn-sm" id="ibAttnBtn" onclick="event.stopPropagation();ibToggleAttn()">${ibAttnOpen?'▾':'▸'} Review flagged lines</button></div>
+      </div>
+      <div class="card"><h3>${tier==='region'?'Your countries':'Your regions'}</h3>${groupRows}</div>
+    </div>
+    <div id="ibAttnPanel" style="display:${ibAttnOpen?'':'none'}"></div>
+    <div class="zone"><span class="zl">Summary</span><span class="zr"></span></div>
+    <div class="cards">
+      <div class="card">
+        <h3>Consolidated vs submitted</h3>
+        <div style="display:flex;align-items:flex-end;gap:16px;">
+          <div><div class="big sm">${totCurrent}</div><div class="cap">your consolidated total</div></div>
+          <div><div class="big sm">${totSubmitted}</div><div class="cap">total submitted beneath you</div></div>
+        </div>
+        <div class="cap" style="color:var(--muted)">Tolerance ±${TOL}% — the same figure that gates a reason on an overridden line.</div>
+      </div>
+    </div>
+    ${ibRollupHtml(tier==='region'?ibRowsForRegion(cfg.region):IB_BASE,tier==='region'?'Destination country name':'Region')}`;
+  ibRenderAttnPanel(tier,cfg,excEntries);
+}
+function ibRenderHome(){
+  const host=document.getElementById('homeInner');
+  const tier=PERSONAS[persona].tier;
+  if(tier==='country')ibRenderHomeCountry(host);
+  else ibRenderHomeModerator(host,tier);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   TOP-LEVEL DISPATCH — routes the shared shell (nav/go/filter-rail/
+   grid/commit/review) to whichever module (IS or IB) the current
+   persona belongs to. Everything above this point is module-specific;
+   this is the only place that has to know both modules exist. ══ */
+function buildRail(){
+  const cfg=PERSONAS[persona];
+  if(cfg.module==='is')buildIsRail(); else buildIbRail();
+  const n=cfg.module==='is'?isActiveCount():ibActiveCount();
+  document.getElementById('railCnt').style.display=n?'':'none';
+  document.getElementById('railCnt').textContent=n;
+  document.getElementById('stubCnt').style.display=n?'':'none';
+  document.getElementById('stubCnt').textContent=n;
+}
+function render(){
+  const cfg=PERSONAS[persona];
+  const view=['vHome','vWb','vOrders'].find(id=>document.getElementById(id).classList.contains('on'));
+  if(view==='vHome'){
+    buildRail();
+    if(cfg.module==='is')isRenderHome(); else ibRenderHome();
+  } else if(view==='vWb'){
+    buildRail();
+    if(cfg.module==='is'){ isRenderStrip(); isRenderGrid(); } else { ibRenderStrip(); ibRenderGrid(); }
+  } else if(view==='vOrders'){
+    isRenderOrders();
+  }
+}
+function clearAll(){
+  const cfg=PERSONAS[persona];
+  if(cfg.module==='is')isClearAll(); else ibClearAll();
+}
+function doSubmit(){
+  const cfg=PERSONAS[persona];
+  if(cfg.module==='is')isDoSubmit(); else ibDoSubmit();
+}
+</script>
+<script id="workbench-save">
+const WORKBENCH_SAVE_KEY='vecvplan-is-ib-saved-v1';
+function saveWorkbench(){
+ if(document.activeElement instanceof HTMLElement)document.activeElement.blur();
+ try{localStorage.setItem(WORKBENCH_SAVE_KEY,JSON.stringify({version:1,is:IS_DEMAND_DATA,ib:IB_BASE,region:IB_REGION_OVR,regionReason:IB_REGION_REASON,global:IB_GLOBAL_OVR,globalReason:IB_GLOBAL_REASON,savedAt:new Date().toISOString()}));closeM('review');toast('Saved in this browser. Entries remain editable.');}
+ catch(e){toast('Unable to save. Please try again.');}
+}
+try{const saved=JSON.parse(localStorage.getItem(WORKBENCH_SAVE_KEY)||'null');if(saved?.version===1&&Array.isArray(saved.is)&&Array.isArray(saved.ib)){IS_DEMAND_DATA.splice(0,IS_DEMAND_DATA.length,...saved.is);IB_BASE.splice(0,IB_BASE.length,...saved.ib);IB_REGION_OVR=saved.region||{};IB_REGION_REASON=saved.regionReason||{};IB_GLOBAL_OVR=saved.global||{};IB_GLOBAL_REASON=saved.globalReason||{};}}catch(e){}
+isDoSubmit=saveWorkbench;ibDoSubmit=saveWorkbench;doSubmit=saveWorkbench;
+</script>
+<script id="ib-tracker-and-cycle-comparison">
+/* IB Order Tracker uses the same scoped filter rail as the IB Indent Workbook. */
+let ibOrderQ='';
+const IB_SOP1A_FORECAST=new Map();
+IB_BASE.forEach(r=>IB_SOP1A_FORECAST.set(r.i,r.sub.reduce((a,v)=>a+(v||0),0)));
+function setOrderQuery(v){
+  if(PERSONAS[persona].module==='ib'){ibOrderQ=v;ibRenderOrders();}
+  else isSetOrdQ(v);
+}
+function ibOrderRows(){
+  const tier=PERSONAS[persona].tier;
+  let rows=IB_BASE.filter(r=>ibAttrPass(r));
+  if(tier==='country')rows=rows.filter(r=>r.country===PERSONAS.ib_country.country);
+  if(tier==='region')rows=rows.filter(r=>r.region===PERSONAS.ib_region.region);
+  if(IBF.country.size)rows=rows.filter(r=>IBF.country.has(r.country));
+  if(IBF.region.size)rows=rows.filter(r=>IBF.region.has(r.region));
+  if(IBF.flag.size)rows=rows.filter(r=>r.sub.reduce((a,v)=>a+(v||0),0)>0);
+  const q=ibOrderQ.trim().toLowerCase();
+  return q?rows.filter(r=>[r.dealer,r.dealerName,r.country,r.region,r.code,r.desc].some(v=>String(v).toLowerCase().includes(q))):rows;
+}
+function ibRenderOrders(){
+  const rs=ibOrderRows();
+  document.getElementById('ordQBox').value=ibOrderQ;
+  document.getElementById('ordHead').innerHTML=`<tr class="bands"><th class="idc b-ref" colspan="2">Dealer</th><th class="b-ref" colspan="2">Destination</th><th class="b-ref" colspan="2">FERT</th><th class="b-ref bsep" colspan="3">M1 · Jul 26</th><th class="b-ref" colspan="2">Forecast</th></tr><tr><th class="idc l">Dealer</th><th class="l">Shipped to party</th><th class="l">Destination country name</th><th class="l">Region</th><th>FERT Code</th><th class="l">Description</th><th>Backlog</th><th>Current</th><th>M1 Total</th><th>M2–M6 total</th><th>Total</th></tr>`;
+  const total=k=>rs.reduce((a,r)=>a+(k(r)||0),0);
+  document.getElementById('ordBody').innerHTML=rs.map(r=>{const m1=ibM1(r),forecast=r.sub.reduce((a,v)=>a+(v||0),0);return `<tr><td class="idc ref">${r.dealer}</td><td class="ref txt">${r.dealerName}</td><td class="ref txt">${r.country}</td><td class="ref txt">${r.region}</td><td class="ref">${r.code}</td><td class="ref txt" title="${r.desc}">${r.desc}</td><td class="ref">${r.past||0}</td><td class="ref">${r.cur||0}</td><td class="ref" style="font-weight:700">${m1}</td><td class="ref">${forecast}</td><td class="gtot">${m1+forecast}</td></tr>`;}).join('')+(rs.length?`<tr class="filtered-total"><td class="idc">Filtered view total<span class="total-note">${rs.length} line${rs.length===1?'':'s'}</span></td><td colspan="5"></td><td>${total(r=>r.past||0)}</td><td>${total(r=>r.cur||0)}</td><td>${total(ibM1)}</td><td>${total(r=>r.sub.reduce((a,v)=>a+(v||0),0))}</td><td>${total(r=>ibM1(r)+r.sub.reduce((a,v)=>a+(v||0),0))}</td></tr>`:'');
+  document.getElementById('ordResCount').innerHTML=`<b>${rs.length}</b> of ${IB_BASE.length} IB lines`;
+}
+
+/* In S&OP-1B, show the current M2–M6 revision delta against the locked 1A snapshot. */
+function ibAddSop1AComparison(){
+  if(activeCycle!=='1B')return;
+  const secondHeader=document.querySelector('#gHead tr:last-child');
+  const bandHeader=document.querySelector('#gHead tr:first-child');
+  if(secondHeader&&!secondHeader.querySelector('.sop1a-compare'))secondHeader.insertAdjacentHTML('beforeend','<th class="sop1a-compare bsep">Vs S&amp;OP-1A<br><span style="font-size:9px;font-weight:500">M2–M6 Δ</span></th>');
+  if(bandHeader&&!bandHeader.querySelector('.sop1a-compare'))bandHeader.insertAdjacentHTML('beforeend','<th class="sop1a-compare b-ref bsep" colspan="1">S&amp;OP-1A comparison</th>');
+  document.querySelectorAll('#gBody tr').forEach(tr=>{
+    if(tr.querySelector('.sop1a-compare'))return;
+    const code=tr.querySelector('.id-code')?.textContent.trim();
+    if(!code)return;
+    const current=IB_BASE.filter(r=>r.code===code).reduce((a,r)=>a+r.sub.reduce((x,v)=>x+(v||0),0),0);
+    const baseline=IB_BASE.filter(r=>r.code===code).reduce((a,r)=>a+(IB_SOP1A_FORECAST.get(r.i)||0),0);
+    const delta=current-baseline, value=delta>0?`+${delta}`:String(delta);
+    tr.insertAdjacentHTML('beforeend',`<td class="sop1a-compare ref" style="font-weight:700;color:${delta>0?'var(--warn)':delta<0?'#B42318':'var(--muted)'}">${value}</td>`);
+  });
+}
+const ibRenderGridBase=ibRenderGrid;
+ibRenderGrid=function(){ibRenderGridBase();ibAddSop1AComparison();};
+const goBase=go;
+go=function(v){
+  ['vHome','vWb','vOrders'].forEach(id=>document.getElementById(id).classList.toggle('on',id==='v'+v[0].toUpperCase()+v.slice(1)));
+  ['nvHome','nvWb','nvOrders'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',id==='nv'+v[0].toUpperCase()+v.slice(1));});
+  const mount=document.getElementById(v==='home'?'homeRailMount':v==='orders'?'ordersRailMount':'wbRailMount');
+  mount.appendChild(document.getElementById('rail'));
+  renderStatus();render();
+};
+const renderBase=render;
+render=function(){
+  const cfg=PERSONAS[persona];
+  const view=['vHome','vWb','vOrders'].find(id=>document.getElementById(id).classList.contains('on'));
+  if(view==='vOrders'){buildRail();if(cfg.module==='ib')ibRenderOrders();else isRenderOrders();return;}
+  renderBase();
+};
+</script><input id="importFile" type="file" accept=".csv,text/csv" hidden onchange="importWorkbook(this.files[0]);this.value=null">
+</body>
+</html>

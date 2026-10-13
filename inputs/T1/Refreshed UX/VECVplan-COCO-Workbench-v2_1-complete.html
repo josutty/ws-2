@@ -1,0 +1,2392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VECVplan COCO Workbench</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   Visual system (P-17) — identical tokens and components to the ASM
+   Prototype v1.3 and the Dealer Prototype v4.5 before it. Nothing below
+   is a new palette; new classes only cover COCO-specific affordances
+   (tier badges for ASM/RBH/VH, the outlet-level editable sub-row, the
+   role-switch strip) built from the same tokens. See the script block
+   for the P-19 column-parity log and the divergence notes against the
+   old COCO Workbench (Phase 0) and Demand Planning Workbench (Phase 0
+   v9) files this replaces. */
+:root{
+  --canvas:#F4F6F8; --surface:#FFFFFF; --surface-2:#F8FAFB; --bar:#10202D; --bar-ink:#C7D6E2;
+  --ink:#16222C; --ink-2:#42576A; --muted:#6B7C8A; --rule:#DCE3E9; --rule-soft:#EAEFF3;
+  --accent:#0E6BA8; --accent-2:#0A5686; --accent-soft:#E6F1F8; --accent-line:#B9D7EA;
+  --ok:#1F7A45; --ok-soft:#E7F2EB; --warn:#A65D00; --warn-soft:#FBEFE0; --crit:#B3261E; --crit-soft:#FBE9E7;
+  --add:#6B3FA0; --add-soft:#F0EAF8;
+  --coco:#00695C; --coco-soft:#E3F1EE; --coco-line:#9FC9C0;
+  --ui:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  --shadow:0 1px 2px rgba(16,32,45,.06),0 2px 8px rgba(16,32,45,.06);
+  --shadow-lg:0 12px 40px rgba(16,32,45,.22);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --canvas:#0C1319; --surface:#141D25; --surface-2:#19242D; --bar:#080F14; --bar-ink:#9FB4C4;
+  --ink:#E2EAF0; --ink-2:#AEC0CE; --muted:#8296A6; --rule:#26343F; --rule-soft:#1D2831;
+  --accent:#4FA3D6; --accent-2:#79BCE5; --accent-soft:#122A3A; --accent-line:#20455C;
+  --ok:#5FBA84; --ok-soft:#132720; --warn:#D9A05B; --warn-soft:#2A2015; --crit:#E08A84; --crit-soft:#2C1917;
+  --add:#A487D0; --add-soft:#211B2E;
+  --coco:#5FBFAE; --coco-soft:#132724; --coco-line:#2A5148;
+  --shadow:0 1px 2px rgba(0,0,0,.4); --shadow-lg:0 12px 40px rgba(0,0,0,.55);
+}}
+:root[data-theme="dark"]{
+  --canvas:#0C1319; --surface:#141D25; --surface-2:#19242D; --bar:#080F14; --bar-ink:#9FB4C4;
+  --ink:#E2EAF0; --ink-2:#AEC0CE; --muted:#8296A6; --rule:#26343F; --rule-soft:#1D2831;
+  --accent:#4FA3D6; --accent-2:#79BCE5; --accent-soft:#122A3A; --accent-line:#20455C;
+  --ok:#5FBA84; --ok-soft:#132720; --warn:#D9A05B; --warn-soft:#2A2015; --crit:#E08A84; --crit-soft:#2C1917;
+  --add:#A487D0; --add-soft:#211B2E;
+  --coco:#5FBFAE; --coco-soft:#132724; --coco-line:#2A5148;
+  --shadow:0 1px 2px rgba(0,0,0,.4); --shadow-lg:0 12px 40px rgba(0,0,0,.55);
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--canvas);color:var(--ink);font-family:var(--ui);font-size:13.5px;
+  line-height:1.45;height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased;}
+button{font-family:inherit;cursor:pointer;}
+input,select,textarea{font-family:inherit;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
+
+.btn{height:32px;padding:0 14px;border-radius:5px;font-size:13px;font-weight:500;border:1px solid transparent;
+  display:inline-flex;align-items:center;gap:7px;white-space:nowrap;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:var(--accent-2);}
+.btn-primary:disabled{background:var(--muted);}
+.btn-ghost{background:var(--surface);color:var(--ink-2);border-color:var(--rule);}
+.btn-ghost:hover{background:var(--surface-2);border-color:var(--muted);}
+.btn-quiet{background:transparent;color:var(--ink-2);border-color:transparent;}
+.btn-quiet:hover{background:var(--surface-2);}
+.btn-add{background:var(--surface);color:var(--add);border-color:var(--add);}
+.btn-add:hover{background:var(--add-soft);}
+.btn-coco{background:var(--coco);color:#fff;}
+.btn-coco:hover{background:#00534A;}
+.btn-sm{height:27px;padding:0 10px;font-size:12px;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.link{background:none;border:none;padding:0;color:var(--accent);font-size:13px;font-weight:500;
+  text-decoration:underline;text-underline-offset:2px;}
+
+/* ══ LOGIN (P-01 — identical shape to every persona; three COCO role cards instead of one form,
+   same as the old COCO Workbench login, since COCO ASM/RBH/VH are three distinct people/logins) ══ */
+#login{height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;overflow-y:auto;
+  background:linear-gradient(150deg,#0B1822 0%,#12293A 55%,#0E3A4A 100%);}
+.lg-shell{width:100%;max-width:420px;display:flex;flex-direction:column;gap:18px;}
+.lg-logo{font-size:23px;font-weight:700;color:#fff;letter-spacing:-.4px;}
+.lg-logo span{color:#5FB0DE;}
+.lg-logo .tag{font-size:11px;font-weight:600;color:#7FD8C4;background:rgba(95,191,174,.14);
+  border:1px solid rgba(95,191,174,.3);border-radius:4px;padding:2px 7px;margin-left:8px;vertical-align:2px;}
+.lg-cycle{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.09);
+  border:1px solid rgba(255,255,255,.14);border-radius:5px;padding:5px 11px;font-size:11.5px;color:#B7CDDD;margin-top:6px;}
+.lg-cycle b{color:#fff;font-weight:600;}
+.lg-card{background:var(--surface);border-radius:9px;padding:26px;box-shadow:var(--shadow-lg);
+  display:flex;flex-direction:column;gap:15px;}
+.lg-card h1{margin:0;font-size:19px;font-weight:600;}
+.lg-card .sub{font-size:13px;color:var(--muted);margin-top:-9px;}
+.fld{display:flex;flex-direction:column;gap:5px;}
+.fld label{font-size:12px;font-weight:600;color:var(--ink-2);display:flex;align-items:baseline;}
+.fld label .hint{margin-left:auto;font-weight:400;}
+.fld input{height:38px;padding:0 11px;border:1px solid var(--rule);border-radius:5px;font-size:14px;
+  background:var(--surface);color:var(--ink);}
+.fld input:focus{outline:none;border-color:var(--coco);box-shadow:0 0 0 3px var(--coco-soft);}
+.fld .err{font-size:12px;color:var(--crit);display:none;}
+.fld.invalid input{border-color:var(--crit);}
+.fld.invalid .err{display:block;}
+.lg-or{display:flex;align-items:center;gap:11px;color:var(--muted);font-size:11.5px;}
+.lg-or::before,.lg-or::after{content:'';flex:1;height:1px;background:var(--rule);}
+.lg-foot{font-size:11.5px;color:var(--muted);text-align:center;}
+.lg-note{font-size:11px;color:rgba(183,205,221,.75);text-align:center;}
+.lg-note a{color:#7FD8C4;}
+
+/* ══ SHELL (P-03) ══ */
+#app{display:none;height:100vh;flex-direction:column;overflow:hidden;}
+#app.on{display:flex;}
+.topbar{height:48px;flex-shrink:0;background:var(--bar);display:flex;align-items:center;gap:4px;padding:0 8px 0 16px;}
+.tb-logo{font-size:14.5px;font-weight:700;color:#fff;margin-right:14px;white-space:nowrap;}
+.tb-logo span{color:#5FB0DE;}
+.tb-logo .tag{font-size:10px;font-weight:700;color:#7FD8C4;background:rgba(95,191,174,.14);
+  border:1px solid rgba(95,191,174,.3);border-radius:4px;padding:1px 6px;margin-left:6px;}
+.tb-nav{display:flex;gap:2px;}
+.tb-nav button{height:30px;padding:0 12px;border:none;border-radius:5px;background:transparent;
+  color:var(--bar-ink);font-size:13px;font-weight:500;}
+.tb-nav button:hover{background:rgba(255,255,255,.08);color:#fff;}
+.tb-nav button.on{background:rgba(255,255,255,.14);color:#fff;}
+.tb-nav button:disabled{opacity:.35;cursor:not-allowed;}
+.tb-status{margin-left:16px;display:flex;align-items:center;overflow:hidden;}
+.tb-status .seg{font-size:12px;color:var(--bar-ink);white-space:nowrap;padding:0 12px;
+  border-left:1px solid rgba(255,255,255,.13);}
+.tb-status .seg:first-child{border-left:none;}
+.tb-status b{color:#fff;font-weight:600;}
+.warnv{color:#F0B770;font-weight:600;} .okv{color:#7DD3A0;font-weight:600;}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:8px;padding-left:10px;}
+.tb-user{display:flex;align-items:center;gap:8px;padding:3px 10px 3px 4px;border-radius:16px;background:rgba(255,255,255,.09);}
+.tb-av{width:24px;height:24px;border-radius:50%;background:var(--coco);color:#fff;font-size:10px;
+  font-weight:700;display:flex;align-items:center;justify-content:center;}
+.tb-user .nm{font-size:11.5px;color:#fff;line-height:1.15;}
+.tb-user .rl{font-size:10px;color:#8FADC4;line-height:1.15;}
+.tb-icon{width:30px;height:30px;border:none;border-radius:5px;background:transparent;color:var(--bar-ink);
+  font-size:14px;display:flex;align-items:center;justify-content:center;}
+.tb-icon:hover{background:rgba(255,255,255,.1);color:#fff;}
+.page{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+.view{display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;}
+.view.on{display:flex;}
+
+/* ══ HOME (P-04) ══ */
+.home-scroll{flex:1;overflow-y:auto;}
+.home-inner{max-width:1440px;margin:0 auto;padding:20px 32px 56px;display:flex;flex-direction:column;gap:18px;}
+.proto-strip{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);
+  border:1px dashed var(--coco-line);border-radius:7px;padding:9px 14px;}
+.proto-strip .pl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--coco);background:var(--coco-soft);padding:3px 7px;border-radius:3px;}
+.proto-strip label{font-size:12.5px;font-weight:600;color:var(--ink-2);}
+.proto-strip select{height:32px;padding:0 9px;border:1px solid var(--rule);border-radius:5px;
+  background:var(--surface);color:var(--ink);font-size:13px;font-weight:500;min-width:228px;}
+.proto-strip .np{font-size:11.5px;color:var(--muted);margin-left:auto;}
+.proto-strip .backlink{font-size:11.5px;color:var(--accent);text-decoration:underline;white-space:nowrap;}
+.home-head{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;}
+.home-head h1{margin:0;font-size:24px;font-weight:600;letter-spacing:-.4px;}
+.home-head .sub{font-size:13.5px;color:var(--muted);}
+.home-head .right{margin-left:auto;display:flex;gap:8px;}
+.zone{display:flex;align-items:center;gap:12px;margin-top:10px;}
+.zone .zl{font-size:11px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);white-space:nowrap;}
+.zone .zr{flex:1;height:1px;background:var(--rule);}
+.zone .zn{font-size:11.5px;color:var(--muted);white-space:nowrap;}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(262px,1fr));gap:14px;}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:16px 17px 15px;
+  display:flex;flex-direction:column;gap:11px;box-shadow:var(--shadow);}
+.card.lead{grid-column:span 2;}
+.card.full{grid-column:1/-1;}
+.card.attn{border-color:var(--warn);}
+@media (max-width:760px){.card.lead,.card.full{grid-column:span 1;}}
+.card h3{margin:0;font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);}
+.big{font-family:var(--mono);font-size:27px;font-weight:600;letter-spacing:-.5px;line-height:1;font-variant-numeric:tabular-nums;}
+.big.sm{font-size:21px;}
+.cap{font-size:12.5px;color:var(--ink-2);}
+.card .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:4px;}
+.meter{height:6px;border-radius:3px;background:var(--rule-soft);overflow:hidden;}
+.meter i{display:block;height:100%;background:var(--coco);border-radius:3px;}
+.kv-row{display:flex;align-items:center;gap:10px;font-size:13px;padding:7px 0;border-bottom:1px solid var(--rule-soft);}
+.kv-row:last-child{border-bottom:none;}
+.kv-row .nm{color:var(--ink);font-weight:500;}
+.kv-row .vl{margin-left:auto;font-family:var(--mono);font-size:12.5px;color:var(--ink-2);font-variant-numeric:tabular-nums;}
+.pill{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:3px;white-space:nowrap;}
+.p-ok{background:var(--ok-soft);color:var(--ok);}
+.p-warn{background:var(--warn-soft);color:var(--warn);}
+.p-crit{background:var(--crit-soft);color:var(--crit);}
+.p-add{background:var(--add-soft);color:var(--add);}
+.p-coco{background:var(--coco-soft);color:var(--coco);}
+.attn-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule-soft);font-size:13px;}
+.attn-row:last-child{border-bottom:none;}
+.attn-row .n{font-family:var(--mono);font-size:16px;font-weight:600;min-width:26px;}
+.attn-row .t{color:var(--ink-2);}
+.attn-row button{margin-left:auto;}
+.sbar{display:flex;height:9px;border-radius:5px;overflow:hidden;background:var(--rule-soft);}
+.sbar i{height:100%;}
+.slgd{display:flex;gap:12px;flex-wrap:wrap;margin-top:7px;}
+.slgd span{font-size:11.5px;color:var(--ink-2);display:flex;align-items:center;gap:5px;}
+.slgd i{width:8px;height:8px;border-radius:2px;display:inline-block;}
+.spark{display:flex;align-items:flex-end;gap:5px;height:40px;}
+.spark i{flex:1;border-radius:2px 2px 0 0;background:var(--coco);opacity:.35;}
+.spark i:last-child{opacity:1;}
+.sumtbl{width:100%;border-collapse:collapse;font-size:13px;}
+.sumtbl th{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+  text-align:right;padding:8px 10px;border-bottom:1px solid var(--rule);}
+.sumtbl th.l{text-align:left;}
+.sumtbl td{padding:9px 10px;border-bottom:1px solid var(--rule-soft);text-align:right;
+  font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--ink-2);}
+.sumtbl td.l{text-align:left;font-family:var(--ui);color:var(--ink);font-weight:500;}
+.sumtbl tr.tot td{background:var(--surface-2);font-weight:700;color:var(--ink);border-bottom:none;}
+.sumtbl tr.sub td{background:var(--surface-2);color:var(--muted);font-size:12px;}
+.sumtbl tr.sub td.l{padding-left:26px;font-weight:400;color:var(--ink-2);}
+.sumtbl thead tr.bands th{height:24px;padding:0 8px;text-align:left;text-transform:uppercase;
+  letter-spacing:.08em;font-size:10px;font-weight:700;border-bottom:1px solid var(--rule-soft);}
+.sumtbl thead tr.bands th.b-ref{background:var(--surface-2);color:var(--muted);}
+.sumtbl thead tr.bands th.b-edit{background:var(--coco-soft);color:var(--coco);}
+.exp{background:none;border:none;padding:0 6px 0 0;color:var(--accent);font-size:10px;}
+.acell{display:flex;flex-direction:column;align-items:flex-end;gap:1px;line-height:1.15;}
+.acell .ai{font-size:12px;}
+.acell .ao{font-size:10.5px;color:var(--muted);}
+.abar{display:inline-block;width:44px;height:5px;border-radius:3px;background:var(--rule-soft);overflow:hidden;vertical-align:middle;}
+.abar i{display:block;height:100%;}
+.accwrap{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:14px 16px 10px;
+  box-shadow:var(--shadow);display:flex;flex-direction:column;gap:11px;}
+.acchead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.acchead h4{margin:0;font-size:13.5px;font-weight:600;}
+.seg-ctl{display:flex;border:1px solid var(--rule);border-radius:5px;overflow:hidden;flex-shrink:0;}
+.seg-ctl button{height:30px;padding:0 10px;border:none;background:var(--surface);color:var(--muted);font-size:12px;font-weight:500;}
+.seg-ctl button.on{background:var(--coco-soft);color:var(--coco);font-weight:600;}
+.seg-ctl button+button{border-left:1px solid var(--rule);}
+.seg-ctl.sm button{height:24px;padding:0 7px;font-size:11px;}
+
+/* tier badge — which level of the COCO chain a line/screen belongs to (ASM / RBH / VH) */
+.tier-badge{font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  padding:2px 7px;border-radius:3px;background:var(--coco-soft);color:var(--coco);white-space:nowrap;}
+
+/* ══ EXCEPTION LIST (Home Section 1 — flagged lines needing a decision) ══ */
+.exc-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--rule-soft);font-size:12.5px;}
+.exc-row:last-child{border-bottom:none;}
+.exc-main{flex:1;min-width:0;}
+.exc-main .d1{font-weight:600;color:var(--ink);}
+.exc-main .d2{color:var(--muted);font-size:11.5px;}
+.exc-dev{font-family:var(--mono);font-size:12px;font-weight:600;white-space:nowrap;}
+.exc-dev.over{color:var(--crit);} .exc-dev.under{color:var(--warn);}
+.exc-acts{display:flex;gap:6px;flex-shrink:0;}
+
+/* ══ WORKBOOK ══ */
+.wb{flex:1;display:flex;overflow:hidden;min-height:0;}
+.rail{width:262px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--rule);
+  display:flex;flex-direction:column;overflow:hidden;transition:width .16s ease;}
+.rail.collapsed{width:46px;}
+.rail-head{height:44px;flex-shrink:0;display:flex;align-items:center;gap:8px;padding:0 8px 0 14px;border-bottom:1px solid var(--rule);}
+.rail-head .t{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);flex:1;white-space:nowrap;}
+.rail-head .cnt{font-family:var(--mono);font-size:10.5px;font-weight:600;background:var(--coco-soft);
+  color:var(--coco);padding:2px 6px;border-radius:9px;}
+.rail-toggle{width:26px;height:26px;flex-shrink:0;border:none;border-radius:5px;background:transparent;
+  color:var(--muted);font-size:14px;display:flex;align-items:center;justify-content:center;}
+.rail-toggle:hover{background:var(--surface-2);color:var(--ink);}
+.rail.collapsed .rail-head{padding:0 10px;}
+.rail.collapsed .rail-head .t,.rail.collapsed .rail-head .cnt,.rail.collapsed .rail-body,.rail.collapsed .rail-foot{display:none;}
+.rail-stub{display:none;flex-direction:column;align-items:center;gap:10px;padding:12px 0;}
+.rail.collapsed .rail-stub{display:flex;}
+.rail-stub .sb{writing-mode:vertical-rl;font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.rail-stub .sc{font-family:var(--mono);font-size:10.5px;font-weight:600;background:var(--coco-soft);
+  color:var(--coco);padding:2px 5px;border-radius:8px;}
+.rail-body{flex:1;overflow-y:auto;padding:12px 14px 20px;display:flex;flex-direction:column;gap:13px;}
+.rail-body::-webkit-scrollbar{width:7px;}
+.rail-body::-webkit-scrollbar-thumb{background:var(--rule);border-radius:4px;}
+.frow{display:flex;flex-direction:column;gap:5px;}
+.frow .fl{font-size:11.5px;font-weight:600;color:var(--ink-2);display:flex;align-items:baseline;gap:6px;}
+.frow .fl .clr{margin-left:auto;font-size:10.5px;color:var(--accent);background:none;border:none;padding:0;text-decoration:underline;}
+.ms{position:relative;}
+.ms-btn{width:100%;height:32px;padding:0 9px;border:1px solid var(--rule);border-radius:5px;
+  background:var(--surface);color:var(--ink);font-size:12.5px;display:flex;align-items:center;gap:6px;text-align:left;}
+.ms-btn:hover{border-color:var(--muted);}
+.ms-btn.act{border-color:var(--coco);background:var(--coco-soft);color:var(--coco);font-weight:500;}
+.ms-btn .lbl{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ms-btn .lbl.dim{color:var(--muted);}
+.ms-btn .ca{font-size:9px;opacity:.7;}
+.ms-pop{display:none;position:absolute;top:35px;left:0;right:0;z-index:40;background:var(--surface);
+  border:1px solid var(--rule);border-radius:6px;box-shadow:var(--shadow-lg);max-height:300px;overflow:hidden;flex-direction:column;}
+.ms.open .ms-pop{display:flex;}
+.ms-search{padding:8px;border-bottom:1px solid var(--rule-soft);}
+.ms-search input{width:100%;height:30px;padding:0 9px;border:1px solid var(--rule);border-radius:4px;
+  font-size:12.5px;background:var(--surface);color:var(--ink);}
+.ms-search input:focus{outline:none;border-color:var(--coco);}
+.ms-search .ph{font-size:10.5px;color:var(--muted);margin-top:5px;line-height:1.35;}
+.ms-list{overflow-y:auto;padding:4px 0;}
+.ms-list::-webkit-scrollbar{width:7px;}
+.ms-list::-webkit-scrollbar-thumb{background:var(--rule);border-radius:4px;}
+.ms-opt{display:flex;align-items:flex-start;gap:8px;padding:6px 11px;font-size:12.5px;width:100%;
+  background:none;border:none;text-align:left;color:var(--ink);}
+.ms-opt:hover{background:var(--surface-2);}
+.ms-opt .bx{width:14px;height:14px;flex-shrink:0;margin-top:2px;border:1.5px solid var(--rule);border-radius:3px;
+  display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;}
+.ms-opt.on .bx{background:var(--coco);border-color:var(--coco);}
+.ms-opt .tx{flex:1;min-width:0;}
+.ms-opt .t1{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ms-opt .t2{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ms-opt .n{font-family:var(--mono);font-size:10.5px;color:var(--muted);flex-shrink:0;margin-top:1px;}
+.ms-foot{padding:7px 9px;border-top:1px solid var(--rule-soft);display:flex;gap:8px;align-items:center;}
+.ms-foot .c{font-size:11px;color:var(--muted);margin-left:auto;}
+.ms-empty{padding:16px 12px;text-align:center;font-size:12px;color:var(--muted);}
+.rail-foot{padding:10px 14px;border-top:1px solid var(--rule);display:flex;gap:8px;}
+
+.wb-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+.strip{height:48px;flex-shrink:0;display:flex;align-items:center;gap:9px;padding:0 14px;
+  background:var(--surface);border-bottom:1px solid var(--rule);overflow-x:auto;}
+.strip::-webkit-scrollbar{height:0;}
+.vsel{height:32px;padding:0 8px;border:1px solid var(--rule);border-radius:5px;background:var(--surface);
+  color:var(--ink);font-size:12.5px;font-weight:600;flex-shrink:0;}
+.srch{position:relative;flex-shrink:0;}
+.srch input{width:246px;height:32px;padding:0 10px 0 30px;border:1px solid var(--rule);border-radius:5px;
+  font-size:12.5px;background:var(--surface);color:var(--ink);}
+.srch input:focus{outline:none;border-color:var(--coco);box-shadow:0 0 0 3px var(--coco-soft);}
+.srch .ic{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px;pointer-events:none;}
+.aft{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;}
+.ftok{display:inline-flex;align-items:center;gap:6px;background:var(--coco-soft);color:var(--coco);
+  border:1px solid var(--coco-line);border-radius:13px;padding:3px 8px 3px 10px;font-size:11.5px;font-weight:500;white-space:nowrap;}
+.ftok.srt{background:var(--surface-2);color:var(--ink-2);border-color:var(--rule);}
+.ftok button{background:none;border:none;color:inherit;font-size:13px;line-height:1;padding:0;opacity:.6;}
+.ftok button:hover{opacity:1;}
+.strip .sep{width:1px;height:24px;background:var(--rule);flex-shrink:0;}
+.strip .right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.rescount{font-size:12px;color:var(--muted);white-space:nowrap;}
+.rescount b{color:var(--ink);font-family:var(--mono);font-weight:600;}
+
+.grid-wrap{flex:1;overflow:auto;min-height:0;background:var(--canvas);}
+.grid-wrap::-webkit-scrollbar{width:10px;height:10px;}
+.grid-wrap::-webkit-scrollbar-thumb{background:#BCC8D2;border-radius:5px;}
+table.grid{border-collapse:separate;border-spacing:0;width:100%;min-width:1020px;background:var(--surface);}
+table.grid thead th{position:sticky;top:26px;z-index:6;background:var(--surface-2);border-bottom:1px solid var(--rule);
+  font-size:11px;font-weight:600;color:var(--muted);padding:0;height:38px;white-space:nowrap;}
+table.grid thead tr.bands th{height:26px;top:0;z-index:7;font-size:10px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;text-align:left;border-bottom:1px solid var(--rule-soft);padding:0 8px;}
+table.grid thead tr.bands th.b-ref{background:var(--surface-2);color:var(--muted);}
+table.grid thead tr.bands th.b-edit{background:var(--coco-soft);color:var(--coco);}
+.sortbtn{width:100%;height:38px;padding:0 8px;background:none;border:none;color:inherit;font:inherit;
+  display:flex;align-items:center;justify-content:flex-end;gap:4px;}
+.sortbtn.l{justify-content:flex-start;}
+.sortbtn:hover{background:var(--rule-soft);color:var(--ink);}
+.sortbtn .ar{font-size:9px;opacity:0;}
+.sortbtn:hover .ar{opacity:.45;}
+.sortbtn.on{color:var(--coco);font-weight:700;}
+.sortbtn.on .ar{opacity:1;}
+th.idc,td.idc{position:sticky;left:0;z-index:5;background:var(--surface);border-right:1px solid var(--rule);
+  text-align:left;min-width:276px;max-width:276px;}
+thead th.idc{z-index:8;background:var(--surface-2);}
+th.fertc,td.fertc{position:sticky;left:276px;z-index:5;background:var(--surface);min-width:92px;max-width:92px;
+  border-right:1px solid var(--rule);text-align:left!important;font-family:var(--mono)!important;color:var(--coco)!important;font-weight:600;}
+thead th.fertc{z-index:8;background:var(--surface-2);}
+table.grid tbody tr:hover td.fertc{background:#F0F7FC;}
+table.grid tbody tr.sub-row td.fertc{background:var(--surface-2);}
+table.grid tbody tr.grp-row td.fertc{background:var(--coco-soft);}
+table.grid tbody td{padding:0 8px;border-bottom:1px solid var(--rule-soft);height:40px;vertical-align:middle;
+  text-align:right;font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--ink-2);}
+table.grid tbody tr:hover td{background:#F6FAFD;}
+table.grid tbody tr:hover td.idc{background:#F0F7FC;}
+table.grid tbody tr.exc td.idc{box-shadow:inset 3px 0 0 var(--warn);}
+table.grid tbody tr.isadd td.idc{box-shadow:inset 3px 0 0 var(--add);}
+table.grid tbody tr.sub-row td{background:var(--surface-2);}
+table.grid tbody tr.sub-row:hover td{background:#EEF3F7;}
+table.grid tbody tr.sub-row.editable td{background:var(--coco-soft);}
+table.grid tbody tr.sub-row.editable:hover td{background:#DCEEEA;}
+table.grid tbody tr.grp-row td{background:var(--coco-soft);font-weight:700;color:var(--ink);border-bottom:1px solid var(--coco-line);}
+table.grid tbody tr.grp-row td.idc{background:var(--coco-soft);}
+table.grid tbody tr.grp-row .exp-tg{color:var(--coco);}
+table.grid.compact tbody td{height:31px;}
+table.grid.compact .id-meta{display:none;}
+.id-cell{display:flex;align-items:center;gap:9px;padding:5px 0;}
+.id-txt{min-width:0;flex:1;}
+.id-desc{font-family:var(--ui);font-size:12.5px;font-weight:500;color:var(--ink);line-height:1.25;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.id-meta{display:flex;align-items:center;gap:7px;margin-top:1px;}
+.id-sm{font-size:10.5px;color:var(--muted);}
+.seg-dot{font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px;font-family:var(--ui);}
+.sg-R{background:var(--ok-soft);color:var(--ok);}
+.sg-S{background:var(--warn-soft);color:var(--warn);}
+.sg-D{background:var(--crit-soft);color:var(--crit);}
+.addtag{font-size:9.5px;font-weight:700;padding:1px 5px;border-radius:3px;background:var(--add-soft);color:var(--add);}
+.id-btn{width:22px;height:22px;flex-shrink:0;border:1px solid var(--rule);border-radius:4px;background:var(--surface);
+  color:var(--muted);font-size:11px;display:flex;align-items:center;justify-content:center;}
+.id-btn:hover{border-color:var(--coco);color:var(--coco);}
+.exp-tg{width:20px;height:20px;flex-shrink:0;border:none;background:transparent;color:var(--coco);
+  font-size:10px;display:flex;align-items:center;justify-content:center;}
+td.ref .aged{color:var(--warn);font-weight:600;}
+td.ref .aged.hot{color:var(--crit);}
+td.ref.txt{font-family:var(--ui);font-size:11.5px;text-align:left;color:var(--ink-2);white-space:nowrap;}
+td.sepL{border-left:1px solid var(--rule);}
+th.bsep,td.bsep{border-left:1px solid var(--rule);}
+.bandbtn{width:100%;height:26px;padding:0 8px;background:none;border:none;color:inherit;font:inherit;
+  display:flex;align-items:center;gap:5px;text-align:left;}
+.bandbtn:hover{background:rgba(0,0,0,.05);}
+.bandbtn .bm{font-size:8px;opacity:.6;}
+.id-meta .diff{color:var(--warn);font-weight:700;}
+.colpop{position:absolute;top:34px;right:0;z-index:45;width:318px;background:var(--surface);
+  border:1px solid var(--rule);border-radius:7px;box-shadow:var(--shadow-lg);overflow:hidden;}
+.cp-sec{padding:11px 13px;border-bottom:1px solid var(--rule-soft);}
+.cp-lbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.cp-presets{display:flex;flex-wrap:wrap;gap:5px;}
+.chipx{padding:4px 10px;border-radius:13px;font-size:11.5px;font-weight:500;border:1px solid var(--rule);
+  background:var(--surface);color:var(--ink-2);}
+.chipx:hover{border-color:var(--coco);color:var(--coco);}
+.chipx.on{background:var(--coco);border-color:var(--coco);color:#fff;font-weight:600;}
+.cp-row{display:flex;align-items:center;gap:10px;padding:5px 0;}
+.cp-row.dis{opacity:.55;}
+.cp-n{font-size:12.5px;color:var(--ink);flex:1;min-width:0;}
+.cp-c{font-size:10.5px;color:var(--muted);margin-left:6px;font-family:var(--mono);}
+.cp-note{font-size:10.5px;color:var(--muted);text-align:right;max-width:130px;line-height:1.3;}
+.cp-foot{padding:9px 13px;font-size:11px;color:var(--muted);background:var(--surface-2);}
+.cellin{width:52px;height:26px;padding:0 6px;border:1px solid var(--rule);border-radius:4px;text-align:right;
+  font-family:var(--mono);font-size:12.5px;background:var(--surface);color:var(--ink);font-variant-numeric:tabular-nums;}
+.cellin:hover{border-color:var(--muted);}
+.cellin:focus{outline:none;border-color:var(--coco);box-shadow:0 0 0 3px var(--coco-soft);}
+.cellin:disabled{background:var(--surface-2);color:var(--muted);border-color:var(--rule-soft);}
+.cellin.ovr{border-color:var(--warn);background:var(--warn-soft);}
+.carry{display:block;font-family:var(--mono);font-size:9.5px;color:var(--muted);text-align:right;margin-top:1px;line-height:1;}
+td.tot{font-weight:600;color:var(--ink);background:var(--surface-2);}
+td.gtot{font-weight:700;color:var(--coco);background:var(--coco-soft);}
+.empty-state{padding:56px 24px;text-align:center;color:var(--muted);}
+.empty-state .t{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:5px;}
+.reason-inl{display:flex;align-items:center;gap:5px;margin-top:2px;}
+.reason-inl input{width:100%;height:22px;padding:0 6px;border:1px solid var(--warn);border-radius:3px;
+  font-size:10.5px;background:var(--surface);color:var(--ink);}
+.reason-flag{font-size:9px;font-weight:700;color:var(--warn);white-space:nowrap;}
+
+.commit{height:52px;flex-shrink:0;background:var(--surface);border-top:1px solid var(--rule);
+  display:flex;align-items:center;gap:16px;padding:0 16px;box-shadow:0 -2px 8px rgba(16,32,45,.05);overflow-x:auto;}
+.commit .stat{display:flex;align-items:baseline;gap:7px;white-space:nowrap;}
+.commit .stat .v{font-family:var(--mono);font-size:16px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;}
+.commit .stat .k{font-size:11.5px;color:var(--muted);}
+.commit .div{width:1px;height:24px;background:var(--rule);flex-shrink:0;}
+.commit .right{margin-left:auto;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.commit .saved{font-size:11.5px;color:var(--muted);white-space:nowrap;}
+
+.scrim{display:none;position:fixed;inset:0;background:rgba(16,32,45,.42);z-index:60;}
+.scrim.on{display:block;}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:396px;max-width:92vw;background:var(--surface);
+  z-index:61;box-shadow:var(--shadow-lg);display:none;flex-direction:column;}
+.drawer.on{display:flex;}
+.dr-head{padding:16px 18px 14px;border-bottom:1px solid var(--rule);display:flex;gap:12px;align-items:flex-start;}
+.dr-head h3{margin:0;font-size:15.5px;font-weight:600;line-height:1.3;}
+.dr-head .cd{font-family:var(--mono);font-size:11.5px;color:var(--coco);margin-top:3px;}
+.dr-close{width:28px;height:28px;flex-shrink:0;margin-left:auto;border:none;border-radius:5px;
+  background:transparent;color:var(--muted);font-size:16px;}
+.dr-close:hover{background:var(--surface-2);color:var(--ink);}
+.dr-body{flex:1;overflow-y:auto;padding:4px 18px 24px;}
+.dr-sec{padding:15px 0;border-bottom:1px solid var(--rule-soft);}
+.dr-sec:last-child{border-bottom:none;}
+.dr-sec h4{margin:0 0 9px;font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);}
+.dr-i{display:flex;align-items:baseline;gap:8px;font-size:12.5px;padding:4px 0;border-bottom:1px solid var(--rule-soft);}
+.dr-i .k{color:var(--muted);}
+.dr-i .v{margin-left:auto;font-family:var(--mono);font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;}
+.dr-i .v.w{color:var(--warn);} .dr-i .v.c{color:var(--crit);}
+.dr-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;}
+.dr-src{font-size:11px;color:var(--muted);margin-top:8px;}
+
+.modal{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;padding:20px;
+  background:rgba(16,32,45,.48);}
+.modal.on{display:flex;}
+.mbox{background:var(--surface);border-radius:10px;width:100%;max-width:480px;max-height:86vh;
+  display:flex;flex-direction:column;box-shadow:var(--shadow-lg);overflow:hidden;}
+.mbox.wide{max-width:620px;}
+.mhead{padding:18px 20px 14px;border-bottom:1px solid var(--rule);}
+.mhead h3{margin:0;font-size:17px;font-weight:600;}
+.mhead .s{font-size:12.5px;color:var(--muted);margin-top:3px;}
+.mbody{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:14px;}
+.mrow{display:flex;align-items:baseline;gap:10px;font-size:13.5px;padding:7px 0;border-bottom:1px solid var(--rule-soft);}
+.mrow .k{color:var(--ink-2);}
+.mrow .v{margin-left:auto;font-family:var(--mono);font-weight:600;font-size:14.5px;color:var(--ink);font-variant-numeric:tabular-nums;}
+.notice{border-radius:6px;padding:11px 13px;font-size:12.5px;display:flex;gap:9px;align-items:flex-start;line-height:1.5;}
+.n-warn{background:var(--warn-soft);color:var(--warn);}
+.n-acc{background:var(--coco-soft);color:var(--coco);}
+.n-add{background:var(--add-soft);color:var(--add);}
+.mfoot{padding:14px 20px;border-top:1px solid var(--rule);display:flex;gap:10px;justify-content:flex-end;align-items:center;}
+.mfoot .l{margin-right:auto;font-size:12px;color:var(--muted);}
+.mchk{display:flex;align-items:flex-start;gap:9px;font-size:12.5px;padding:8px 0;}
+.toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(10px);z-index:80;
+  background:var(--bar);color:#fff;padding:10px 16px;border-radius:6px;font-size:13px;
+  box-shadow:var(--shadow-lg);opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;}}
+@media (max-width:900px){
+  .rail{position:absolute;left:0;top:0;bottom:52px;z-index:30;box-shadow:var(--shadow-lg);}
+  .rail.collapsed{width:46px;}
+  .tb-status .seg:nth-child(n+2){display:none;}
+  .srch input{width:160px;}
+}
+</style>
+</head>
+<body>
+<!-- ══ LOGIN (P-01) — identical shape to every other persona's login: one identifier field, one
+     password field, one primary Sign in, SSO as a secondary button below an "or" divider. No role
+     picker here — in the real product, COCO ASM/RBH/VH are three separate accounts that each land
+     on their own screen automatically, the same way an ASM's login never asks them to pick a role.
+     The "Viewing as" control that lets THIS prototype preview all three lives on Home, clearly
+     marked as a demo-only control (P-02) — see below, not here. ══ -->
+<div id="login">
+  <div class="lg-shell">
+    <div>
+      <div class="lg-logo">VECV<span>plan</span><span class="tag">COCO</span></div>
+      <div class="lg-cycle"><span>S&amp;OP-1A</span><b>Jul 2026</b><span>· ASM review closes</span><b>15 Jul, 23:59 IST</b></div>
+    </div>
+    <form class="lg-card" onsubmit="doLogin(event)">
+      <h1>Sign in</h1>
+      <p class="sub">COCO code or work email.</p>
+      <div class="fld" id="fId">
+        <label for="lgId">COCO code or email</label>
+        <input id="lgId" type="text" value="COCO-ASM-KAPOOR" autocomplete="username" oninput="clearErr()">
+        <span class="err">⚠ We don't recognise that COCO code.</span>
+      </div>
+      <div class="fld" id="fPw">
+        <label for="lgPw">Password <button type="button" class="link hint" onclick="toast('A reset link would go to the address on file')">Forgot password?</button></label>
+        <input id="lgPw" type="password" value="demo-password" autocomplete="current-password" oninput="clearErr()">
+        <span class="err">⚠ Incorrect password. 4 attempts left before the account locks.</span>
+      </div>
+      <button type="submit" class="btn btn-coco" style="height:38px;justify-content:center;font-size:14px;">Sign in</button>
+      <div class="lg-or">or</div>
+      <button type="button" class="btn btn-ghost" style="height:38px;justify-content:center;font-size:13.5px;" onclick="doLogin(event)">Sign in with VECVNet SSO</button>
+      <p class="lg-foot">Trouble signing in? Contact Sales Planning support</p>
+    </form>
+    <p class="lg-note">Prototype · your role and outlets come from your account · P-01, same login screen as every persona · private dealer network? <a href="VECVplan-ASM-Prototype-v1_3.html">Go to the ASM / Dealer workbook →</a></p>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+  <div class="topbar">
+    <div class="tb-logo">VECV<span>plan</span><span class="tag">COCO</span></div>
+    <nav class="tb-nav">
+      <button id="nvHome" class="on" onclick="go('home')">Home</button>
+      <button id="nvWb" onclick="go('wb')">Indent workbook</button>
+
+    </nav>
+    <div class="tb-status">
+      <span class="seg"><span id="cycleLabel">S&amp;OP-1A</span> · <b>Jul 2026</b></span>
+      <span class="seg" id="cycleCtl" style="display:none"><button class="link" onclick="setCycle('1A')">1A</button> / <button class="link" onclick="setCycle('1B')">1B revision</button></span>
+      <span class="seg">Closes in <span class="warnv" id="tbClock">—</span></span>
+      <span class="seg" id="tbState">Status: <b>—</b></span>
+    </div>
+    <div class="tb-right">
+      <button class="tb-icon" onclick="toggleTheme()" title="Light / dark">◐</button>
+      <div class="tb-user">
+        <div class="tb-av" id="tbAv">RK</div>
+        <div><div class="nm" id="tbName">R. Kapoor</div><div class="rl" id="tbRole">COCO ASM · North</div></div>
+      </div>
+      <button class="tb-icon" onclick="signOut()" title="Sign out">⎋</button>
+    </div>
+  </div>
+
+  <div class="page">
+    <!-- HOME + SUMMARY -->
+    <div class="view on" id="vHome">
+      <div class="wb"><div id="homeRailMount"></div><div class="home-scroll"><div class="home-inner">
+        <div class="proto-strip">
+          <span class="pl">Demo only — not part of the product</span>
+          <label for="roleSel">Preview as</label>
+          <select id="roleSel" onchange="setRole(this.value)">
+            <option value="coco_asm">COCO ASM — R. Kapoor (North)</option>
+            <option value="coco_rbh">COCO RBH — V. Nair (North)</option>
+            <option value="coco_vh">COCO VH — K. Joshi (LMD, national)</option>
+          </select>
+          <span class="np">Lets this walkthrough show all three roles from one sign-in. A real account only ever sees its own — P-02.</span>
+          <a class="backlink" href="VECVplan-ASM-Prototype-v1_3.html">Private dealer network (ASM) →</a>
+        </div>
+
+        <div class="home-head">
+          <div><h1 id="hcGreet">Good afternoon, R. Kapoor</h1>
+            <div class="sub" id="hcSub">July 2026 · North · LMD · 2 outlets</div></div>
+          <div class="right">
+            <button class="btn btn-ghost" onclick="openExport()">Export</button>
+            <button class="btn btn-coco" onclick="go('wb')">Continue to indent workbook →</button>
+          </div>
+        </div>
+
+        <div class="zone"><span class="zl">Indent progress</span><span class="zr"></span>
+          <span class="zn" id="zProg"></span></div>
+        <div class="cards">
+          <div class="card lead">
+            <h3 id="hcTitle">COCO indent — LMD</h3>
+            <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;">
+              <div><div class="big" id="hcEntered">—</div><div class="cap" id="hcEnteredCap">of — lines with an entry</div></div>
+              <div><div class="big" id="hcUnits">—</div><div class="cap">units for July, total</div></div>
+              <div style="margin-left:auto"><span class="pill" id="hcStatus">In progress</span></div>
+            </div>
+            <div class="meter"><i id="hcMeter" style="width:0%"></i></div>
+            <div class="cap" id="hcCutCap">Auto-submits at <b>15 Jul, 23:59 IST</b>. Whatever is unresolved then goes up as-is.</div>
+            <div class="acts">
+              <button class="btn btn-coco btn-sm" onclick="go('wb')">Open indent workbook</button>
+              <button class="btn btn-ghost btn-sm" onclick="saveCoco()">Save</button>
+            </div>
+          </div>
+          <div class="card attn" style="cursor:pointer" onclick="toggleAttn()">
+            <h3 id="hcAttnTitle">Lines needing attention</h3>
+            <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap">
+              <div><div class="big" id="hcAttnCount" style="color:var(--warn)">—</div><div class="cap">line<span id="hcAttnCountCap"></span> flagged</div></div>
+            </div>
+            <div class="cap" id="hcAttnCap" style="color:var(--muted)"></div>
+            <div class="acts"><button class="btn btn-ghost btn-sm" id="attnBtn" onclick="event.stopPropagation();toggleAttn()">▸ Review flagged lines</button></div>
+          </div>
+          <div class="card">
+            <h3 id="hcGroupsTitle">Your outlets</h3>
+            <div id="hcGroups"></div>
+          </div>
+        </div>
+
+        <div id="attnPanel" style="display:none"></div>
+
+        <div class="zone"><span class="zl">Summary</span><span class="zr"></span>
+          <span class="zn">Reflects the filters you set in the indent workbook</span></div>
+        <div class="cards">
+          <div class="card">
+            <h3>Indent vs last cycle</h3>
+            <div style="display:flex;align-items:flex-end;gap:16px;">
+              <div><div class="big sm" id="kIndent">—</div><div class="cap">July indent</div></div>
+              <div><div class="big sm" id="kPrev">—</div><div class="cap">planned last cycle</div></div>
+            </div>
+            <div class="cap"><span class="pill" id="kPrevPill">—</span> vs last cycle's plan for July</div>
+          </div>
+          <div class="card">
+            <h3>M1 indent vs ABP target</h3>
+            <div style="display:flex;align-items:flex-end;gap:16px;">
+              <div><div class="big sm" id="kAbpPct">—</div><div class="cap" id="kAbpCap">of ABP target</div></div>
+            </div>
+            <div class="meter" style="margin-top:2px"><i id="kAbpMeter" style="width:0%"></i></div>
+            <div class="cap" style="color:var(--muted)">ABP target split across FERTs by outlet share · same light integration as the private-dealer screens (#24-lite).</div>
+          </div>
+          <div class="card" style="cursor:pointer" onclick="toggleAcc()">
+            <h3 id="hcAccTitle">Indent accuracy</h3>
+            <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;">
+              <div><div class="big sm" id="kAcc">—</div><div class="cap">avg · 4-cycle</div></div>
+              <div><div class="big sm" id="kBias">—</div><div class="cap" id="kBiasCap">bias</div></div>
+              <div style="margin-left:auto"><span class="pill" id="kAccPill">—</span></div>
+            </div>
+            <div style="max-width:260px"><div class="spark" id="kSpark"></div></div>
+            <div class="cap" style="color:var(--muted)">Tolerance ±10% — same figure that gates an override reason in the grid.</div>
+            <div class="acts"><button class="btn btn-ghost btn-sm" id="accBtn" onclick="event.stopPropagation();toggleAcc()">▸ View report card</button></div>
+          </div>
+        </div>
+
+        <div id="accPanel" style="display:none"></div>
+
+        <div class="zone"><span class="zl">Inventory &amp; mix</span><span class="zr"></span><span class="zn">Live COCO stock aging and July vehicle mix</span></div>
+        <div class="cards" id="homeInventory"></div>
+
+        <div class="zone"><span class="zl">Rollup</span><span class="zr"></span></div>
+        <div class="card" style="padding:12px 14px 10px;gap:10px">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <span style="font-size:11.5px;font-weight:600;color:var(--ink-2)">Group by</span>
+            <div class="seg-ctl" id="rollGb"></div>
+            <span style="margin-left:auto;font-size:11.5px;color:var(--muted)" id="rollNote"></span>
+          </div>
+          <div style="overflow-x:auto"><table class="sumtbl" id="rollTbl"></table></div>
+        </div>
+      </div></div></div>
+    </div>
+
+    <!-- WORKBOOK -->
+    <div class="view" id="vWb">
+      <div class="wb">
+        <aside class="rail" id="rail">
+          <div class="rail-head">
+            <span class="t">Filters</span><span class="cnt" id="railCnt" style="display:none">0</span>
+            <button class="rail-toggle" onclick="toggleRail()" id="railBtn" title="Collapse">‹</button>
+          </div>
+          <div class="rail-stub" onclick="toggleRail()"><span class="sc" id="stubCnt" style="display:none">0</span><span class="sb">Filters</span></div>
+          <div class="rail-body" id="railBody"></div>
+          <div class="rail-foot">
+            <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" onclick="clearAll()">Clear all</button>
+            <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" onclick="saveView()">Save view</button>
+          </div>
+        </aside>
+
+        <div class="wb-main">
+          <div class="strip">
+            <span class="tier-badge" id="tierBadge">LMD</span>
+            <div class="srch"><span class="ic">⌕</span>
+              <input id="qBox" type="text" placeholder="Search any column" oninput="setQ(this.value)"></div>
+            <div class="aft" id="aft"></div>
+            <div class="right">
+              <span style="font-size:11px;color:var(--muted)">Group by</span>
+              <div class="seg-ctl" id="gbCtl"></div>
+              <span class="sep"></span>
+              <span class="rescount" id="resCount"></span>
+              <span class="sep"></span>
+              <div class="seg-ctl">
+                <button id="dnComf" class="on" onclick="setDensity(0)">Comfortable</button>
+                <button id="dnComp" onclick="setDensity(1)">Compact</button>
+              </div>
+              <div style="position:relative">
+                <button class="btn btn-ghost btn-sm" id="colBtn" onclick="toggleColPop(event)">☷ Columns</button>
+                <div class="colpop" id="colPop" style="display:none" onclick="event.stopPropagation()"></div>
+              </div>
+              <button class="btn btn-ghost btn-sm" id="addLineBtn" style="display:none" onclick="openAddLine()">+ Add line</button>
+              <button class="btn btn-ghost btn-sm" id="importBtn" style="display:none" onclick="document.getElementById('vhImportFile').click()">Import</button>
+              <input id="vhImportFile" type="file" accept=".csv,text/csv" style="display:none" onchange="importVhCsv(this.files[0]);this.value=''">
+              <button class="btn btn-ghost btn-sm" onclick="openExport()">Export</button>
+            </div>
+          </div>
+          <div id="cycleCompare" style="display:none"></div>
+          <div class="grid-wrap" id="gridWrap">
+            <table class="grid" id="grid"><thead id="gHead"></thead><tbody id="gBody"></tbody></table>
+            <div class="empty-state" id="gEmpty" style="display:none">
+              <div class="t">No lines match these filters</div>
+              <div>Clear a filter to bring lines back — nothing in the network is touched.</div>
+              <div style="margin-top:12px"><button class="btn btn-ghost btn-sm" onclick="clearAll()">Clear all filters</button></div>
+            </div>
+          </div>
+          <div class="commit" id="commit"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Dedicated Summary page: uses the same compact visual language as Home, but keeps the
+         management roll-up and its CSV action available as a distinct working view. -->
+    <div class="view" id="vSummary">
+      <div class="home-scroll"><div class="home-inner">
+        <div class="home-head"><div><h1>Summary</h1><div class="sub" id="sumScope">COCO network summary</div></div>
+          <div class="right"><button class="btn btn-ghost" onclick="openSummaryExport()">Export CSV</button><button class="btn btn-coco" onclick="go('wb')">Open workbook →</button></div></div>
+        <div class="cards" id="sumCards"></div>
+        <div class="zone"><span class="zl">Inventory &amp; mix</span><span class="zr"></span><span class="zn">Live COCO stock aging and July vehicle mix</span></div>
+        <div class="cards" id="sumInventory"></div>
+        <div class="zone"><span class="zl">Filtered rollup</span><span class="zr"></span><span class="zn" id="sumNote"></span></div>
+        <div class="card" style="padding:12px 14px 10px;gap:10px"><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span style="font-size:11.5px;font-weight:600;color:var(--ink-2)">Group by</span><div class="seg-ctl" id="sumGb"></div></div>
+          <div style="overflow-x:auto"><table class="sumtbl" id="sumRollTbl"></table></div></div>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<div class="scrim" id="scrim" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer" aria-label="Line detail"></aside>
+
+<div class="modal" id="review"><div class="mbox">
+  <div class="mhead"><h3>Review &amp; submit</h3><div class="s" id="revSub"></div></div>
+  <div class="mbody" id="reviewBody"></div>
+  <div class="mfoot"><button class="btn btn-ghost" onclick="closeM('review')">Cancel</button>
+    <button class="btn btn-coco" id="revSubmitBtn" onclick="saveCoco()">Save</button></div>
+</div></div>
+
+<div class="modal" id="addLineM"><div class="mbox">
+  <div class="mhead"><h3>Add line</h3><div class="s" id="addLineSub"></div></div>
+  <div class="mbody">
+    <div class="notice n-add"><span>+</span><div id="addLineNote"></div></div>
+    <div id="addLineList" style="display:flex;flex-direction:column;gap:2px;max-height:320px;overflow-y:auto"></div>
+  </div>
+  <div class="mfoot"><span class="l" id="addLineCount">0 selected</span>
+    <button class="btn btn-ghost" onclick="closeM('addLineM')">Cancel</button>
+    <button class="btn btn-coco" onclick="confirmAddLine()">Add selected</button></div>
+</div></div>
+
+<div class="modal" id="expM"><div class="mbox wide">
+  <div class="mhead"><h3>Export</h3><div class="s" id="expSub"></div></div>
+  <div class="mbody">
+    <div class="notice n-acc"><span>ⓘ</span><div>In the live product this downloads a file. Here it's on screen so you can check the shape — select all and copy.</div></div>
+    <textarea class="csvbox" id="csvBox" readonly onclick="this.select()" style="width:100%;height:170px;border:1px solid var(--rule);border-radius:6px;padding:9px;font-family:var(--mono);font-size:11px;background:var(--surface-2);color:var(--ink-2);resize:none;white-space:pre"></textarea>
+  </div>
+  <div class="mfoot"><button class="btn btn-ghost" onclick="closeM('expM')">Close</button>
+    <button class="btn btn-coco" onclick="copyCsv()">Copy to clipboard</button></div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   VECVplan — COCO Workbench, v2.
+   Rebuilt against the pattern handoff v3 and the ASM Prototype v1.3,
+   replacing VECVplan-COCO-Workbench-Phase0.html and the COCO screen
+   inside VECVplan-Demand-Planning-Workbench-Phase0.html.
+
+   WHY A SEPARATE FILE FROM ASM (not a persona switch inside it):
+   COCO ASM/RBH/VH are a fully separate chain of command — company-owned
+   outlets, not private dealers — with their own login, their own data
+   (COCO_OUTLETS, not DEALERS) and their own escalation path (ASM → RBH →
+   VH, never touching ASM/RSM/VH). An ASM is never a COCO ASM. What IS
+   shared is the pattern language: this file reuses P-01 through P-22
+   verbatim from ASM v1.3 — same shell, same band mechanics, same
+   exception list, same click-through explanation, same visual system —
+   because COCO ASM's job (moderate several submitters at a consolidated
+   level) is structurally identical to ASM's, just on a different roster.
+
+   WHAT'S NEW HERE THAT ASM DIDN'T NEED — a 3-LEVEL chain, not 1:
+   ASM has one moderation layer (dealers → ASM). COCO has three: outlets
+   → ASM → RBH → VH, each layer consolidating the one below it exactly
+   per P-20 ("one moderator sets one number for the group they oversee,
+   each submitter's own figure is read-only reference in the same period
+   shape as entry"). The three levels share one generic engine below —
+   GROUPS is whatever this role's immediate submitters are (outlets for
+   ASM, ASMs for RBH, RBHs for VH) — switched by the "Viewing as" control
+   (P-02), same mechanism ASM v1.3 already has for previewing personas.
+
+   DIVERGENCE NOTE (flagging per the handoff's own process, not silently
+   deciding it): COCO ASM has no independent lower-level submitter — there
+   is no separate "outlet" login the way a franchise Dealer is independent
+   of the ASM. The old Phase 0 file's own workbook screen had ASM directly
+   entering/editing numbers (its "+Add FERT" button lived at the ASM level,
+   never at RBH/VH). So COCO ASM here edits PER OUTLET directly (P-09
+   spreadsheet entry on each outlet's own row) and the FERT row becomes a
+   computed, read-only rollup — the inverse of ASM's shape, where the FERT
+   row was editable and the dealer rows were read-only reference. RBH and
+   VH both moderate the layer below them exactly like ASM (one consolidated
+   number, read-only reference rows underneath) since a ASM's consolidated
+   submission and an RBH's consolidated submission are both genuine "one
+   moderator, several submitters" situations. Whether COCO ASM should
+   instead enter ONE blended number across their outlets (ASM's shape,
+   unmodified) is still open — flagging it here as a real decision needed,
+   not deciding it quietly. Pattern: P-20. Persona: COCO ASM. Recommendation:
+   per-outlet entry, since outlets are physically distinct sites with their
+   own local demand and the old build's own "+Add FERT" behavior confirms
+   ASM originates lines rather than only moderating someone else's.
+
+   DATA — reused, not reinvented (P-19):
+   The LMD FERT catalogue (18 codes) below is copied verbatim from ASM
+   v1.3, which itself copied it from the Dealer Prototype v4.5, so all
+   three files agree on the product master. COCO_OUTLETS is copied from
+   the old COCO Workbench (Phase 0) file's own COCO_OUTLETS array.
+   FIX: that old file and its sibling VECVplan-Demand-Planning-Workbench-
+   Phase0.html (v9) both claimed to share one data source but had drifted —
+   FERT V5530TKR carries salesArea "IS" in one file and "Private" in the
+   other. Since salesArea isn't used anywhere in the COCO screens (COCO
+   outlets don't have a salesArea concept — that's an IB/IS/Private
+   classification for the private-dealer MTO screen), this file simply
+   doesn't carry that field, so the drift can't resurface here. Logged in
+   the P-19 parity notes delivered alongside this file.
+   currentIndent (a hardcoded static number in the old COCO_OUTLETS array)
+   is dropped in favour of a live-computed total, the same way every other
+   total in this file is computed rather than hardcoded — see the P-19 log.
+   REGION_RBH invents three names (West/South/East) the old data never
+   defined, since only North had a named RBH (V. Nair) — the same kind of
+   stated, consistent derivation ASM used for Capital Trucks, not invented
+   from nothing: flagged here and in the parity notes as illustrative,
+   pending real names.
+
+   Confirmed against the pattern doc before this build (2026-09-12):
+   · Reference layers (P-08 bands): outlet/ASM/RBH indent (whichever this
+     role's immediate layer is), last cycle, 3-month average, ABP target —
+     same four as ASM.
+   · Deviation band gating an override reason: ±10% — TOL, same constant.
+   · Reason capture: free text — same as ASM, pending D-04.
+   · Vertical scope: LMD only for all three COCO roles, per the old file's
+     confirmed access rule ("I should not have the access of any other
+     verticals... nothing should come into my template") — kept exactly,
+     so there's no vertical selector here, just a fixed LMD badge.
+   Pipeline columns stay excluded pending D-06, same as ASM and Dealer. */
+
+const TOL=10;
+
+/* FERT catalogue — identical to ASM v1.3's LMD_RAW (see that file for the tuple legend). HD is not
+   carried here: every COCO role in scope is LMD-only (vertScope, confirmed above), so HD would never
+   be reachable and including it would just be dead data — a P-19 exclusion, logged as such, not a
+   silent drop. */
+const LMD_RAW=[
+["V4130CAF","Pro 2110 H HSD 20FT BSVI NGB AC","Pro 2110","21T","Diesel","AC","R","5–16T",4,2,1,1,4,1,84,95,24,23,23,22,88,82],
+["V4030DZL","Pro 2110 L CBC 22FT BSVI NGB AC","Pro 2110","21T","Diesel","AC","R","5–16T",17,0,0,0,17,0,71,75,19,18,18,18,70,65],
+["V4131SLP","Pro 2110 M SLP 24FT BSVI NGB","Pro 2110","21T","Diesel","NonAC","S","5–16T",3,1,0,0,3,2,38,40,10,10,9,9,36,34],
+["V5530TKR","Pro 2059XP Plus F HSD EW 14FT BSVI AC","Pro 2059XP","14T","Diesel","AC","R","5–16T",1,0,1,0,1,0,42,38,9,8,8,8,35,32],
+["V5531CBC","Pro 2059XP E CBC 14FT BSVI AC POR","Pro 2059XP","14T","Diesel","AC","R","5–16T",2,1,0,0,2,1,36,34,9,8,8,7,32,30],
+["V5532SLP","Pro 2059XP M SLP CBC BSVI SRSS WTL","Pro 2059XP","14T","Diesel","NonAC","S","5–16T",0,2,1,0,3,0,18,20,5,4,4,4,17,16],
+["V4025EXP","Pro 2095XPT D FBT BSVI LY PRM","Pro 2095XPT","16T","Diesel","NonAC","S","5–16T",3,1,1,0,5,2,30,26,8,8,7,7,28,26],
+["V3515SUB","Pro 2095XP F HSD 16FT BSVI AC NGB","Pro 2095XP","16T","Diesel","AC","R","5–16T",6,1,1,0,8,1,36,42,10,10,9,9,38,35],
+["V3516WTK","Pro 2095 F 16FT WTANK BSVI AC NGB 5S","Pro 2095XP","16T","Diesel","AC","S","5–16T",1,0,0,0,1,0,14,16,4,4,3,3,13,12],
+["V3517MSC","Pro 2095XP G MSC BSVI AC 5S POR PRM","Pro 2095XP","16T","Diesel","AC","D","5–16T",0,1,1,1,3,0,6,9,2,1,1,1,6,5],
+["V3518CNG","Pro 2095XP F CNG 16FT BSVI AC NGB","Pro 2095XP","16T","CNG","AC","S","5–16T",2,0,0,0,2,3,22,18,6,5,5,5,21,20],
+["V2875CBC","Pro 2075 D CBC 12FT AB BSVI AC DW 5S","Pro 2075","18T","Diesel","AC","R","5–16T",5,2,0,0,7,1,48,52,13,12,12,12,46,44],
+["V2680LHD","Pro 2080 G DSD 18FT BSVI DW BASE","Pro 2080","20T","Diesel","NonAC","R","5–16T",4,1,0,0,5,2,40,38,10,10,10,9,38,36],
+["V2490CBC","Pro 2049 D BSVI 14FT CBC DW PRM","Pro 2049","12T","Diesel","NonAC","R","5–16T",3,1,0,0,4,1,44,46,12,11,11,11,42,40],
+["V3015MSL","Pro 3015 M SLP CBC BSVI TY PRM","Pro 3015","15T","Diesel","NonAC","R","5–16T",5,0,0,0,5,2,34,32,9,8,8,8,31,30],
+["V1095XPC","Pro 1095XP H CBC BSVI AB PS TY 4.7","Pro 1095XP","9T","Diesel","AC","S","Sub-5T",3,1,0,0,4,1,26,24,7,6,6,6,24,22],
+["V1075HCB","Pro 1075 H CBC RHD BSVI AB PRM TY","Pro 1075","7.5T","Diesel","NonAC","R","Sub-5T",2,1,0,0,3,0,28,26,7,7,6,6,25,24],
+["V1055C1C","Pro 1055 C1 CBC BSVI 4.7 HB TY PRM","Pro 1055","5.5T","Diesel","NonAC","R","Sub-5T",6,1,0,0,7,2,36,34,10,9,9,8,33,31],
+];
+const SEGNAME={R:'Runner',S:'Repeater',D:'Stranger'};
+
+/* COCO_OUTLETS — copied from the old COCO Workbench (Phase 0) file's own array, currentIndent
+   dropped (see header note above). abpTarget is kept: it is COCO's real light-ABP integration
+   figure and is used exactly as ASM used its dealer groups' abpTarget — as the anchor a per-outlet
+   scale factor is derived from, not as a per-FERT target directly (see OUTLET_FACTOR below). */
+const COCO_OUTLETS=[
+  {code:"COCO-DEL-01",name:"VECV Delhi Hub",loc:"Delhi",state:"Delhi",region:"North",asm:"R. Kapoor",abpTarget:25},
+  {code:"COCO-CHD-01",name:"VECV Chandigarh Yard",loc:"Chandigarh",state:"Punjab",region:"North",asm:"R. Kapoor",abpTarget:10},
+  {code:"COCO-JAI-01",name:"VECV Jaipur Hub",loc:"Jaipur",state:"Rajasthan",region:"North",asm:"A. Verma",abpTarget:14},
+  {code:"COCO-LKO-01",name:"VECV Lucknow Yard",loc:"Lucknow",state:"Uttar Pradesh",region:"North",asm:"N. Singh",abpTarget:12},
+  {code:"COCO-MUM-01",name:"VECV Mumbai Central",loc:"Mumbai",state:"Maharashtra",region:"West",asm:"D. Sharma",abpTarget:20},
+  {code:"COCO-PUN-01",name:"VECV Pune Yard",loc:"Pune",state:"Maharashtra",region:"West",asm:"D. Sharma",abpTarget:11},
+  {code:"COCO-CHN-01",name:"VECV Chennai Yard",loc:"Chennai",state:"Tamil Nadu",region:"South",asm:"K. Iyer",abpTarget:15},
+  {code:"COCO-KOL-01",name:"VECV Kolkata Hub",loc:"Kolkata",state:"West Bengal",region:"East",asm:"S. Das",abpTarget:13},
+];
+/* Only "North" (V. Nair) was named in the old data. West/South/East RBH names below are invented,
+   the same kind of stated derivation ASM used for Capital Trucks — not real names, flagged in the
+   delivered parity notes as illustrative pending the actual regional business heads. */
+const REGION_RBH={North:"V. Nair",West:"P. Rane",South:"L. Menon",East:"B. Ghosh"};
+/* per-outlet scale factor against Delhi (the largest outlet, factor 1) — same derivation ASM used
+   for Capital Trucks vs Sharma Motors (a stated ratio of ABP targets), applied per-FERT uniformly. */
+const BASE_ABP=25;
+const OUTLET_FACTOR={}; COCO_OUTLETS.forEach(o=>OUTLET_FACTOR[o.code]=o.abpTarget/BASE_ABP);
+function outletOf(code){ return COCO_OUTLETS.find(o=>o.code===code); }
+
+/* ════════ ROLE CONFIG — the one place the three levels differ ════════ */
+const LEVEL_CFG={
+  coco_asm:{label:'COCO ASM',person:'R. Kapoor',av:'RK',roleLine:'COCO ASM · North · LMD',
+    groupNoun:'outlet',groupNounCap:'Outlet',editScope:'consolidated',
+    baselineNoun:'the outlet recorded',baselineNounPl:'outlets recorded',
+    cutoff:'15 Jul, 23:59 IST',nextName:'V. Nair, COCO RBH North',canAddLine:true},
+  coco_rbh:{label:'COCO RBH',person:'V. Nair',av:'VN',roleLine:'COCO RBH · North · LMD',
+    groupNoun:'ASM',groupNounCap:'ASM',editScope:'consolidated',
+    baselineNoun:'the ASMs consolidated',baselineNounPl:'ASMs consolidated',
+    cutoff:'16 Jul, 23:59 IST',nextName:'K. Joshi, COCO VH LMD',canAddLine:true},
+  coco_vh:{label:'COCO VH',person:'K. Joshi',av:'KJ',roleLine:'COCO VH · LMD · National',
+    groupNoun:'RBH',groupNounCap:'RBH',editScope:'consolidated',
+    baselineNoun:'the RBHs consolidated',baselineNounPl:'RBHs consolidated',
+    cutoff:'17 Jul, 23:59 IST',nextName:'Shared VH (LMD) — merges with the private dealer network',canAddLine:true},
+};
+let role='coco_asm', activeCycle='1A';
+const LC=()=>LEVEL_CFG[role];
+
+/* GROUPS — this role's immediate submitters. ASM's groups are literally single outlets (1 outlet
+   each); RBH's groups are ASMs (each summing that ASM's own outlets); VH's groups are RBH regions
+   (each summing every outlet in that region). Same shape at every level: {code,name,loc,outlets[]} —
+   only the outlets list changes, so one aggregation function (see buildFerts) covers all three. */
+function buildGroups(){
+  if(role==='coco_asm'){
+    return COCO_OUTLETS.filter(o=>o.asm==='R. Kapoor')
+      .map(o=>({code:o.code,name:o.name,loc:o.loc+', '+o.state,outlets:[o.code]}));
+  }
+  if(role==='coco_rbh'){
+    const mine=COCO_OUTLETS.filter(o=>o.region==='North');
+    const asms=[...new Set(mine.map(o=>o.asm))];
+    return asms.map(nm=>{
+      const outs=mine.filter(o=>o.asm===nm);
+      return {code:nm.replace(/\W+/g,'-'),name:nm,loc:outs.map(o=>o.loc).join(' + '),outlets:outs.map(o=>o.code)};
+    });
+  }
+  // coco_vh
+  const regions=[...new Set(COCO_OUTLETS.map(o=>o.region))];
+  return regions.map(rg=>{
+    const outs=COCO_OUTLETS.filter(o=>o.region===rg);
+    const nAsm=new Set(outs.map(o=>o.asm)).size;
+    return {code:rg.toLowerCase(),name:REGION_RBH[rg]+' — '+rg,
+      loc:outs.length+' outlet'+(outs.length===1?'':'s')+' · '+nAsm+' ASM'+(nAsm===1?'':'s'),
+      outlets:outs.map(o=>o.code)};
+  });
+}
+let GROUPS=buildGroups();
+
+let uid=0;
+function mkBase(r){
+  const o3=r[14]!==undefined?r[14]:0;
+  return {i:uid++, code:r[0], desc:r[1], mpg:r[2], ton:r[3], fuel:r[4], ac:r[5], seg:r[6], eseg:SEGNAME[r[6]], sv:r[7], vert:'lmd',
+    s60:r[8]||0,s90:r[9]||0,s180:r[10]||0,sOver:r[11]||0,openFg:r[12]||0,openPO:r[13]||0,
+    cocoDealer:r[8]||0,cocoActual:r[12]||0,cocoVirtual:r[13]||0,cocoNational:(r[8]||0)+(r[9]||0)+(r[10]||0)+(r[11]||0),
+    o3, o6:Math.round(o3*2.05), o12:Math.round(o3*4.1), oly:Math.round(o3*3.6),
+    r3:Math.round(o3*0.42), r6:Math.round(o3*0.86), r12:Math.round(o3*1.7), rly:Math.round(o3*1.5),
+    prevRaw:r[15]||0, raw:[r[16]||0,r[17]||0,r[18]||0,r[19]||0,r[20]||0,r[21]||0]};
+}
+/* build the FERT set for the CURRENT role: each FERT gets one entry per GROUP, that group's
+   "submitted" derived by summing its outlets' raw quantities scaled by OUTLET_FACTOR — the same
+   scale-a-shared-catalogue derivation ASM used for its two dealer groups, just fanned out per
+   outlet. Every group also gets its own override array: at the group edit-scope (ASM) that's the
+   real, live-edited number; at the consolidated edit-scope (RBH/VH) it stays unused/null and the
+   group is pure read-only reference (P-20), with the FERT-level f.ovr doing the real editing. */
+let D=[];
+let hiddenFerts=new Set(); // Available for manual addition at every COCO level.
+function buildFerts(){
+  hiddenFerts=new Set(['V3517MSC','V3518CNG','V1055C1C']);
+  D=LMD_RAW.map(r=>{
+    const b=mkBase(r);
+    b.groups=GROUPS.map(g=>{
+      const submitted=[0,1,2,3,4,5].map(c=>Math.round(g.outlets.reduce((a,oc)=>a+b.raw[c]*OUTLET_FACTOR[oc],0)));
+      const prevSubmitted=Math.round(g.outlets.reduce((a,oc)=>a+b.prevRaw*OUTLET_FACTOR[oc],0));
+      return {code:g.code,name:g.name,loc:g.loc,submitted,prevSubmitted,ovr:[null,null,null,null,null,null]};
+    });
+    b.ovr=[null,null,null,null,null,null]; b.reason='';
+    b.isAdded=false;
+    return b;
+  });
+}
+buildFerts();
+
+/* ── generic value accessors — one set covers all three roles ── */
+function groupV(f,gi,c){
+  const g=f.groups[gi];
+  if(LC().editScope==='group') return g.ovr[c]!==null?g.ovr[c]:g.submitted[c];
+  return g.submitted[c];
+}
+function groupSubmittedTotal(f,gi){ return f.groups[gi].submitted.reduce((a,b)=>a+b,0); }
+function groupCurTotal(f,gi){ return [0,1,2,3,4,5].reduce((a,c)=>a+groupV(f,gi,c),0); }
+function baselineV(f,c){ return f.groups.reduce((a,g)=>a+g.submitted[c],0); }
+function baselineJul(f){ if(f._bj!==undefined)return f._bj; return f._bj=baselineV(f,0)+baselineV(f,1)+baselineV(f,2)+baselineV(f,3); }
+function consolidatedFromGroups(f,c){ return f.groups.reduce((a,g,gi)=>a+groupV(f,gi,c),0); }
+function clusterV(f,c){
+  if(LC().editScope==='group') return consolidatedFromGroups(f,c);
+  return f.ovr[c]!==null ? f.ovr[c] : baselineV(f,c);
+}
+function jul(f){ return clusterV(f,0)+clusterV(f,1)+clusterV(f,2)+clusterV(f,3); }
+function gTot(f){ return jul(f)+clusterV(f,4)+clusterV(f,5); }
+const stockTot=d=>d.s60+d.s90+d.s180+d.sOver;
+function hasEntry(f){ return LC().editScope==='group'
+  ? f.groups.some((g,gi)=>groupV(f,gi,0)>0||groupV(f,gi,1)>0||groupV(f,gi,2)>0||groupV(f,gi,3)>0||groupV(f,gi,4)>0||groupV(f,gi,5)>0)
+  : jul(f)>0||clusterV(f,4)>0||clusterV(f,5)>0; }
+
+/* 3-month average / ABP target — same deterministic seeded-jitter derivation as ASM v1.3, keyed off
+   this FERT's own baseline at the CURRENT role's scope, so switching "Viewing as" naturally rescales
+   both bands to the layer being viewed, with no separate per-role table to keep in sync. */
+function threeMoAvg(f){
+  const idx=LMD_RAW.findIndex(r=>r[0]===f.code);
+  const base=baselineJul(f);
+  const isOutlier=idx%7===2;
+  const jitterPct=isOutlier?(idx%2===0?27:-24):(((idx*13)%9)-4);
+  return Math.max(1,Math.round(base*(1+jitterPct/100)));
+}
+function abpForFert(f){
+  const idx=LMD_RAW.findIndex(r=>r[0]===f.code);
+  const base=baselineJul(f);
+  const isOutlier=idx%5===3;
+  const jitterPct=isOutlier?(idx%2===0?-29:23):(((idx*7)%9)-4);
+  return Math.max(1,Math.round(base*(1+jitterPct/100)));
+}
+function fertFlag(f){
+  const actual=baselineJul(f);
+  const exp3=threeMoAvg(f), expAbp=abpForFert(f);
+  const dev3=exp3?Math.round((actual-exp3)/exp3*100):0;
+  const devAbp=expAbp?Math.round((actual-expAbp)/expAbp*100):0;
+  const mainDev=Math.abs(dev3)>=Math.abs(devAbp)?dev3:devAbp;
+  return {flagged:Math.abs(dev3)>TOL||Math.abs(devAbp)>TOL, dev3, devAbp, mainDev};
+}
+function untouchedFromBaseline(f){
+  if(LC().editScope==='group') return f.groups.every(g=>g.ovr.every(v=>v===null));
+  return f.ovr.every(v=>v===null);
+}
+function fertDeviationPct(f){
+  const base=baselineJul(f); if(!base)return 0;
+  return Math.round((jul(f)-base)/base*100);
+}
+function fertNeedsReason(f){ return !untouchedFromBaseline(f) && Math.abs(fertDeviationPct(f))>TOL && !f.reason; }
+function fertOpen(f){
+  const untouched=untouchedFromBaseline(f);
+  if(untouched&&fertFlag(f).flagged)return true;
+  if(!untouched&&fertNeedsReason(f))return true;
+  return false;
+}
+function fertHasException(f){ return fertOpen(f); }
+function fertFlagExplain(f){
+  const untouched=untouchedFromBaseline(f);
+  if(untouched){
+    const flag=fertFlag(f);
+    if(!flag.flagged)return null;
+    const useAbp=Math.abs(flag.devAbp)>Math.abs(flag.dev3);
+    const pct=useAbp?flag.devAbp:flag.dev3;
+    return `${Math.abs(pct)}% ${pct>0?'above':'below'} the ${useAbp?'ABP target':'3-month average'} — what ${LC().baselineNounPl} for this line, before any change`;
+  }
+  const pct=fertDeviationPct(f);
+  if(Math.abs(pct)<=TOL)return null;
+  return `The current figure is ${Math.abs(pct)}% ${pct>0?'above':'below'} what ${LC().baselineNounPl} for this line`;
+}
+
+/* ════════ FILTER MODEL (P-05) — "grp" stands in for outlet / ASM / RBH depending on role ════════ */
+const FKEYS=['fert','vert','grp','sv','seg','mpg','ton','fuel','ac','aging','flag'];
+let F={}; FKEYS.forEach(k=>F[k]=new Set());
+let q='', compact=false, railOpen=true, submittedFlag=false, savedViews=[];
+let sortKey=null, sortDir=-1;
+const FLAGS=[['noentry','No entry yet'],['exception','Needs your decision'],['added','Added this cycle']];
+const AGING_FLAGS=[['aged60','Stock over 60 days'],['aged90','Stock over 90 days'],['aged180','Stock over 180 days']];
+function matchFlag(f,fl){
+  if(fl==='noentry')return !hasEntry(f);
+  if(fl==='exception')return fertHasException(f);
+  if(fl==='added')return f.isAdded;
+  return true;
+}
+function matchAging(f,fl){
+  if(fl==='aged60')return f.s90+f.s180+f.sOver>0;
+  if(fl==='aged90')return f.s180+f.sOver>0;
+  if(fl==='aged180')return f.sOver>0;
+  return true;
+}
+const VALOF={fert:'code',vert:'vert',sv:'sv',seg:'seg',mpg:'mpg',ton:'ton',fuel:'fuel',ac:'ac'};
+function pass(f,skip){
+  if(hiddenFerts.has(f.code)&&!f.isAdded)return false;
+  for(const k of FKEYS){
+    if(k===skip)continue;
+    if(!F[k].size)continue;
+    if(k==='flag'||k==='aging')continue;
+    if(k==='grp'){ if(![...F.grp].every(gc=>f.groups.some(g=>g.code===gc&&groupSubmittedTotal(f,f.groups.indexOf(g))>0))) return false; continue; }
+    if(!F[k].has(f[VALOF[k]]))return false;
+  }
+  if((!skip||skip!=='flag')&&F.flag.size&&![...F.flag].every(fl=>matchFlag(f,fl)))return false;
+  if((!skip||skip!=='aging')&&F.aging.size&&![...F.aging].every(fl=>matchAging(f,fl)))return false;
+  if(q){const s=q.toLowerCase(); const all=[f.code,f.desc,f.vert,f.sv,f.eseg,f.mpg,f.ton,f.fuel,f.ac,f.s60,f.s90,f.s180,f.sOver,f.openFg,f.openPO,f.o3,f.o6,f.o12,f.oly,f.r3,f.r6,f.r12,f.rly,baselineJul(f),baselineV(f,4),baselineV(f,5),jul(f),clusterV(f,4),clusterV(f,5),gTot(f)].join(' ').toLowerCase(); if(!all.includes(s))return false;}
+  return true;
+}
+function optCount(key,val){
+  return D.filter(f=>{ if(!pass(f,key))return false;
+    if(key==='flag')return matchFlag(f,val);
+    if(key==='aging')return matchAging(f,val);
+    if(key==='grp')return f.groups.some((g,gi)=>g.code===val&&groupSubmittedTotal(f,gi)>0);
+    return f[VALOF[key]]===val; }).length;
+}
+const activeCount=()=>FKEYS.reduce((a,k)=>a+F[k].size,0);
+const SORTV={desc:f=>f.desc,code:f=>f.code,sv:f=>f.sv,mpg:f=>f.mpg,fuel:f=>f.fuel,ac:f=>f.ac,ton:f=>f.ton,
+  stock:stockTot,s60:f=>f.s60,s90:f=>f.s90,s180:f=>f.s180,sOver:f=>f.sOver,
+  openFg:f=>f.openFg,openPO:f=>f.openPO,
+  o3:f=>f.o3,o6:f=>f.o6,o12:f=>f.o12,oly:f=>f.oly, r3:f=>f.r3,r6:f=>f.r6,r12:f=>f.r12,rly:f=>f.rly,
+  prev:f=>f.groups.reduce((a,g)=>a+g.prevSubmitted,0), avg3:threeMoAvg, abp:abpForFert,
+  w0:f=>clusterV(f,0),w1:f=>clusterV(f,1),w2:f=>clusterV(f,2),w3:f=>clusterV(f,3),
+  jul:jul,aug:f=>clusterV(f,4),sep:f=>clusterV(f,5),tot:gTot};
+const SORTLBL={desc:'Vehicle',code:'FERT code',sv:'Sub-vertical',mpg:'MPG',fuel:'Fuel',ac:'Cabin',ton:'Tonnage',
+  stock:'Stock total',s60:'Stock <60D',s90:'Stock 60–90D',s180:'Stock 90–180D',sOver:'Stock >180D',
+  openFg:'Opening stock',openPO:'Live POs',
+  o3:'Offtake L3',o6:'Offtake L6',o12:'Offtake L12',oly:'Offtake LYSM',
+  r3:'Retail L3',r6:'Retail L6',r12:'Retail L12',rly:'Retail LYSM',
+  prev:'Last cycle',avg3:'3-month average',abp:'ABP target',
+  w0:'W1',w1:'W2',w2:'W3',w3:'W4',jul:'July',aug:'August',sep:'September',tot:'Total'};
+
+/* ════════ COLUMN BANDS (P-08) ════════ */
+const num=(v)=>v||v===0?v:'–';
+const BANDS=[
+  {k:'attr',label:'Vehicle attributes',summary:{k:'mpg',label:'MPG',get:f=>f.mpg,txt:true,raw:f=>f.mpg},cols:[
+    {k:'sv',label:'Sub-vertical',get:f=>f.sv,txt:true,raw:f=>f.sv},
+    {k:'mpg',label:'MPG',get:f=>f.mpg,txt:true,raw:f=>f.mpg},
+    {k:'ton',label:'Tonnage',get:f=>f.ton,txt:true,raw:f=>f.ton},
+    {k:'fuel',label:'Fuel',get:f=>f.fuel,txt:true,raw:f=>f.fuel},
+    {k:'ac',label:'AC / Non-AC',get:f=>f.ac==='AC'?'AC':'Non-AC',txt:true,raw:f=>f.ac==='AC'?'AC':'Non-AC'},
+    {k:'eseg',label:'Eicher segment',get:f=>f.eseg,txt:true,raw:f=>f.eseg}]},
+  {k:'cocoStock',label:'COCO stock reference',summary:{k:'cocoNational',label:'National',get:f=>num(f.cocoNational),raw:f=>f.cocoNational},cols:[
+    {k:'cocoDealer',label:'Dealer',get:f=>num(f.cocoDealer),raw:f=>f.cocoDealer},
+    {k:'cocoActual',label:'Actual',get:f=>num(f.cocoActual),raw:f=>f.cocoActual},
+    {k:'cocoVirtual',label:'Virtual',get:f=>num(f.cocoVirtual),raw:f=>f.cocoVirtual},
+    {k:'cocoNational',label:'National',get:f=>num(f.cocoNational),raw:f=>f.cocoNational}]},
+  {k:'stock',label:'COCO stock aging',summary:{k:'stock',label:'Stock',
+    get:f=>`<span class="${f.sOver>0?'aged hot':(f.s180>0?'aged':'')}">${num(stockTot(f))}</span>`,raw:f=>stockTot(f)},cols:[
+    {k:'s60',label:'&lt;60D',get:f=>num(f.s60),raw:f=>f.s60},
+    {k:'s90',label:'60–90D',get:f=>f.s90?`<span class="aged">${f.s90}</span>`:'–',raw:f=>f.s90},
+    {k:'s180',label:'90–180D',get:f=>f.s180?`<span class="aged">${f.s180}</span>`:'–',raw:f=>f.s180},
+    {k:'sOver',label:'&gt;180D',get:f=>f.sOver?`<span class="aged hot">${f.sOver}</span>`:'–',raw:f=>f.sOver},
+    {k:'stock',label:'Total',get:f=>`<b>${num(stockTot(f))}</b>`,raw:f=>stockTot(f)}]},
+  {k:'open',label:'Opening &amp; live POs',summary:{k:'openPO',label:'Live POs',get:f=>num(f.openPO),raw:f=>f.openPO},cols:[
+    {k:'openFg',label:'Mth opening stk',get:f=>num(f.openFg),raw:f=>f.openFg},
+    {k:'openPO',label:'Live POs',get:f=>num(f.openPO),raw:f=>f.openPO}]},
+  {k:'pipe',label:'Pipeline',disabled:'No source yet — excluded pending decision D-06',cols:[]},
+  {k:'off',label:'Trend — offtake',summary:{k:'o3',label:'Offtake L3',get:f=>num(f.o3),raw:f=>f.o3},cols:[
+    {k:'o3',label:'L3',get:f=>num(f.o3),raw:f=>f.o3},{k:'o6',label:'L6',get:f=>num(f.o6),raw:f=>f.o6},
+    {k:'o12',label:'L12',get:f=>num(f.o12),raw:f=>f.o12},{k:'oly',label:'LYSM',get:f=>num(f.oly),raw:f=>f.oly}]},
+  {k:'ret',label:'Trend — retail',summary:{k:'r3',label:'Retail L3',get:f=>num(f.r3),raw:f=>f.r3},cols:[
+    {k:'r3',label:'L3',get:f=>num(f.r3),raw:f=>f.r3},{k:'r6',label:'L6',get:f=>num(f.r6),raw:f=>f.r6},
+    {k:'r12',label:'L12',get:f=>num(f.r12),raw:f=>f.r12},{k:'rly',label:'LYSM',get:f=>num(f.rly),raw:f=>f.rly}]},
+  {k:'asmIndent',label:'COCO ASM indent (read-only)',summary:{k:'asmJul',label:'ASM Jul',get:f=>num(baselineJul(f)),raw:f=>baselineJul(f)},cols:[
+    {k:'asmW1',label:'W1',get:f=>num(baselineV(f,0)),raw:f=>baselineV(f,0)},{k:'asmW2',label:'W2',get:f=>num(baselineV(f,1)),raw:f=>baselineV(f,1)},
+    {k:'asmW3',label:'W3',get:f=>num(baselineV(f,2)),raw:f=>baselineV(f,2)},{k:'asmW4',label:'W4',get:f=>num(baselineV(f,3)),raw:f=>baselineV(f,3)},
+    {k:'asmAug',label:'Aug',get:f=>num(baselineV(f,4)),raw:f=>baselineV(f,4)},{k:'asmSep',label:'Sep',get:f=>num(baselineV(f,5)),raw:f=>baselineV(f,5)}]},
+  {k:'rbhIndent',label:'COCO RBH indent (read-only)',summary:{k:'rbhJul',label:'RBH Jul',get:f=>num(baselineJul(f)),raw:f=>baselineJul(f)},cols:[
+    {k:'rbhW1',label:'W1',get:f=>num(baselineV(f,0)),raw:f=>baselineV(f,0)},{k:'rbhW2',label:'W2',get:f=>num(baselineV(f,1)),raw:f=>baselineV(f,1)},
+    {k:'rbhW3',label:'W3',get:f=>num(baselineV(f,2)),raw:f=>baselineV(f,2)},{k:'rbhW4',label:'W4',get:f=>num(baselineV(f,3)),raw:f=>baselineV(f,3)},
+    {k:'rbhAug',label:'Aug',get:f=>num(baselineV(f,4)),raw:f=>baselineV(f,4)},{k:'rbhSep',label:'Sep',get:f=>num(baselineV(f,5)),raw:f=>baselineV(f,5)}]},
+  {k:'last',label:'Last mth plan',cols:[{k:'prev',label:'Last mth plan',get:f=>num(f.groups.reduce((a,g)=>a+g.prevSubmitted,0)),
+    raw:f=>f.groups.reduce((a,g)=>a+g.prevSubmitted,0),rawG:(f,gi)=>f.groups[gi].prevSubmitted}]},
+  {k:'avg3',label:'3-month average',cols:[{k:'avg3',label:'Avg (L3M)',get:f=>num(threeMoAvg(f)),
+    raw:f=>threeMoAvg(f),rawG:(f,gi)=>Math.round(threeMoAvg(f)*(groupSubmittedTotal(f,gi)/(baselineJul(f)+baselineV(f,4)+baselineV(f,5)||1)))}]},
+  {k:'abp',label:'ABP target',cols:[{k:'abp',label:'ABP',get:f=>num(abpForFert(f)),
+    raw:f=>abpForFert(f),rawG:(f,gi)=>Math.round(abpForFert(f)*(groupSubmittedTotal(f,gi)/(baselineJul(f)+baselineV(f,4)+baselineV(f,5)||1)))}]},
+];
+const PRESETS={
+  essentials:{attr:'summary',stock:'summary',cocoStock:'off',open:'summary',off:'summary',ret:'summary',asmIndent:'off',rbhIndent:'off',last:'off',avg3:'off',abp:'off'},
+  moderating:{attr:'off',stock:'off',cocoStock:'off',open:'off',off:'off',ret:'off',asmIndent:'off',rbhIndent:'off',last:'full',avg3:'full',abp:'full'},
+  all:{attr:'full',stock:'full',cocoStock:'full',open:'full',off:'full',ret:'full',asmIndent:'full',rbhIndent:'full',last:'full',avg3:'full',abp:'full'},
+};
+const PRESET_LBL={essentials:'Essentials',moderating:'Moderating focus',all:'Everything'};
+let bandMode=Object.assign({},PRESETS.essentials);
+let activePreset='essentials';
+function setRoleDefaultColumns(){
+  /* Phase 0 showed the operational reference bands immediately.  Keep the same information
+     visible by default here; the existing Columns menu remains available to collapse it. */
+  bandMode={attr:'full',cocoStock:'full',stock:'full',open:'full',off:'full',ret:'full',
+    asmIndent:'off',rbhIndent:'off',last:'full',avg3:'off',abp:'off'};
+  if(role==='coco_rbh')bandMode.asmIndent='full';
+  if(role==='coco_vh'){bandMode.asmIndent='full';bandMode.rbhIndent='full';}
+  activePreset=null;
+}
+function activeCols(){
+  const out=[];
+  BANDS.forEach(b=>{
+    if(b.disabled)return;
+    const m=bandMode[b.k]||'off';
+    if(m==='off')return;
+    if(m==='summary'&&b.summary)out.push({...b.summary,band:b,first:true});
+    else b.cols.forEach((c,i)=>out.push({...c,band:b,first:i===0}));
+  });
+  return out;
+}
+function bandSpan(){
+  const cols=activeCols(),out=[];
+  cols.forEach(c=>{
+    const last=out[out.length-1];
+    if(last&&last.b===c.band)last.n++;
+    else out.push({b:c.band,n:1,mode:bandMode[c.band.k]});
+  });
+  return out;
+}
+/* aggregate a reference-band column for a group-header row — same P-16 fix ASM applied: numeric
+   columns always sum to a real value (never a blank cell), text/attribute columns show the shared
+   value if the group agrees or a dash if it doesn't. groupCode selects a group-scoped reading
+   (rawG) where the column defines one; otherwise the cluster-wide raw. */
+function groupRefCell(col,fs,groupIdxByFert){
+  if(!fs.length)return '–';
+  if(col.txt){
+    const vals=new Set(fs.map(f=>col.raw?col.raw(f):null));
+    return vals.size===1?([...vals][0]||'–'):'–';
+  }
+  const fn=groupIdxByFert?(f=>col.rawG?col.rawG(f,groupIdxByFert(f)):col.raw(f)):col.raw;
+  if(!fn)return '–';
+  return num(fs.reduce((a,f)=>a+(fn(f)||0),0));
+}
+function groupRefCells(fs,groupIdxByFert){
+  const cols=activeCols();
+  return cols.length
+    ? cols.map(c=>`<td class="ref${c.first?' bsep':''}${c.txt?' txt':''}">${groupRefCell(c,fs,groupIdxByFert)}</td>`).join('')
+    : '<td class="ref"></td>';
+}
+function rows(){
+  let r=D.filter(f=>pass(f));
+  if(sortKey){
+    const fn=SORTV[sortKey];
+    r=[...r].sort((a,b)=>{const x=fn(a),y=fn(b);
+      return (typeof x==='string'?x.localeCompare(y):x-y)*sortDir;});
+  }
+  return r;
+}
+</script>
+<script>
+/* ════════ LOGIN / SHELL ════════ */
+function clearErr(){['fId','fPw'].forEach(i=>document.getElementById(i).classList.remove('invalid'));}
+/* Sign-in is the same shape as every other persona's (P-01) — it validates the two fields and goes
+   straight in. It does not branch on what was typed: in this prototype, as in ASM v1.3, the account
+   determines the role server-side, so signing in always lands on the same starting role (COCO ASM).
+   The "Preview as" control on Home (P-02, clearly marked demo-only) is the only place this prototype
+   lets you see the other two roles — a real COCO RBH or VH account would simply sign in here too and
+   land on their own screen, never on a role picker. */
+function doLogin(e){
+  if(e&&e.preventDefault)e.preventDefault();
+  if(!document.getElementById('lgId').value.trim()){document.getElementById('fId').classList.add('invalid');return;}
+  if(!document.getElementById('lgPw').value){document.getElementById('fPw').classList.add('invalid');return;}
+  role='coco_asm';
+  document.getElementById('login').style.display='none';
+  document.getElementById('app').classList.add('on');
+  initRoleView(true);
+  tick();
+}
+function signOut(){
+  document.getElementById('app').classList.remove('on');
+  document.getElementById('login').style.display='flex';
+}
+/* "Viewing as" (P-02) — unlike ASM v1.3 (where only the ASM option is live and the rest are
+   disabled placeholders), all three COCO roles are actually built in this file, so switching here
+   really does rebuild the roster and re-render, the same way ASM's own setVert() rebuilds D for a
+   different vertical. */
+function setRole(v){
+  role=v;
+  document.getElementById('roleSel').value=v;
+  initRoleView(false);
+}
+function initRoleView(resetHome){
+  GROUPS=buildGroups(); buildFerts();
+  FKEYS.forEach(k=>F[k]=new Set()); q=''; sortKey=null; expanded=new Set(); gridGroupOpen=new Set(); gridGroupBy='fert';
+  rollOpen=new Set(); rollBy='grp'; attnExpanded=new Set(); attnExpandedDealer=new Set(); submittedFlag=false;
+  setRoleDefaultColumns();
+  const c=LC();
+  document.getElementById('tbAv').textContent=c.av;
+  document.getElementById('tbName').textContent=c.person;
+  document.getElementById('tbRole').textContent=c.roleLine;
+  document.getElementById('hcGreet').textContent='Good afternoon, '+c.person;
+  document.getElementById('hcSub').textContent='July 2026 · LMD · '+GROUPS.length+' '+c.groupNoun+(GROUPS.length===1?'':'s');
+  document.getElementById('hcTitle').textContent='COCO indent — LMD';
+  document.getElementById('hcCutCap').innerHTML='Auto-submits to <b>'+c.nextName+'</b> at <b>'+c.cutoff+'</b>. Whatever is unresolved then goes up as-is.';
+  document.getElementById('hcGroupsTitle').textContent='Your '+c.groupNounCap.toLowerCase()+'s';
+  document.getElementById('hcAttnTitle').textContent='Lines needing attention';
+  document.getElementById('hcAccTitle').textContent='Indent accuracy';
+  document.getElementById('addLineBtn').style.display=c.canAddLine?'':'none';
+  document.getElementById('importBtn').style.display=role==='coco_vh'?'':'none';
+  if(role!=='coco_vh')activeCycle='1A';
+  document.getElementById('cycleCtl').style.display=role==='coco_vh'?'':'none';
+  document.getElementById('cycleLabel').textContent='S&OP-'+activeCycle;
+  document.getElementById('qBox').value='';
+  if(!document.getElementById('vWb').classList.contains('on'))go('home');
+  buildRail(); render();
+}
+function toggleTheme(){
+  const r=document.documentElement;
+  const dark=r.getAttribute('data-theme')==='dark'||(!r.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme:dark)').matches);
+  r.setAttribute('data-theme',dark?'light':'dark');
+}
+function go(v){
+  const rail=document.getElementById('rail'), homeMount=document.getElementById('homeRailMount'), wbMount=document.querySelector('#vWb .wb');
+  if(rail){if(v==='home'&&homeMount&&rail.parentElement!==homeMount)homeMount.appendChild(rail);if(v==='wb'&&wbMount&&rail.parentElement!==wbMount)wbMount.prepend(rail);}
+  document.getElementById('vHome').classList.toggle('on',v==='home');
+  document.getElementById('vWb').classList.toggle('on',v==='wb');
+  document.getElementById('vSummary').classList.toggle('on',v==='summary');
+  document.getElementById('nvHome').classList.toggle('on',v==='home');
+  document.getElementById('nvWb').classList.toggle('on',v==='wb');
+
+  render();
+}
+function setCycle(v){
+  if(role!=='coco_vh'||!['1A','1B'].includes(v))return;
+  activeCycle=v; document.getElementById('cycleLabel').textContent='S&OP-'+v;
+  render(); toast(v==='1B'?'Revision cycle selected':'Main cycle selected');
+}
+function jumpFilter(flag){
+  F.flag.clear(); F.flag.add(flag);
+  go('wb'); buildRail(); render();
+  toast('Filtered to: '+(FLAGS.find(f=>f[0]===flag)||['','that filter'])[1]);
+}
+function importVhCsv(file){
+  if(role!=='coco_vh'){toast('Import is available to COCO VH only');return;}
+  if(!file)return;
+  const reader=new FileReader(); reader.onload=()=>{
+    let changed=0; String(reader.result).replace(/\r/g,'').split('\n').slice(1).forEach(line=>{
+      const p=line.split(',').map(x=>x.trim().replace(/^"|"$/g,'')); const f=D.find(x=>x.code===p[0]); if(!f)return;
+      for(let c=0;c<6;c++){const v=parseInt(p[c+1]);if(!Number.isNaN(v)){f.ovr[c]=Math.max(0,v);changed++;}}
+    }); buildRail(); render(); toast(changed?`Imported ${changed} VH plan values`:'No matching COCO VH FERT rows found');
+  }; reader.readAsText(file);
+}
+function tick(){
+  const now=new Date(); const cutDay=17; const t=new Date(now); t.setDate(cutDay); t.setHours(23,59,0,0);
+  if(t<now)t.setMonth(t.getMonth()+1);
+  const ms=t-now, d=Math.floor(ms/864e5), h=Math.floor(ms%864e5/36e5), m=Math.floor(ms%36e5/6e4);
+  const el=document.getElementById('tbClock'); if(el)el.textContent=d>0?`${d}d ${h}h`:`${h}h ${m}m`;
+  setTimeout(tick,60000);
+}
+
+/* ════════ FILTER RAIL — one control type for everything (P-05) ════════ */
+let msOpen=null; const msQ={};
+function optsFor(key){
+  if(key==='fert')return D.map(f=>({v:f.code,t1:f.code,t2:f.desc}));
+  if(key==='grp')return GROUPS.map(g=>({v:g.code,t1:g.name,t2:g.loc}));
+  if(key==='seg')return ['R','S','D'].map(v=>({v,t1:SEGNAME[v]}));
+  if(key==='ac')return ['AC','NonAC'].map(v=>({v,t1:v==='NonAC'?'Non-AC':'AC'}));
+  if(key==='flag')return FLAGS.map(([v,t1])=>({v,t1}));
+  if(key==='aging')return AGING_FLAGS.map(([v,t1])=>({v,t1}));
+  const f=VALOF[key];
+  let vals=[...new Set(D.map(x=>x[f]))];
+  if(key==='ton')vals.sort((a,b)=>parseFloat(a)-parseFloat(b)); else vals.sort();
+  return vals.map(v=>({v,t1:v}));
+}
+const FLABEL=()=>({fert:'FERT',vert:'Vertical',grp:LC().groupNounCap,sv:'Sub-vertical',seg:'Demand segment',mpg:'MPG model',ton:'Tonnage',
+  fuel:'Fuel',ac:'Cabin',aging:'Aged Stock',flag:'Status'});
+function msOptions(key){
+  const s=(msQ[key]||'').toLowerCase();
+  const out=optsFor(key).filter(o=>{
+    if(!s)return true;
+    return s.split(/[,\n]/).map(t=>t.trim()).filter(Boolean)
+      .some(t=>String(o.t1).toLowerCase().includes(t)||String(o.t2||'').toLowerCase().includes(t));
+  }).map(o=>{
+    const n=key==='grp'?undefined:optCount(key,o.v), on=F[key].has(o.v);
+    if(n===0&&!on)return '';
+    return `<button class="ms-opt${on?' on':''}" onclick="tog('${key}','${o.v}')">
+      <span class="bx">${on?'✓':''}</span>
+      <span class="tx"><span class="t1">${o.t1}</span>${o.t2?`<span class="t2">${o.t2}</span>`:''}</span>
+      ${n!==undefined?`<span class="n">${n}</span>`:''}</button>`;
+  }).join('');
+  return out||'<div class="ms-empty">No match</div>';
+}
+function msBlock(key){
+  const total=optsFor(key).length, sel=F[key].size;
+  const lbl=sel===0?'All':(sel===1?(optsFor(key).find(o=>F[key].has(o.v))||{t1:'1 selected'}).t1:sel+' selected');
+  return `<div class="frow">
+    <div class="fl">${FLABEL()[key]}${sel?`<button class="clr" onclick="F['${key}'].clear();buildRail();render()">clear</button>`:''}</div>
+    <div class="ms${msOpen===key?' open':''}">
+      <button class="ms-btn${sel?' act':''}" onclick="event.stopPropagation();toggleMs('${key}')">
+        <span class="lbl${sel?'':' dim'}">${lbl}</span><span class="ca">▾</span></button>
+      <div class="ms-pop" onclick="event.stopPropagation()">
+        <div class="ms-search">
+          <input type="text" id="msq-${key}" placeholder="Search ${FLABEL()[key].toLowerCase()}…" value="${msQ[key]||''}"
+            oninput="msFilter('${key}',this.value)">
+        </div>
+        <div class="ms-list" id="msl-${key}">${msOptions(key)}</div>
+        <div class="ms-foot">
+          <button class="btn btn-quiet btn-sm" onclick="F['${key}'].clear();buildRail();render()">Clear</button>
+          <span class="c">${sel} of ${total}</span></div>
+      </div></div></div>`;
+}
+function toggleMs(key){
+  msOpen=msOpen===key?null:key; buildRail();
+  if(msOpen){const el=document.getElementById('msq-'+key); if(el)el.focus();}
+}
+function msFilter(key,v){ msQ[key]=v; document.getElementById('msl-'+key).innerHTML=msOptions(key); }
+document.addEventListener('click',()=>{ if(msOpen){msOpen=null;buildRail();} });
+function tog(key,val){ const s=F[key]; s.has(val)?s.delete(val):s.add(val); buildRail(); render(); }
+function buildRail(){
+  let h='';
+  if(savedViews.length){
+    h+=`<div class="frow"><div class="fl">Saved views</div>
+      <select class="ms-btn" style="height:32px" onchange="applyView(this.value)">
+        <option value="">Choose a saved view…</option>
+        ${savedViews.map((v,i)=>`<option value="${i}">${v.name}</option>`).join('')}</select></div>`;
+  }
+  FKEYS.forEach(k=>{ h+=msBlock(k); });
+  document.getElementById('railBody').innerHTML=h;
+  const n=activeCount();
+  ['railCnt','stubCnt'].forEach(id=>{const el=document.getElementById(id);el.style.display=n?'':'none';el.textContent=n;});
+}
+function clearAll(){ FKEYS.forEach(k=>F[k].clear()); q=''; sortKey=null; document.getElementById('qBox').value=''; buildRail(); render(); }
+function setQ(v){ q=v; render(); }
+function saveView(){
+  if(!activeCount()){toast('Nothing to save — no filters applied');return;}
+  const bits=[];
+  FKEYS.forEach(k=>{ if(F[k].size){ const o=optsFor(k).find(o=>F[k].has(o.v)); bits.push(F[k].size>1?F[k].size+' '+FLABEL()[k]:(o?o.t1:FLABEL()[k])); } });
+  savedViews.push({name:bits.slice(0,2).join(' · '),F:Object.fromEntries(FKEYS.map(k=>[k,[...F[k]]]))});
+  buildRail(); toast('View saved');
+}
+function applyView(i){ if(i==='')return; const v=savedViews[i]; FKEYS.forEach(k=>F[k]=new Set(v.F[k]||[])); buildRail(); render(); toast('Applied "'+v.name+'"'); }
+function toggleRail(){ railOpen=!railOpen;
+  document.getElementById('rail').classList.toggle('collapsed',!railOpen);
+  document.getElementById('railBtn').textContent=railOpen?'‹':'›'; }
+
+/* ════════ GRID (P-08: identity / reference / entry) ════════
+   editScope 'consolidated' (RBH, VH): FERT row is editable (this role's own override), group rows
+   underneath are read-only reference in the same period shape (P-08 addition) — exactly ASM's shape.
+   editScope 'group' (ASM): inverse — see the divergence note at the top of the data script. Each
+   outlet's row is directly editable; the FERT row becomes a computed, read-only rollup. */
+let expanded=new Set();
+function toggleExpand(i){ expanded.has(i)?expanded.delete(i):expanded.add(i); render(); }
+function setDensity(c){ compact=!!c;
+  document.getElementById('dnComf').classList.toggle('on',!c);
+  document.getElementById('dnComp').classList.toggle('on',!!c);
+  document.getElementById('grid').classList.toggle('compact',!!c); }
+function setSort(k){ if(sortKey===k){ if(sortDir===-1)sortDir=1; else {sortKey=null;} } else {sortKey=k;sortDir=-1;} render(); }
+function th(k,label,left,sep){
+  const on=sortKey===k;
+  return `<th class="${sep?'bsep':''}"><button class="sortbtn${left?' l':''}" onclick="setSort('${k}')" title="Sort by ${SORTLBL[k]||label}">
+    ${label}<span class="ar">${on?(sortDir===-1?'▼':'▲'):'▼'}</span></button></th>`;
+}
+function head(){
+  const cols=activeCols(), spans=bandSpan();
+  const bandRow=spans.map(s=>{
+    const short=s.mode==='summary'&&s.b.summary;
+    return `<th class="b-ref bsep" colspan="${s.n}">
+      <button class="bandbtn" onclick="cycleBand('${s.b.k}')"
+        title="${s.b.label} · ${s.mode==='summary'?'Expand this group':'Collapse this group'}">${short?s.b.summary.label:s.b.label}
+        <span class="bm">${s.mode==='summary'?'▸':'▾'}</span></button></th>`;
+  }).join('');
+  const colRow=cols.map(c=>th(c.k,c.label,false,c.first)).join('');
+  return `<tr class="bands">
+      <th class="idc b-ref">Vehicle</th>
+      <th class="fertc b-ref">FERT</th>
+      ${bandRow||'<th class="b-ref">&nbsp;</th>'}
+      <th class="b-edit bsep" colspan="8">${LC().label} Indent · July 2026</th></tr>
+    <tr><th class="idc"><button class="sortbtn l${sortKey==='desc'?' on':''}" onclick="setSort('desc')">Vehicle<span class="ar">${sortKey==='desc'?(sortDir===-1?'▼':'▲'):'▼'}</span></button></th>
+      <th class="fertc"><button class="sortbtn l${sortKey==='code'?' on':''}" onclick="setSort('code')">FERT<span class="ar">${sortKey==='code'?(sortDir===-1?'▼':'▲'):'▼'}</span></button></th>
+      ${colRow||'<th>&nbsp;</th>'}
+      ${th('w0','W1',false,true)}${th('w1','W2')}${th('w2','W3')}${th('w3','W4')}
+      ${th('jul','Jul')}${th('aug','Aug')}${th('sep','Sep')}${th('tot','Total')}</tr>`;
+}
+function cycleBand(k){
+  const b=BANDS.find(x=>x.k===k);
+  const m=bandMode[k];
+  bandMode[k]= b.summary ? (m==='summary'?'full':'summary') : (m==='full'?'off':'full');
+  activePreset=null; render(); renderColPop();
+}
+function setBand(k,m){ bandMode[k]=m; activePreset=null; render(); renderColPop(); }
+function setPreset(p){ bandMode=Object.assign({},PRESETS[p]); activePreset=p; render(); renderColPop(); }
+let colPopOpen=false;
+function toggleColPop(e){ if(e)e.stopPropagation(); colPopOpen=!colPopOpen; renderColPop(); }
+function renderColPop(){
+  const el=document.getElementById('colPop');
+  el.style.display=colPopOpen?'':'none';
+  document.getElementById('colBtn').classList.toggle('on',colPopOpen);
+  if(!colPopOpen)return;
+  el.innerHTML=`
+    <div class="cp-sec"><div class="cp-lbl">Presets</div>
+      <div class="cp-presets">${Object.keys(PRESETS).map(p=>
+        `<button class="chipx${activePreset===p?' on':''}" onclick="setPreset('${p}')">${PRESET_LBL[p]}</button>`).join('')}</div></div>
+    <div class="cp-sec"><div class="cp-lbl">Column groups</div>
+      ${BANDS.map(b=>{
+        if(b.disabled)return `<div class="cp-row dis"><span class="cp-n">${b.label}</span>
+          <span class="cp-note">${b.disabled}</span></div>`;
+        const m=bandMode[b.k]||'off';
+        return `<div class="cp-row"><span class="cp-n">${b.label}<span class="cp-c">${b.cols.length} col${b.cols.length===1?'':'s'}</span></span>
+          <div class="seg-ctl sm">
+            <button class="${m==='off'?'on':''}" onclick="setBand('${b.k}','off')">Hide</button>
+            ${b.summary?`<button class="${m==='summary'?'on':''}" onclick="setBand('${b.k}','summary')">Summary</button>`:''}
+            <button class="${m==='full'?'on':''}" onclick="setBand('${b.k}','full')">Full</button>
+          </div></div>`;}).join('')}
+    </div>
+    <div class="cp-foot">Click any group header in the grid to expand or collapse it.</div>`;
+}
+document.addEventListener('click',()=>{ if(colPopOpen){colPopOpen=false;renderColPop();} });
+
+/* editable FERT-level cell — used only when this role's editScope is 'consolidated' (RBH, VH) */
+function dcell(fi,c,cls){
+  const f=D.find(x=>x.i===fi);
+  const cur=clusterV(f,c), def=baselineV(f,c);
+  const isOvr=f.ovr[c]!==null;
+  return `<td class="${cls||''}"><input class="cellin${isOvr?' ovr':''}" type="number" min="0" inputmode="numeric"
+      data-fi="${fi}" data-c="${c}" data-gi="" value="${cur}"
+      onfocus="this.select()" oninput="editFert(${fi},${c},this.value)" onkeydown="gridKey(event)" onpaste="gridPaste(event,${fi},'')" onblur="render()">
+    ${def!==cur?`<span class="carry">was ${def}</span>`:''}</td>`;
+}
+/* editable group-level (outlet) cell — used only when editScope is 'group' (ASM) */
+function gcell(fi,gi,c,cls){
+  const f=D.find(x=>x.i===fi); const g=f.groups[gi];
+  const cur=groupV(f,gi,c), def=g.submitted[c];
+  const isOvr=g.ovr[c]!==null;
+  return `<td class="${cls||''}"><input class="cellin${isOvr?' ovr':''}" type="number" min="0" inputmode="numeric"
+      data-fi="${fi}" data-c="${c}" data-gi="${gi}" value="${cur}"
+      onfocus="this.select()" oninput="editGroupCell(${fi},${gi},${c},this.value)" onkeydown="gridKey(event)" onpaste="gridPaste(event,${fi},${gi})" onblur="render()">
+    ${def!==cur?`<span class="carry">was ${def}</span>`:''}</td>`;
+}
+function totalGridCols(){ return 2+Math.max(activeCols().length,1)+8; }
+function fertBannerRow(f){
+  const untouched=untouchedFromBaseline(f);
+  const needsReason=fertNeedsReason(f);
+  let inner='';
+  if(needsReason){
+    const ex=fertFlagExplain(f);
+    inner=`<span class="reason-flag">${ex} — reason needed:</span>
+        <input type="text" placeholder="Why this change…" value="${f.reason}" oninput="setReason(${f.i},this.value)" onblur="render()">`;
+  } else if(f.reason){
+    inner=`<span style="font-size:10px;color:var(--muted)">Reason: ${f.reason}</span>`;
+  } else return '';
+  return `<tr><td class="idc" style="padding-left:30px" colspan="${totalGridCols()}"><div class="reason-inl" style="margin-top:0">${inner}</div></td></tr>`;
+}
+/* read-only sub-row — a group's baseline, in the same W1–W4/Jul/Aug/Sep/Total shape as entry, never
+   itself editable. Used at the consolidated edit-scope (RBH, VH), where the group below IS the
+   submitter being moderated (P-20). */
+function groupRefRow(f,gi){
+  const g=f.groups[gi];
+  const gJul=g.submitted[0]+g.submitted[1]+g.submitted[2]+g.submitted[3];
+  const gTotV=g.submitted.reduce((a,b)=>a+b,0);
+  return `<tr class="sub-row">
+    <td class="idc" style="padding-left:30px">
+      <div style="font-size:11.5px;font-weight:600">↳ ${g.name}</div>
+      <div style="font-size:10px;color:var(--muted);font-family:var(--mono)">${g.loc} · as recorded, read-only</div></td>
+    <td class="fertc">${f.code}</td>
+    ${groupRefCells([f],()=>gi)}
+    <td class="sepL" style="color:var(--muted)">${g.submitted[0]}</td><td style="color:var(--muted)">${g.submitted[1]}</td><td style="color:var(--muted)">${g.submitted[2]}</td><td style="color:var(--muted)">${g.submitted[3]}</td>
+    <td class="tot" style="color:var(--ink-2)">${gJul}</td><td style="color:var(--muted)">${g.submitted[4]}</td><td style="color:var(--muted)">${g.submitted[5]}</td><td class="gtot" style="color:var(--ink-2);background:var(--surface-2)">${gTotV}</td></tr>`;
+}
+/* editable sub-row — a group's (outlet's) own entry, at the group edit-scope (ASM). */
+function groupEditRow(f,gi){
+  const g=f.groups[gi];
+  const excStyle=''; // per-line exception status lives at the FERT level (see header note)
+  return `<tr class="sub-row editable${excStyle}">
+    <td class="idc" style="padding-left:30px">
+      <div style="font-size:11.5px;font-weight:600">↳ ${g.name}</div>
+      <div style="font-size:10px;color:var(--muted);font-family:var(--mono)">${g.loc}</div></td>
+    <td class="fertc">${f.code}</td>
+    ${groupRefCells([f],()=>gi)}
+    ${gcell(f.i,gi,0,'sepL')}${gcell(f.i,gi,1)}${gcell(f.i,gi,2)}${gcell(f.i,gi,3)}
+    <td class="tot" id="gjul-${f.i}-${gi}">${groupV(f,gi,0)+groupV(f,gi,1)+groupV(f,gi,2)+groupV(f,gi,3)}</td>
+    ${gcell(f.i,gi,4)}${gcell(f.i,gi,5)}
+    <td class="gtot" id="ggtot-${f.i}-${gi}">${groupCurTotal(f,gi)}</td></tr>`;
+}
+function row(f){
+  const cols=activeCols();
+  const ref=cols.map(c=>`<td class="ref${c.first?' bsep':''}${c.txt?' txt':''}">${c.get(f)}</td>`).join('')
+    ||'<td class="ref">&nbsp;</td>';
+  const isOpen=expanded.has(f.i);
+  const exc=fertHasException(f);
+  const editable=LC().editScope==='consolidated';
+  const idHead=`<td class="idc"><div class="id-cell">
+      <button class="exp-tg" onclick="toggleExpand(${f.i})" title="${isOpen?'Collapse':'Expand to '+LC().groupNoun+' breakdown'}">${isOpen?'▼':'▶'}</button>
+      <div class="id-txt">
+      <div class="id-desc" title="${f.desc}">${f.desc}${f.isAdded?' <span class=\"addtag\">ADDED</span>':''}</div>
+      <div class="id-meta">
+        ${exc?`<button class="reason-flag" style="border:none;background:none;padding:0;cursor:pointer;font:inherit;font-size:9px;font-weight:700" onclick="openDrawer(${f.i})" title="Why this needs review">NEEDS REVIEW</button>`:''}</div></div>
+      <button class="id-btn" onclick="openDrawer(${f.i})" title="Line detail">ⓘ</button></div></td>`;
+  const fertCell=`<td class="fertc">${f.code}</td>`;
+  const main = editable
+    ? `<tr class="${exc?'exc':(hasEntry(f)?'':'noentry')}${f.isAdded?' isadd':''}">
+        ${idHead}${fertCell}${ref}${dcell(f.i,0,'sepL')}${dcell(f.i,1)}${dcell(f.i,2)}${dcell(f.i,3)}
+        <td class="tot" id="jul-${f.i}">${jul(f)}</td>${dcell(f.i,4)}${dcell(f.i,5)}<td class="gtot" id="gtot-${f.i}">${gTot(f)}</td></tr>`
+    : `<tr class="${exc?'exc':(hasEntry(f)?'':'noentry')}${f.isAdded?' isadd':''}">
+        ${idHead}${fertCell}${ref}
+        <td class="sepL tot" id="jul0-${f.i}">${clusterV(f,0)}</td><td class="tot" id="jul1-${f.i}">${clusterV(f,1)}</td><td class="tot" id="jul2-${f.i}">${clusterV(f,2)}</td><td class="tot" id="jul3-${f.i}">${clusterV(f,3)}</td>
+        <td class="tot" id="jul-${f.i}">${jul(f)}</td><td class="tot" id="jul4-${f.i}">${clusterV(f,4)}</td><td class="tot" id="jul5-${f.i}">${clusterV(f,5)}</td><td class="gtot" id="gtot-${f.i}">${gTot(f)}</td></tr>`;
+  const banner=fertBannerRow(f);
+  const subRows=isOpen?f.groups.map((g,gi)=>editable?groupRefRow(f,gi):groupEditRow(f,gi)).join(''):'';
+  return main+banner+subRows;
+}
+/* grid grouping (Group by: FERT / this role's submitter / MPG / Tonnage) — identical mechanism to
+   ASM's own grid group-by; editing always stays anchored where LC().editScope says it lives,
+   grouping only changes how the screen is reviewed. */
+const GB_OPTS=()=>{
+  const base=[['fert','FERT'],['grp',LC().groupNounCap]];
+  if(role==='coco_rbh')base.push(['outlet','Outlet']);
+  if(role==='coco_vh')base.push(['asm','COCO ASM']);
+  return base.concat([['mpg','MPG'],['ton','Tonnage']]);
+};
+let gridGroupBy='fert', gridGroupOpen=new Set();
+function setGridGroupBy(k){ gridGroupBy=k; gridGroupOpen=new Set(); render(); }
+function toggleGrpRow(k){ gridGroupOpen.has(k)?gridGroupOpen.delete(k):gridGroupOpen.add(k); render(); }
+function renderGbCtl(){
+  document.getElementById('gbCtl').innerHTML=GB_OPTS().map(([k,l])=>
+    `<button class="${gridGroupBy===k?'on':''}" onclick="setGridGroupBy('${k}')">${l}</button>`).join('');
+}
+function grpAgg(fs){
+  const w=[0,1,2,3].map(c=>fs.reduce((a,f)=>a+clusterV(f,c),0));
+  const julV=w.reduce((a,b)=>a+b,0), aug=fs.reduce((a,f)=>a+clusterV(f,4),0), sep=fs.reduce((a,f)=>a+clusterV(f,5),0);
+  return {w,jul:julV,aug,sep,tot:julV+aug+sep};
+}
+function grpHeaderRow(key,label,sub,fs,open){
+  const v=grpAgg(fs);
+  return `<tr class="grp-row">
+    <td class="idc"><button class="exp-tg" onclick="toggleGrpRow('${key}')" title="${open?'Collapse':'Expand'}">${open?'▼':'▶'}</button>
+      <span>${label}</span> <span style="font-weight:400;color:var(--muted);font-size:11px">${sub?sub+' · ':''}${fs.length} line${fs.length===1?'':'s'}</span></td>
+    <td class="fertc">—</td>
+    ${groupRefCells(fs,null)}
+    <td class="sepL tot">${v.w[0]}</td><td class="tot">${v.w[1]}</td><td class="tot">${v.w[2]}</td><td class="tot">${v.w[3]}</td>
+    <td class="tot">${v.jul}</td><td class="tot">${v.aug}</td><td class="tot">${v.sep}</td><td class="gtot">${v.tot}</td></tr>`;
+}
+function submitterGrpAgg(gi,fs){
+  const w=[0,1,2,3].map(c=>fs.reduce((a,f)=>a+groupV(f,gi,c),0));
+  const julV=w.reduce((a,b)=>a+b,0);
+  const aug=fs.reduce((a,f)=>a+groupV(f,gi,4),0), sep=fs.reduce((a,f)=>a+groupV(f,gi,5),0);
+  return {w,jul:julV,aug,sep,tot:julV+aug+sep};
+}
+function submitterGrpHeaderRow(g,gi,fs,open){
+  const v=submitterGrpAgg(gi,fs);
+  return `<tr class="grp-row">
+    <td class="idc"><button class="exp-tg" onclick="toggleGrpRow('${g.code}')" title="${open?'Collapse':'Expand'}">${open?'▼':'▶'}</button>
+      <span>${g.name}</span> <span style="font-weight:400;color:var(--muted);font-size:11px">${g.loc} · ${LC().editScope==='group'?'':'as recorded, read-only · '}${fs.length} line${fs.length===1?'':'s'}</span></td>
+    <td class="fertc">—</td>
+    ${groupRefCells(fs,()=>gi)}
+    <td class="sepL tot">${v.w[0]}</td><td class="tot">${v.w[1]}</td><td class="tot">${v.w[2]}</td><td class="tot">${v.w[3]}</td>
+    <td class="tot">${v.jul}</td><td class="tot">${v.aug}</td><td class="tot">${v.sep}</td><td class="gtot">${v.tot}</td></tr>`;
+}
+function submitterGrpFertRow(f,gi){
+  const g=f.groups[gi];
+  return LC().editScope==='group' ? groupEditRow(f,gi) : (function(){
+    const dJul=g.submitted[0]+g.submitted[1]+g.submitted[2]+g.submitted[3];
+    const dTot=g.submitted.reduce((a,b)=>a+b,0);
+    return `<tr class="sub-row">
+      <td class="idc" style="padding-left:30px">
+        <div style="font-size:11.5px;font-weight:500">${f.desc}</div>
+        <div style="font-size:10px;color:var(--muted);font-family:var(--mono)">${g.name} · read-only reference</div></td>
+      <td class="fertc">${f.code}</td>
+      ${groupRefCells([f],()=>gi)}
+      <td class="sepL" style="color:var(--muted)">${g.submitted[0]}</td><td style="color:var(--muted)">${g.submitted[1]}</td><td style="color:var(--muted)">${g.submitted[2]}</td><td style="color:var(--muted)">${g.submitted[3]}</td>
+      <td class="tot" style="color:var(--ink-2)">${dJul}</td><td style="color:var(--muted)">${g.submitted[4]}</td><td style="color:var(--muted)">${g.submitted[5]}</td><td class="gtot" style="color:var(--ink-2);background:var(--surface-2)">${dTot}</td></tr>`;
+  })();
+}
+/* Reference drill-down rows for Phase 0's RBH-by-Outlet and VH-by-ASM views.  Values are
+   calculated from the individual outlets, rather than repeating the consolidated FERT figure. */
+function sourceVals(f,outletCodes){
+  return [0,1,2,3,4,5].map(c=>Math.round(outletCodes.reduce((a,code)=>a+(f.raw[c]||0)*(OUTLET_FACTOR[code]||0),0)));
+}
+function sourceRefRow(f,label,outletCodes){
+  const vals=sourceVals(f,outletCodes), july=vals.slice(0,4).reduce((a,b)=>a+b,0), total=vals.reduce((a,b)=>a+b,0);
+  const ref=activeCols().map(c=>`<td class="ref${c.first?' bsep':''}${c.txt?' txt':''}">${c.get(f)}</td>`).join('')||'<td class="ref">&nbsp;</td>';
+  return `<tr class="sub-row"><td class="idc" style="padding-left:30px"><div style="font-size:11.5px;font-weight:600">↳ ${f.desc}</div><div style="font-size:10px;color:var(--muted);font-family:var(--mono)">${label} · read-only reference</div></td>
+    <td class="fertc">${f.code}</td>${ref}<td class="sepL" style="color:var(--muted)">${vals[0]}</td><td style="color:var(--muted)">${vals[1]}</td><td style="color:var(--muted)">${vals[2]}</td><td style="color:var(--muted)">${vals[3]}</td><td class="tot">${july}</td><td style="color:var(--muted)">${vals[4]}</td><td style="color:var(--muted)">${vals[5]}</td><td class="gtot">${total}</td></tr>`;
+}
+function sourceGroupHeader(group,fs){
+  const total=[0,1,2,3,4,5];
+  fs.forEach(f=>sourceVals(f,group.outlets).forEach((v,i)=>total[i]+=v));
+  const july=total.slice(0,4).reduce((a,b)=>a+b,0), grand=total.reduce((a,b)=>a+b,0), open=gridGroupOpen.has(group.code);
+  return `<tr class="grp-row"><td class="idc"><button class="exp-tg" onclick="toggleGrpRow('${group.code}')" title="${open?'Collapse':'Expand'}">${open?'▼':'▶'}</button><span>${group.name}</span><span style="font-weight:400;color:var(--muted);font-size:11px"> ${group.sub} · ${fs.length} lines</span></td>
+    <td class="fertc">—</td>${groupRefCells(fs,null)}<td class="sepL tot">${total[0]}</td><td class="tot">${total[1]}</td><td class="tot">${total[2]}</td><td class="tot">${total[3]}</td><td class="tot">${july}</td><td class="tot">${total[4]}</td><td class="tot">${total[5]}</td><td class="gtot">${grand}</td></tr>`;
+}
+function gridRowsHtml(rs){
+  if(gridGroupBy==='fert')return rs.map(row).join('');
+  if(gridGroupBy==='mpg'||gridGroupBy==='ton'){
+    const key=gridGroupBy==='mpg'?'mpg':'ton';
+    let keys=[...new Set(rs.map(f=>f[key]))];
+    if(gridGroupBy==='ton')keys.sort((a,b)=>parseFloat(a)-parseFloat(b)); else keys.sort();
+    return keys.map(kv=>{
+      const fs=rs.filter(f=>f[key]===kv), open=gridGroupOpen.has(kv);
+      return grpHeaderRow(kv,kv,'',fs,open)+(open?fs.map(row).join(''):'');
+    }).join('');
+  }
+  if(gridGroupBy==='outlet'||gridGroupBy==='asm'){
+    const scope=role==='coco_rbh'?COCO_OUTLETS.filter(o=>o.region==='North'):COCO_OUTLETS;
+    const groups=gridGroupBy==='outlet'
+      ?scope.map(o=>({code:o.code,name:o.name,sub:o.loc,outlets:[o.code]}))
+      :[...new Set(scope.map(o=>o.asm))].map(a=>({code:'asm-'+a,name:a,sub:scope.filter(o=>o.asm===a).length+' outlets',outlets:scope.filter(o=>o.asm===a).map(o=>o.code)}));
+    return groups.map(g=>{const open=gridGroupOpen.has(g.code);
+      return sourceGroupHeader(g,rs)+(open?rs.map(f=>sourceRefRow(f,g.name,g.outlets)).join(''):'');}).join('');
+  }
+  // grp — every FERT currently in view, nested under each submitter (outlet / ASM / RBH)
+  return GROUPS.map((g,gi)=>{
+    const open=gridGroupOpen.has(g.code);
+    return submitterGrpHeaderRow(g,gi,rs,open)+(open?rs.map(f=>submitterGrpFertRow(f,gi)).join(''):'');
+  }).join('');
+}
+function render(){
+  const rs=rows();
+  const cmp=document.getElementById('cycleCompare');
+  if(cmp){
+    if(activeCycle==='1B'){
+      const current=rs.reduce((a,f)=>a+jul(f),0), baseline=rs.reduce((a,f)=>a+baselineJul(f),0), variance=current-baseline;
+      cmp.style.display='';
+      cmp.innerHTML=`<div class="notice n-info" style="margin:10px 12px 0"><span>ⓘ</span><div><b>S&amp;OP-1B vs locked S&amp;OP-1A</b> · S&amp;OP-1A July: <b>${baseline}</b> · S&amp;OP-1B July: <b>${current}</b> · Variance: <b style="color:${variance>0?'var(--ok)':(variance<0?'var(--crit)':'inherit')}">${variance>0?'+':''}${variance}</b></div></div>`;
+    } else {cmp.style.display='none';cmp.innerHTML='';}
+  }
+  document.getElementById('gHead').innerHTML=head();
+  document.getElementById('gBody').innerHTML=gridRowsHtml(rs);
+  document.getElementById('gEmpty').style.display=rs.length?'none':'';
+  document.getElementById('grid').style.display=rs.length?'':'none';
+  document.getElementById('resCount').innerHTML=`<b>${rs.length}</b> of ${D.length} lines`;
+  renderGbCtl();
+  renderTokens(); renderCommit(); renderHome(); renderSummaryView();
+}
+function renderTokens(){
+  const t=[];
+  const add=(lbl,fn,cls)=>t.push(`<span class="ftok ${cls||''}">${lbl}<button onclick="${fn}" aria-label="Remove">×</button></span>`);
+  FKEYS.forEach(k=>{
+    if(!F[k].size)return;
+    if(k==='fert'){ add(F.fert.size+' FERT'+(F.fert.size>1?'s':''),`F.fert.clear();buildRail();render()`); return; }
+    F[k].forEach(v=>{ const o=optsFor(k).find(o=>o.v===v); add(o?o.t1:v,`tog('${k}','${v}')`); });
+  });
+  if(q)add('"'+q+'"',`document.getElementById('qBox').value='';setQ('')`);
+  if(sortKey)add('Sorted: '+SORTLBL[sortKey]+' '+(sortDir===-1?'high→low':'low→high'),`setSort('${sortKey}');setSort('${sortKey}')`,'srt');
+  document.getElementById('aft').innerHTML=t.length
+    ? `<span class="sep"></span>`+t.join('')+`<button class="btn btn-quiet btn-sm" onclick="clearAll()">Clear all</button>` : '';
+}
+/* live keystroke path — patches just this row's own totals/styling in place, same as ASM: never a
+   full render() on every keystroke, so focus and the in-progress value are never dropped. */
+function editFert(fi,c,val){
+  const f=D.find(x=>x.i===fi); if(!f)return;
+  const v=Math.max(0,parseInt(val)||0);
+  f.ovr[c]=(v===baselineV(f,c))?null:v;
+  patchFertCells(f);
+}
+function editGroupCell(fi,gi,c,val){
+  const f=D.find(x=>x.i===fi); if(!f)return;
+  const g=f.groups[gi];
+  const v=Math.max(0,parseInt(val)||0);
+  g.ovr[c]=(v===g.submitted[c])?null:v;
+  [0,1,2,3,4,5].forEach(cc=>{
+    const input=document.querySelector(`.cellin[data-fi="${fi}"][data-c="${cc}"][data-gi="${gi}"]`);
+    if(!input)return;
+    input.classList.toggle('ovr', g.ovr[cc]!==null);
+    let carry=input.parentElement.querySelector('.carry');
+    const def=g.submitted[cc], cur=groupV(f,gi,cc);
+    if(def!==cur){
+      if(!carry){ carry=document.createElement('span'); carry.className='carry'; input.insertAdjacentElement('afterend',carry); }
+      carry.textContent='was '+def;
+    } else if(carry){ carry.remove(); }
+  });
+  const gj=document.getElementById(`gjul-${fi}-${gi}`); if(gj)gj.textContent=groupV(f,gi,0)+groupV(f,gi,1)+groupV(f,gi,2)+groupV(f,gi,3);
+  const gg=document.getElementById(`ggtot-${fi}-${gi}`); if(gg)gg.textContent=groupCurTotal(f,gi);
+  patchFertTotalsOnly(f);
+}
+function patchFertCells(f){
+  const fi=f.i;
+  [0,1,2,3,4,5].forEach(cc=>{
+    const input=document.querySelector(`.cellin[data-fi="${fi}"][data-c="${cc}"][data-gi=""]`);
+    if(!input)return;
+    input.classList.toggle('ovr', f.ovr[cc]!==null);
+    let carry=input.parentElement.querySelector('.carry');
+    const def=baselineV(f,cc), cur=clusterV(f,cc);
+    if(def!==cur){
+      if(!carry){ carry=document.createElement('span'); carry.className='carry'; input.insertAdjacentElement('afterend',carry); }
+      carry.textContent='was '+def;
+    } else if(carry){ carry.remove(); }
+  });
+  patchFertTotalsOnly(f);
+}
+function patchFertTotalsOnly(f){
+  const fi=f.i;
+  const julEl=document.getElementById('jul-'+fi); if(julEl)julEl.textContent=jul(f);
+  const gtotEl=document.getElementById('gtot-'+fi); if(gtotEl)gtotEl.textContent=gTot(f);
+  [0,1,2,3,4,5].forEach(cc=>{ const el=document.getElementById('jul'+cc+'-'+fi); if(el)el.textContent=clusterV(f,cc); });
+}
+function setReason(fi,val){
+  const f=D.find(x=>x.i===fi); if(!f)return;
+  f.reason=val; renderCommit(); renderHome();
+}
+function commitAndFocus(fi,c,gi){
+  render();
+  const el=document.querySelector(`.cellin[data-fi="${fi}"][data-c="${c}"][data-gi="${gi===undefined?'':gi}"]`);
+  if(el){ el.focus(); el.select(); }
+}
+function gridKey(e){
+  const t=e.target,c=+t.dataset.c;
+  const all=[...document.querySelectorAll('.cellin')],idx=all.indexOf(t);
+  const coordsAt=n=>{const el=all[n]; return el?{fi:+el.dataset.fi,c:+el.dataset.c,gi:el.dataset.gi}:null;};
+  if(e.key==='ArrowDown'||e.key==='Enter'){
+    const el=all.find(el=>+el.dataset.c===c&&all.indexOf(el)>idx);
+    if(el){e.preventDefault(); const tc=coordsAt(all.indexOf(el)); commitAndFocus(tc.fi,tc.c,tc.gi);}
+  } else if(e.key==='ArrowUp'){
+    const el=all.filter(el=>+el.dataset.c===c&&all.indexOf(el)<idx).pop();
+    if(el){e.preventDefault(); const tc=coordsAt(all.indexOf(el)); commitAndFocus(tc.fi,tc.c,tc.gi);}
+  } else if(e.key==='ArrowLeft'&&t.selectionStart===0){
+    const tc=coordsAt(idx-1); if(tc){e.preventDefault(); commitAndFocus(tc.fi,tc.c,tc.gi);}
+  } else if(e.key==='ArrowRight'&&t.selectionStart===t.value.length){
+    const tc=coordsAt(idx+1); if(tc){e.preventDefault(); commitAndFocus(tc.fi,tc.c,tc.gi);}
+  } else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='d'){
+    e.preventDefault();
+    const p=all.filter(el=>+el.dataset.c===c&&all.indexOf(el)<idx).pop();
+    if(p){t.value=p.value;t.dispatchEvent(new Event('input'));toast('Filled down from the line above');}
+  }
+}
+function gridPaste(e,fi,gi){
+  const txt=(e.clipboardData||window.clipboardData).getData('text');
+  if(!/[\t\n]/.test(txt))return;
+  e.preventDefault();
+  const t=e.target,startC=+t.dataset.c;
+  const rs=rows(); const startIdx=rs.findIndex(f=>f.i===fi); if(startIdx<0)return;
+  let n=0;
+  txt.replace(/\r/g,'').split('\n').filter(l=>l.length).forEach((ln,li)=>{
+    const f=rs[startIdx+li]; if(!f)return;
+    ln.split('\t').forEach((cv,ci)=>{
+      const c=startC+ci; if(c>5)return;
+      const numv=parseInt(cv.replace(/[^\d-]/g,''));
+      if(isNaN(numv))return;
+      const v=Math.max(0,numv);
+      if(gi===''||gi===undefined){ f.ovr[c]=(v===baselineV(f,c))?null:v; }
+      else { f.groups[gi].ovr[c]=(v===f.groups[gi].submitted[c])?null:v; }
+      n++;
+    });
+  });
+  render();
+  toast(n+' cell'+(n===1?'':'s')+' pasted from your spreadsheet');
+}
+
+/* ════════ ADD LINE (P-11) — COCO ASM only; see the divergence note in the data script for why this
+   exists at ASM level but not RBH/VH (ASM excluded it entirely — not something a moderator of
+   already-submitted numbers does; COCO ASM originates lines, the old build's own +Add FERT button
+   confirms it). ════════ */
+let addLineSel=new Set();
+function openAddLine(){
+  addLineSel=new Set();
+  const avail=[...hiddenFerts].map(code=>LMD_RAW.find(r=>r[0]===code)).filter(Boolean);
+  document.getElementById('addLineSub').textContent=LC().roleLine;
+  document.getElementById('addLineNote').innerHTML=avail.length
+    ? `Adding a line makes it visible across all of your outlets (${GROUPS.map(g=>g.name).join(', ')}) at zero until you enter a number. It stays flagged <b>ADDED</b> this cycle so ${LC().nextName.split(',')[0]} can see it's new.`
+    : `Every FERT in the LMD catalogue is already active for your outlets — nothing left to add this cycle.`;
+  document.getElementById('addLineList').innerHTML=avail.length ? avail.map(r=>
+    `<label class="mchk"><input type="checkbox" onchange="toggleAddSel('${r[0]}',this.checked)">
+      <span><b>${r[0]}</b> — ${r[1]}</span></label>`).join('')
+    : '<div style="color:var(--muted);font-size:12.5px;padding:8px 0">Nothing available.</div>';
+  document.getElementById('addLineCount').textContent='0 selected';
+  document.getElementById('addLineM').classList.add('on');
+}
+function toggleAddSel(code,on){ on?addLineSel.add(code):addLineSel.delete(code);
+  document.getElementById('addLineCount').textContent=addLineSel.size+' selected'; }
+function confirmAddLine(){
+  if(!addLineSel.size){ toast('Select at least one line first'); closeM('addLineM'); return; }
+  F.fert=new Set([...addLineSel]);
+  addLineSel.forEach(code=>{ hiddenFerts.delete(code); const f=D.find(x=>x.code===code); if(f)f.isAdded=true; });
+  closeM('addLineM'); buildRail(); render();
+  toast(addLineSel.size+' line'+(addLineSel.size===1?'':'s')+' added — filtered to show '+(addLineSel.size===1?'it':'them'));
+}
+
+/* ════════ COMMIT (P-12 — always the full roster's scope) ════════ */
+function exceptionLines(){ return D.filter(fertHasException); }
+function renderCommit(){
+  const julT=D.reduce((a,f)=>a+jul(f),0), grand=D.reduce((a,f)=>a+gTot(f),0);
+  const visible=D.filter(f=>!hiddenFerts.has(f.code)||f.isAdded);
+  const missing=visible.filter(f=>!hasEntry(f)).length, filtered=activeCount()>0||!!q;
+  const excCount=exceptionLines().length;
+  const el=document.getElementById('commit');
+  if(submittedFlag){
+    el.innerHTML=`<div class="stat"><span class="v" style="color:var(--ok)">✓</span>
+      <span class="k">LMD indent submitted · ${visible.length} lines · ${julT} units for July</span></div>
+      <div class="right"><button class="btn btn-ghost btn-sm" onclick="openExport()">View what was sent</button>
+      <button class="btn btn-ghost btn-sm" onclick="reopen()">Reopen</button></div>`; return;
+  }
+  el.innerHTML=`<div class="stat"><span class="v">${visible.length}</span><span class="k">lines</span></div>
+    <div class="stat"><span class="v">${julT}</span><span class="k">units · July</span></div>
+    <div class="stat"><span class="v">${grand}</span><span class="k">Jul–Sep</span></div>
+    ${missing?`<div class="div"></div><div class="stat"><span class="v" style="color:var(--warn)">${missing}</span><span class="k">with no entry</span></div>`:''}
+    ${excCount?`<div class="div"></div><div class="stat"><span class="v" style="color:var(--warn)">${excCount}</span><span class="k">needing a decision</span></div>`:''}
+    <div class="right">
+      ${filtered?`<span class="saved" style="color:var(--warn)">⚠ Totals are for all ${visible.length} lines, not the filtered view</span>`:`<span class="saved">Saved just now</span>`}
+      <button class="btn btn-coco btn-sm" onclick="saveCoco()">Save</button></div>`;
+}
+</script>
+<script>
+/* ════════ HOME (P-04: two sections, indent progress then Summary) ════════ */
+function seedNum(str){ return [...str].reduce((a,c)=>a+c.charCodeAt(0),0); }
+function outletAccHistory(o){
+  const seed=seedNum(o.code);
+  const monthly=Math.max(1,Math.round(o.abpTarget));
+  const months=['Mar','Apr','May','Jun'];
+  const isOutlier=seed%5===0;
+  return months.map((m,i)=>{
+    const ind=Math.max(1,monthly+((seed+i*7)%5)-2);
+    const jitter=isOutlier?(i%2===0?Math.round(ind*0.3):-Math.round(ind*0.25)):(((seed*(i+3))%5)-2);
+    const off=Math.max(0,ind+jitter);
+    return {m,ind,off};
+  });
+}
+function groupAccHistory(g){
+  const each=g.outlets.map(oc=>outletAccHistory(outletOf(oc)));
+  return ['Mar','Apr','May','Jun'].map((m,i)=>({m,ind:each.reduce((a,h)=>a+h[i].ind,0),off:each.reduce((a,h)=>a+h[i].off,0)}));
+}
+function groupAbpTarget(g){ return g.outlets.reduce((a,oc)=>a+outletOf(oc).abpTarget,0); }
+function computeGroupAccuracy(g){
+  const h=groupAccHistory(g);
+  const pcts=h.map(x=>Math.round(Math.min(x.ind,x.off)/Math.max(x.ind,x.off,1)*100));
+  const avg=Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length);
+  const ti=h.reduce((a,x)=>a+x.ind,0), to=h.reduce((a,x)=>a+x.off,0);
+  const bias=to?Math.round((ti/to-1)*100):0;
+  const abpT=groupAbpTarget(g);
+  const devAbp=abpT?Math.round((ti/4)/abpT*100-100):0;
+  return {group:g,pcts,avg,bias,ti,to,devAbp,isFlagged:Math.abs(bias)>TOL||Math.abs(devAbp)>TOL};
+}
+function renderHome(){
+  const visible=D.filter(f=>!hiddenFerts.has(f.code)||f.isAdded);
+  const entered=visible.filter(hasEntry).length;
+  const julT=D.reduce((a,f)=>a+jul(f),0);
+  document.getElementById('hcEntered').textContent=entered;
+  document.getElementById('hcEnteredCap').textContent='of '+visible.length+' lines with an entry';
+  document.getElementById('hcUnits').textContent=julT;
+  document.getElementById('hcMeter').style.width=(visible.length?Math.round(entered/visible.length*100):0)+'%';
+  const excCount=exceptionLines().length;
+  const st=document.getElementById('hcStatus');
+  st.textContent=submittedFlag?'Submitted':(excCount?excCount+' flagged':'On track');
+  st.className='pill '+(submittedFlag?'p-ok':(excCount?'p-warn':'p-ok'));
+  document.getElementById('tbState').innerHTML=submittedFlag
+    ?'Status: <b class="okv">Submitted to '+LC().nextName.split(',')[0]+'</b>'
+    :`Status: <b>${GROUPS.length} of ${GROUPS.length} ${LC().groupNoun}${GROUPS.length===1?'':'s'} recorded</b>`;
+
+  const excLines=D.filter(fertHasException);
+  document.getElementById('hcAttnCount').textContent=excLines.length;
+  document.getElementById('hcAttnCountCap').textContent=excLines.length===1?'':'s';
+  if(excLines.length){
+    const bySv={};
+    excLines.forEach(f=>{ bySv[f.sv]=(bySv[f.sv]||0)+1; });
+    document.getElementById('hcAttnCap').textContent=Object.entries(bySv).map(([sv,n])=>`${n} in ${sv}`).join(' · ');
+  } else {
+    document.getElementById('hcAttnCap').textContent='✓ Nothing outside tolerance right now.';
+  }
+  if(attnOpen)renderAttnPanel(excLines);
+
+  document.getElementById('hcGroups').innerHTML=GROUPS.map((g,gi)=>{
+    const gJul=D.reduce((a,f)=>a+groupV(f,gi,0)+groupV(f,gi,1)+groupV(f,gi,2)+groupV(f,gi,3),0);
+    return `<div class="kv-row"><span class="nm">${g.name}</span>
+      <span class="pill p-coco">${LC().editScope==='group'?'Recording':'Consolidated'}</span>
+      <span class="vl">${gJul} units · Jul · ${g.loc}</span>
+      <button class="btn btn-quiet btn-sm" onclick="gridGroupBy='grp';gridGroupOpen=new Set(['${g.code}']);go('wb');buildRail();render()">Open →</button></div>`;
+  }).join('');
+  document.getElementById('zProg').textContent=submittedFlag
+    ? 'LMD indent submitted' : (excCount?excCount+' lines flagged · closes '+LC().cutoff.split(',')[0]:entered+' of '+visible.length+' lines with an entry · closes '+LC().cutoff.split(',')[0]);
+
+  const prevT=D.reduce((a,f)=>a+f.groups.reduce((s,g)=>s+g.prevSubmitted,0),0);
+  document.getElementById('kIndent').textContent=julT;
+  document.getElementById('kPrev').textContent=prevT;
+  const pPct=prevT?Math.round((julT/prevT-1)*100):0;
+  const pp=document.getElementById('kPrevPill');
+  pp.textContent=(pPct>0?'+':'')+pPct+'%'; pp.className='pill '+(Math.abs(pPct)<=10?'p-ok':'p-warn');
+
+  const abpT=D.reduce((a,f)=>a+abpForFert(f),0);
+  const abpPct=abpT?Math.round(julT/abpT*100):0;
+  document.getElementById('kAbpPct').textContent=abpPct+'%';
+  document.getElementById('kAbpCap').textContent=`${julT} indent vs ${abpT} ABP target`;
+  document.getElementById('kAbpMeter').style.width=Math.min(abpPct,100)+'%';
+
+  const accData=GROUPS.map(computeGroupAccuracy);
+  const avgAcc=Math.round(accData.reduce((a,r)=>a+r.avg,0)/accData.length);
+  const avgBias=Math.round(accData.reduce((a,r)=>a+r.bias,0)/accData.length);
+  document.getElementById('kAcc').textContent=avgAcc+'%';
+  document.getElementById('kBias').textContent=(avgBias>0?'+':'')+avgBias+'%';
+  document.getElementById('kBias').style.color=Math.abs(avgBias)<=TOL?'var(--ok)':'var(--warn)';
+  document.getElementById('kBiasCap').textContent=avgBias>0?'over-indent':(avgBias<0?'under-indent':'no bias');
+  const ap=document.getElementById('kAccPill');
+  ap.textContent=Math.abs(avgBias)<=TOL?'Within ±10%':(avgBias>0?'Consistently over':'Consistently under');
+  ap.className='pill '+(Math.abs(avgBias)<=TOL?'p-ok':'p-warn');
+  const sparkPcts=[0,1,2,3].map(i=>Math.round(accData.reduce((a,r)=>a+r.pcts[i],0)/accData.length));
+  document.getElementById('kSpark').innerHTML=sparkPcts.map((v,i)=>
+    `<i style="height:${v}%" title="Cycle ${i+1}: ${v}%"></i>`).join('');
+  if(accOpen)renderAccPanel();
+  renderInventoryMix(D,'homeInventory');
+  renderRollup();
+}
+
+function mixBar(parts,total){
+  const colors=['var(--ok)','var(--warn)','var(--crit)'];
+  return `<div style="height:12px;background:var(--surface-2);border-radius:8px;overflow:hidden;display:flex">${parts.map((v,i)=>`<i style="display:block;height:100%;width:${total?Math.round(v/total*100):0}%;background:${colors[i]}"></i>`).join('')}</div>`;
+}
+function renderInventoryMix(src,hostId){
+  const host=document.getElementById(hostId); if(!host)return;
+  const s60=src.reduce((a,f)=>a+(f.s60||0),0), s90=src.reduce((a,f)=>a+(f.s90||0),0), s180=src.reduce((a,f)=>a+(f.s180||0),0), sOver=src.reduce((a,f)=>a+(f.sOver||0),0);
+  const stock=s60+s90+s180+sOver, aged=s90+s180+sOver;
+  const runner=src.filter(f=>f.seg==='R').reduce((a,f)=>a+jul(f),0), repeater=src.filter(f=>f.seg==='S').reduce((a,f)=>a+jul(f),0), stranger=src.filter(f=>f.seg==='D').reduce((a,f)=>a+jul(f),0), vehicles=runner+repeater+stranger;
+  host.innerHTML=`<div class="card"><h3>Stock &lt;60D</h3><div class="big sm" style="color:var(--ok)">${s60} <span style="font-size:14px;color:var(--muted)">/ ${stock}</span></div>${mixBar([s60,s90,s180+sOver],stock)}<div class="cap">&lt;60D: ${s60} · 60–90D: ${s90} · 90–180D: ${s180} · &gt;180D: ${sOver}</div></div>
+    <div class="card"><h3>Aged stock</h3><div class="big sm" style="color:var(--warn)">${aged}</div>${mixBar([s90,s180,sOver],aged)}<div class="cap">60–90D: ${s90} · 90–180D: ${s180} · &gt;180D: ${sOver}</div></div>
+    <div class="card"><h3>Runner / Repeater / Stranger</h3><div class="big sm" style="font-size:20px">${runner} / ${repeater} / ${stranger}</div><div class="cap">July vehicles</div>${mixBar([runner,repeater,stranger],vehicles)}<div class="cap">Runner: ${runner} · Repeater: ${repeater} · Stranger: ${stranger}</div></div>`;
+}
+
+/* Standalone Summary keeps the same roll-up and filters as Home, but gives managers the separate
+   Phase 0 destination and export point without introducing a new visual language. */
+function renderSummaryView(){
+  const host=document.getElementById('sumCards'); if(!host)return;
+  const src=rows(), july=src.reduce((a,f)=>a+jul(f),0);
+  const previous=src.reduce((a,f)=>a+f.groups.reduce((s,g)=>s+g.prevSubmitted,0),0);
+  const stock=src.reduce((a,f)=>a+stockTot(f),0), flags=src.filter(fertHasException).length;
+  const delta=previous?Math.round((july/previous-1)*100):0;
+  document.getElementById('sumScope').textContent=`${LC().roleLine} · ${src.length} filtered FERT lines · ${activeCycle}`;
+  document.getElementById('sumNote').textContent=(activeCount()||q)?'Workbook filters applied':'All lines in scope';
+  host.innerHTML=`<div class="card"><h3>July indent</h3><div class="big sm">${july}</div><div class="cap">${delta>=0?'+':''}${delta}% vs last cycle</div></div>
+    <div class="card"><h3>COCO stock aging</h3><div class="big sm">${stock}</div><div class="cap">across visible FERTs</div></div>
+    <div class="card"><h3>Needs attention</h3><div class="big sm" style="color:${flags?'var(--warn)':'var(--ok)'}">${flags}</div><div class="cap">outside the tolerance rule</div></div>`;
+  renderInventoryMix(src,'sumInventory');
+  document.getElementById('sumGb').innerHTML=ROLL_GB().map(([k,l])=>`<button class="${rollBy===k?'on':''}" onclick="setRollBy('${k}');renderSummaryView()">${l}</button>`).join('');
+  const source=document.getElementById('rollTbl');
+  document.getElementById('sumRollTbl').innerHTML=source?source.innerHTML:'';
+}
+
+let attnOpen=false, attnView='fert', attnExpanded=new Set(), attnExpandedDealer=new Set();
+function toggleAttn(){
+  attnOpen=!attnOpen;
+  document.getElementById('attnBtn').textContent=(attnOpen?'▾':'▸')+' Review flagged lines';
+  document.getElementById('attnPanel').style.display=attnOpen?'':'none';
+  if(attnOpen)renderHome();
+}
+function setAttnView(v){ attnView=v; attnExpanded=new Set(); attnExpandedDealer=new Set(); renderHome(); }
+function toggleAttnLine(fi){ attnExpanded.has(fi)?attnExpanded.delete(fi):attnExpanded.add(fi); renderHome(); }
+function toggleAttnGroup(code){ attnExpandedDealer.has(code)?attnExpandedDealer.delete(code):attnExpandedDealer.add(code); renderHome(); }
+function reviewLine(fi){
+  gridGroupBy='fert';
+  F.fert=new Set(); const f=D.find(x=>x.i===fi); if(f)F.fert.add(f.code);
+  go('wb'); buildRail(); expanded.add(fi); render();
+}
+function attnLineRow(f){
+  const ex=fertFlagExplain(f);
+  const open=attnExpanded.has(f.i);
+  const rowsHtml=open?f.groups.map(g=>{
+    const gJul=g.submitted[0]+g.submitted[1]+g.submitted[2]+g.submitted[3];
+    return `<tr class="sub"><td class="l" colspan="2">↳ ${g.name} <span style="font-family:var(--mono);color:var(--muted)">${g.code}</span></td>
+      <td class="l">recorded</td><td style="font-family:var(--mono)">${gJul} <span style="color:var(--muted)">(Jul)</span></td></tr>`;
+  }).join(''):'';
+  return `<tr><td class="l"><button class="exp" onclick="toggleAttnLine(${f.i})" aria-label="Expand">${open?'▼':'▶'}</button>${f.desc}
+      <span style="font-family:var(--mono);color:var(--muted)">${f.code}</span></td>
+    <td class="l">${f.sv}</td>
+    <td class="l">${ex}</td>
+    <td><button class="btn btn-ghost btn-sm" onclick="reviewLine(${f.i})">Review →</button></td></tr>${rowsHtml}`;
+}
+function renderAttnPanel(excLines){
+  const host=document.getElementById('attnPanel');
+  if(!excLines.length){
+    host.innerHTML=`<div class="accwrap"><div class="cap" style="color:var(--ok)">✓ Nothing outside tolerance right now — nothing to review.</div></div>`;
+    return;
+  }
+  const gn=LC().groupNounCap;
+  const tabs=`<div class="seg-ctl">
+    <button class="${attnView==='fert'?'on':''}" onclick="setAttnView('fert')">By FERT</button>
+    <button class="${attnView==='grp'?'on':''}" onclick="setAttnView('grp')">By ${gn}</button>
+  </div>`;
+  let body;
+  if(attnView==='fert'){
+    body=`<table class="sumtbl">
+      <thead><tr><th class="l">FERT</th><th class="l">Sub-vertical</th><th class="l">Why it's flagged</th><th></th></tr></thead>
+      <tbody>${excLines.map(attnLineRow).join('')}</tbody>
+    </table>`;
+  } else {
+    body=`<table class="sumtbl">
+      <thead><tr><th class="l">${gn}</th><th>Lines flagged</th><th class="l"></th><th></th></tr></thead>
+      <tbody>${GROUPS.map((g,gi)=>{
+        const open=attnExpandedDealer.has(g.code);
+        const rowsHtml=open?excLines.map(f=>{
+          const gg=f.groups[gi];
+          const gJul=gg.submitted[0]+gg.submitted[1]+gg.submitted[2]+gg.submitted[3];
+          return `<tr class="sub"><td class="l" colspan="2">${f.desc} <span style="font-family:var(--mono);color:var(--muted)">${f.code}</span></td>
+            <td class="l" style="font-family:var(--mono)">${gJul} recorded (Jul)</td>
+            <td><button class="btn btn-ghost btn-sm" onclick="reviewLine(${f.i})">Review →</button></td></tr>`;
+        }).join(''):'';
+        return `<tr><td class="l"><button class="exp" onclick="toggleAttnGroup('${g.code}')" aria-label="Expand">${open?'▼':'▶'}</button>${g.name}</td>
+          <td>${excLines.length}</td><td class="l">${g.loc}</td><td></td></tr>${rowsHtml}`;
+      }).join('')}</tbody>
+    </table>`;
+  }
+  host.innerHTML=`<div class="accwrap">
+    <div class="acchead">
+      <h4>Lines needing attention</h4>
+      ${tabs}
+      <span style="margin-left:auto;font-size:11.5px;color:var(--muted)">${attnView==='fert'?`Expand a line to see each ${LC().groupNoun}'s recorded number behind it`:`Expand a ${gn.toLowerCase()} to see their recorded number on each flagged line`}</span>
+    </div>
+    ${body}
+  </div>`;
+}
+
+let accOpen=false, accView='grp';
+function toggleAcc(){
+  accOpen=!accOpen;
+  document.getElementById('accBtn').textContent=(accOpen?'▾':'▸')+' View report card';
+  document.getElementById('accPanel').style.display=accOpen?'':'none';
+  if(accOpen)renderAccPanel();
+}
+function setAccView(v){ accView=v; renderAccPanel(); }
+function accRow(name,sub,hist,onClick,abp){
+  const pcts=hist.map(h=>Math.round(Math.min(h.ind,h.off)/Math.max(h.ind,h.off,1)*100));
+  const avg=Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length);
+  const ti=hist.reduce((a,h)=>a+h.ind,0), to=hist.reduce((a,h)=>a+h.off,0);
+  const bias=to?Math.round((ti/to-1)*100):0;
+  const col=avg>=90?'var(--ok)':avg>=80?'var(--warn)':'var(--crit)';
+  const pill=Math.abs(bias)<=TOL?['p-ok','Within ±10%']:(bias>0?['p-warn','Over by '+bias+'%']:['p-warn','Under by '+Math.abs(bias)+'%']);
+  return `<tr${onClick?` style="cursor:pointer" onclick="${onClick}"`:''}>
+    <td class="l">${name}${sub?`<div style="font-size:10.5px;color:var(--muted);font-family:var(--mono)">${sub}</div>`:''}</td>
+    ${hist.map(h=>`<td><div class="acell"><span class="ai">${h.ind}</span><span class="ao">took ${h.off}</span></div></td>`).join('')}
+    <td><span style="color:${col};font-weight:700">${avg}%</span>
+      <div class="abar"><i style="width:${avg}%;background:${col}"></i></div></td>
+    ${abp!==undefined?`<td style="text-align:right;font-family:var(--mono)">${abp}%</td>`:''}
+    <td style="text-align:right"><span class="pill ${pill[0]}">${pill[1]}</span></td></tr>`;
+}
+function fertHist(f){
+  if(f._h)return f._h;
+  const seed=[...f.code].reduce((a,c)=>a+c.charCodeAt(0),0);
+  const base=Math.max(1,Math.round(baselineJul(f)/4));
+  f._h=['Mar','Apr','May','Jun'].map((m,i)=>{
+    const ind=Math.max(1,base+((seed+i*7)%5)-2);
+    const off=Math.max(0,ind+((seed*(i+3))%5)-2);
+    return {m,ind,off};
+  });
+  return f._h;
+}
+function renderAccPanel(){
+  const months=['Mar','Apr','May','Jun'];
+  let body='', abpCol='';
+  const gn=LC().groupNounCap;
+  if(accView==='grp'){
+    abpCol='<th style="text-align:right">vs ABP</th>';
+    const netHist=months.map((m,i)=>({m,
+      ind:GROUPS.reduce((a,g)=>a+groupAccHistory(g)[i].ind,0),
+      off:GROUPS.reduce((a,g)=>a+groupAccHistory(g)[i].off,0)}));
+    body=GROUPS.map(g=>{
+      const r=computeGroupAccuracy(g);
+      return accRow(g.name,g.code,groupAccHistory(g),null,100+r.devAbp);
+    }).join('')+accRow('<b>Whole '+(role==='coco_vh'?'network':role==='coco_rbh'?'region':'roster')+'</b>','',netHist);
+  }else{
+    const rs=rows().filter(f=>f.o3>0).slice(0,25);
+    body=rs.length?rs.map(f=>accRow(f.desc,f.code,fertHist(f),`closeAccTo(${f.i})`))
+      .join(''):`<tr><td class="l" colspan="7" style="color:var(--muted)">No lines with offtake history in this filter.</td></tr>`;
+  }
+  document.getElementById('accPanel').innerHTML=`
+    <div class="accwrap">
+      <div class="acchead">
+        <h4>Indent accuracy — last four cycles</h4>
+        <div class="seg-ctl">
+          <button class="${accView==='grp'?'on':''}" onclick="setAccView('grp')">By ${gn}</button>
+          <button class="${accView==='fert'?'on':''}" onclick="setAccView('fert')">By FERT</button>
+        </div>
+        <span style="margin-left:auto;font-size:11.5px;color:var(--muted)">
+          Monthly · ${accView==='fert'?'top 25 lines in your current filter · click a row to open it':'each '+gn.toLowerCase()+' in view'}</span>
+      </div>
+      <div class="cap" style="color:var(--muted);padding:0 0 2px">Each month below shows what was <b>indented</b> (large number) over what was <b>taken</b> — the offtake — underneath it.</div>
+      <div style="overflow-x:auto"><table class="sumtbl">
+        <thead><tr><th class="l">${accView==='grp'?gn:'FERT'}</th>
+          ${months.map(m=>`<th>${m}<div style="font-size:9px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">indent / offtake</div></th>`).join('')}<th>Accuracy</th>${abpCol}<th style="text-align:right">Bias</th></tr></thead>
+        <tbody>${body}</tbody></table></div>
+      <div class="cap" style="color:var(--muted);padding-bottom:4px">
+        <b>Indent</b> is what was planned for that month. <b>Offtake</b> is what was actually taken from stock. Accuracy is the smaller of the two over the larger. Bias is the total indented against the total taken across all four months. Tolerance ±10%, same figure that gates a reason in the grid.</div>
+    </div>`;
+}
+function closeAccTo(i){ const f=D.find(x=>x.i===i); if(!f)return; gridGroupBy='fert'; F.fert=new Set([f.code]); go('wb'); buildRail(); render(); toast('Opened '+f.code); }
+
+/* ════════ ROLLUP with group-by (P-16) ════════ */
+const ROLL_GB=()=>[['grp',LC().groupNounCap],['mpg','MPG'],['ton','Tonnage'],['fert','FERT']];
+let rollBy='grp'; let rollOpen=new Set();
+function setRollBy(k){ rollBy=k; rollOpen=new Set(); renderRollup(); }
+function toggleRollRow(k){ rollOpen.has(k)?rollOpen.delete(k):rollOpen.add(k); renderRollup(); }
+function lineVals(fs,gi){
+  const val=(f,c)=>gi!==undefined?groupV(f,gi,c):clusterV(f,c);
+  const s60=fs.reduce((a,f)=>a+f.s60,0), s90=fs.reduce((a,f)=>a+f.s90,0),
+    s180=fs.reduce((a,f)=>a+f.s180,0), sOver=fs.reduce((a,f)=>a+f.sOver,0);
+  const o3=fs.reduce((a,f)=>a+f.o3,0), o6=fs.reduce((a,f)=>a+f.o6,0),
+    o12=fs.reduce((a,f)=>a+f.o12,0), oly=fs.reduce((a,f)=>a+f.oly,0);
+  const prev=gi!==undefined?fs.reduce((a,f)=>a+f.groups[gi].prevSubmitted,0):fs.reduce((a,f)=>a+f.groups.reduce((s,g)=>s+g.prevSubmitted,0),0);
+  const w=[0,1,2,3].map(c=>fs.reduce((a,f)=>a+val(f,c),0));
+  const jul=w.reduce((a,b)=>a+b,0), aug=fs.reduce((a,f)=>a+val(f,4),0), sep=fs.reduce((a,f)=>a+val(f,5),0);
+  const shareOf=f=>{ const tot=baselineJul(f)+baselineV(f,4)+baselineV(f,5); return tot?groupSubmittedTotal(f,gi)/tot:0; };
+  const abp=fs.reduce((a,f)=>a+(gi!==undefined?Math.round(abpForFert(f)*shareOf(f)):abpForFert(f)),0);
+  const avg3=fs.reduce((a,f)=>a+(gi!==undefined?Math.round(threeMoAvg(f)*shareOf(f)):threeMoAvg(f)),0);
+  return {s60,s90,s180,sOver, stock:s60+s90+s180+sOver, o3,o6,o12,oly,
+    prev, delta:jul-prev, w0:w[0],w1:w[1],w2:w[2],w3:w[3], jul,aug,sep, tot:jul+aug+sep, abp, avg3};
+}
+const ROLL_INDENT=[
+  {k:'w0',label:'W1'},{k:'w1',label:'W2'},{k:'w2',label:'W3'},{k:'w3',label:'W4'},
+  {k:'jul',label:'Jul',bold:true},{k:'aug',label:'Aug'},{k:'sep',label:'Sep'},{k:'tot',label:'Total',bold:true}];
+function deltaCell(v){
+  const c=v.delta>0?'var(--ok)':v.delta<0?'var(--crit)':'var(--muted)';
+  return `<span style="color:${c};font-weight:600">${v.delta>0?'+':''}${v.delta||0}</span>`;
+}
+const ROLL_BANDS=[
+  {k:'stock',label:'Network stock',summary:{k:'stock',label:'Stock',get:v=>v.stock||'–'},cols:[
+    {k:'s60',label:'&lt;60D',get:v=>v.s60||'–'},{k:'s90',label:'60–90D',get:v=>v.s90||'–'},
+    {k:'s180',label:'90–180D',get:v=>v.s180||'–'},{k:'sOver',label:'&gt;180D',get:v=>v.sOver||'–'},
+    {k:'stock',label:'Total',get:v=>v.stock||'–'}]},
+  {k:'off',label:'Trend — offtake',summary:{k:'o3',label:'Off L3',get:v=>v.o3||'–'},cols:[
+    {k:'o3',label:'L3',get:v=>v.o3||'–'},{k:'o6',label:'L6',get:v=>v.o6||'–'},
+    {k:'o12',label:'L12',get:v=>v.o12||'–'},{k:'oly',label:'LYSM',get:v=>v.oly||'–'}]},
+  {k:'last',label:'Last cycle',summary:{k:'delta',label:'Δ vs last',get:deltaCell},cols:[
+    {k:'prev',label:'Last cycle',get:v=>v.prev||'–'},{k:'delta',label:'Δ vs last',get:deltaCell}]},
+  {k:'avg3',label:'3-month average',cols:[{k:'avg3',label:'Avg (L3M)',get:v=>v.avg3||'–'}]},
+  {k:'abp',label:'ABP target',cols:[{k:'abp',label:'ABP',get:v=>v.abp||'–'}]},
+];
+let rollBandMode={stock:'summary',off:'summary',last:'summary',avg3:'off',abp:'off'};
+function activeRollCols(){
+  const out=[];
+  ROLL_BANDS.forEach(b=>{
+    const m=rollBandMode[b.k]||'off';
+    if(m==='off')return;
+    if(m==='summary'&&b.summary)out.push({...b.summary,band:b});
+    else b.cols.forEach(c=>out.push({...c,band:b}));
+  });
+  return out;
+}
+function rollBandSpan(){
+  const cols=activeRollCols(), out=[];
+  cols.forEach(c=>{
+    const last=out[out.length-1];
+    if(last&&last.b===c.band)last.n++;
+    else out.push({b:c.band,n:1,mode:rollBandMode[c.band.k]});
+  });
+  return out;
+}
+function cycleRollBand(k){
+  const b=ROLL_BANDS.find(x=>x.k===k);
+  const m=rollBandMode[k];
+  rollBandMode[k]= b.summary ? (m==='summary'?'full':'summary') : (m==='full'?'off':'full');
+  renderRollup();
+}
+function rowCells(v){
+  return ROLL_INDENT.map(c=>`<td${c.bold?' style="font-weight:700"':''}>${v[c.k]||'–'}</td>`).join('')
+    +activeRollCols().map(c=>`<td>${c.get(v)}</td>`).join('');
+}
+function renderRollup(){
+  document.getElementById('rollGb').innerHTML=ROLL_GB().map(([k,l])=>
+    `<button class="${rollBy===k?'on':''}" onclick="setRollBy('${k}')">${l}</button>`).join('');
+  const src=rows();
+  document.getElementById('rollNote').textContent=(activeCount()||q)
+    ?`${src.length} of ${D.length} lines — indent workbook filters applied`:`All ${D.length} lines`;
+  const label={grp:LC().groupNounCap,mpg:'MPG',ton:'Tonnage',fert:'FERT'}[rollBy];
+  const spans=rollBandSpan();
+  const bandRow=spans.map(s=>{
+    const short=s.mode==='summary'&&s.b.summary;
+    return `<th class="b-ref" colspan="${s.n}"><button class="bandbtn" onclick="cycleRollBand('${s.b.k}')"
+      title="${s.b.label} · ${s.mode==='summary'?'Expand this group':'Collapse this group'}">${short?s.b.summary.label:s.b.label}
+      <span class="bm">${s.mode==='summary'?'▸':'▾'}</span></button></th>`;}).join('');
+  const colRow=`${ROLL_INDENT.map(c=>`<th>${c.label}</th>`).join('')}${activeRollCols().map(c=>`<th>${c.label}</th>`).join('')}`;
+  let h=`<thead>
+      <tr class="bands"><th class="l" rowspan="2">${label}</th><th rowspan="2">Lines</th>
+        <th class="b-edit" colspan="8">${LC().label} Indent · July 2026</th>${bandRow}</tr>
+      <tr>${colRow}</tr>
+    </thead><tbody>`;
+  if(rollBy==='fert'){
+    src.forEach(f=>{
+      const v=lineVals([f]);
+      h+=`<tr><td class="l">${f.desc}<div style="font-size:10.5px;color:var(--muted);font-family:var(--mono)">${f.code}</div></td>
+        <td>1</td>${rowCells(v)}</tr>`;
+    });
+  } else if(rollBy==='grp'){
+    GROUPS.forEach((g,gi)=>{
+      const v=lineVals(src,gi);
+      const open=rollOpen.has(g.code);
+      h+=`<tr><td class="l"><button class="exp" onclick="toggleRollRow('${g.code}')" aria-label="Expand">${open?'▼':'▶'}</button>${g.name}</td>
+        <td>${src.length}</td>${rowCells(v)}</tr>`;
+      if(open)src.forEach(f=>{
+        const dv2=lineVals([f],gi);
+        h+=`<tr class="sub"><td class="l">${f.desc} <span style="font-family:var(--mono);color:var(--muted)">${f.code}</span></td>
+          <td>1</td>${rowCells(dv2)}</tr>`;
+      });
+    });
+  } else {
+    const keys=[...new Set(src.map(f=>f[VALOF[rollBy]]))];
+    if(rollBy==='ton')keys.sort((a,b)=>parseFloat(a)-parseFloat(b)); else keys.sort();
+    keys.forEach(k=>{
+      const fs=src.filter(f=>f[VALOF[rollBy]]===k);
+      const v=lineVals(fs);
+      const open=rollOpen.has(k);
+      h+=`<tr><td class="l"><button class="exp" onclick="toggleRollRow('${k}')" aria-label="Expand">${open?'▼':'▶'}</button>${k}</td>
+        <td>${fs.length}</td>${rowCells(v)}</tr>`;
+      if(open)fs.forEach(f=>{
+        const fv=lineVals([f]);
+        h+=`<tr class="sub"><td class="l">${f.desc} <span style="font-family:var(--mono);color:var(--muted)">${f.code}</span></td>
+          <td>1</td>${rowCells(fv)}</tr>`;
+      });
+    });
+  }
+  const tv=lineVals(src);
+  h+=`<tr class="tot"><td class="l">Total</td><td>${src.length}</td>${rowCells(tv)}</tbody>`;
+  document.getElementById('rollTbl').innerHTML=h;
+}
+
+/* ════════ DRAWER (P-10) ════════ */
+function openDrawer(i){
+  const f=D.find(x=>x.i===i); const st=stockTot(f);
+  const changed = LC().editScope==='group' ? f.groups.some(g=>g.ovr.some(v=>v!==null)) : f.ovr.some(v=>v!==null);
+  document.getElementById('drawer').innerHTML=`
+    <div class="dr-head"><div><h3>${f.desc}</h3><div class="cd">${f.code}</div></div>
+      <button class="dr-close" onclick="closeDrawer()" aria-label="Close">×</button></div>
+    <div class="dr-body">
+      <div class="dr-sec"><h4>Vehicle</h4>
+        <div class="dr-i"><span class="k">Eicher segment</span><span class="v"><span class="seg-dot sg-${f.seg}">${SEGNAME[f.seg]}</span></span></div>
+        <div class="dr-i"><span class="k">MPG model</span><span class="v">${f.mpg}</span></div>
+        <div class="dr-i"><span class="k">Tonnage</span><span class="v">${f.ton}</span></div>
+        <div class="dr-i"><span class="k">Fuel · cabin</span><span class="v">${f.fuel} · ${f.ac==='AC'?'AC':'Non-AC'}</span></div>
+        <div class="dr-i"><span class="k">Sub-vertical</span><span class="v">${f.sv}</span></div></div>
+      <div class="dr-sec"><h4>Network stock on hand — ${st} units</h4>
+        <div class="dr-i"><span class="k">Under 60 days</span><span class="v">${f.s60}</span></div>
+        <div class="dr-i"><span class="k">60–90 days</span><span class="v ${f.s90?'w':''}">${f.s90}</span></div>
+        <div class="dr-i"><span class="k">90–180 days</span><span class="v ${f.s180?'w':''}">${f.s180}</span></div>
+        <div class="dr-i"><span class="k">Over 180 days</span><span class="v ${f.sOver?'c':''}">${f.sOver}</span></div>
+        <div class="dr-i"><span class="k">Opening stock, 1 Jul</span><span class="v">${f.openFg}</span></div>
+        <div class="dr-i"><span class="k">Live purchase orders</span><span class="v">${f.openPO}</span></div>
+        <div class="dr-src">◷ From SAP · refreshed today 06:00 IST</div></div>
+      <div class="dr-sec"><h4>${LC().label} — this cycle</h4>
+        <div class="dr-i"><span class="k">July total</span><span class="v">${jul(f)}${changed?' <span style="color:var(--warn);font-size:10px">changed from baseline</span>':''}</span></div>
+        ${fertHasException(f)?`<div class="dr-i" style="display:block"><span class="k">Why this needs review</span><div class="v" style="font-weight:400;color:var(--warn);text-align:left;margin-top:3px">${fertFlagExplain(f)}</div></div>`:''}
+        ${f.reason?`<div class="dr-i"><span class="k">Reason</span><span class="v" style="font-weight:400">${f.reason}</span></div>`:''}
+        <div class="dr-src">◷ ${LC().editScope==='group'?'Recorded per outlet, rolled up here — see below.':'Moderated as one consolidated number per FERT, not per '+LC().groupNoun+'.'}</div></div>
+      <div class="dr-sec"><h4>By ${LC().groupNoun} — ${LC().editScope==='group'?'live entry':'as recorded, read-only'}</h4>
+        ${f.groups.map((g,gi)=>`<div class="dr-i"><span class="k">${g.name}</span><span class="v">${groupV(f,gi,0)+groupV(f,gi,1)+groupV(f,gi,2)+groupV(f,gi,3)}</span></div>`).join('')}
+        <div class="dr-src">◷ ${LC().editScope==='group'?'Your own entries':"Auto-copied in at cutoff from the layer below — refreshed on their last save"}</div></div>
+      <div class="dr-sec"><h4>Reference — this FERT</h4>
+        <div class="dr-i"><span class="k">Last cycle</span><span class="v">${f.groups.reduce((a,g)=>a+g.prevSubmitted,0)}</span></div>
+        <div class="dr-i"><span class="k">3-month average</span><span class="v">${threeMoAvg(f)}</span></div>
+        <div class="dr-i"><span class="k">ABP target (split by outlet share)</span><span class="v">${abpForFert(f)}</span></div>
+        <div class="dr-src">◷ ABP is a light integration (#24-lite) — see the Dealer prototype's own note.</div></div>
+    </div>`;
+  document.getElementById('drawer').classList.add('on');
+  document.getElementById('scrim').classList.add('on');
+}
+function closeDrawer(){document.getElementById('drawer').classList.remove('on');document.getElementById('scrim').classList.remove('on');}
+
+/* ════════ EXPORT (P-18) ════════ */
+function openExport(){
+  const rs=rows().length?rows():D;
+  const scope=(activeCount()||q)?`${rs.length} filtered lines`:`all ${D.length} lines`;
+  document.getElementById('expSub').textContent=`LMD · ${LC().roleLine} · July 2026 · ${scope}`;
+  const hdr=['FERT Code','Description','Eicher segment','MPG','Tonnage','Fuel','Cabin',
+    'Last cycle','3-month avg','ABP target','W1','W2','W3','W4','Jul','Aug','Sep','Total','Changed','Reason',
+    ...GROUPS.map(g=>g.name+' recorded (Jul)')];
+  const lines=[hdr.join(',')];
+  rs.forEach(f=>{
+    const changed = LC().editScope==='group' ? f.groups.some(g=>g.ovr.some(v=>v!==null)) : f.ovr.some(v=>v!==null);
+    lines.push([f.code,'"'+f.desc+'"',SEGNAME[f.seg],f.mpg,f.ton,f.fuel,f.ac,
+      f.groups.reduce((a,g)=>a+g.prevSubmitted,0),threeMoAvg(f),abpForFert(f),
+      clusterV(f,0),clusterV(f,1),clusterV(f,2),clusterV(f,3),jul(f),clusterV(f,4),clusterV(f,5),gTot(f),
+      changed?'Y':'N','"'+(f.reason||'')+'"',
+      ...f.groups.map((g,gi)=>groupV(f,gi,0)+groupV(f,gi,1)+groupV(f,gi,2)+groupV(f,gi,3))].join(','));
+  });
+  document.getElementById('csvBox').value=lines.join('\n');
+  document.getElementById('expM').classList.add('on');
+}
+function openSummaryExport(){
+  const rs=rows();
+  const hdr=['FERT Code','Description','Segment','COCO Stock','Last Cycle','July Indent','August Indent','September Indent','Total'];
+  const lines=[hdr.join(',')];
+  rs.forEach(f=>lines.push([f.code,'"'+f.desc+'"',SEGNAME[f.seg],stockTot(f),
+    f.groups.reduce((a,g)=>a+g.prevSubmitted,0),jul(f),clusterV(f,4),clusterV(f,5),gTot(f)].join(',')));
+  document.getElementById('expSub').textContent=`Summary CSV · ${LC().roleLine} · ${rs.length} filtered FERT lines`;
+  document.getElementById('csvBox').value=lines.join('\n');
+  document.getElementById('expM').classList.add('on');
+}
+function copyCsv(){
+  const el=document.getElementById('csvBox'); el.select();
+  try{ navigator.clipboard.writeText(el.value); toast('Copied to clipboard'); }
+  catch(e){ toast('Select the text and copy'); }
+}
+
+/* ════════ REVIEW & SUBMIT (P-13) ════════ */
+function openReview(){
+  const julT=D.reduce((a,f)=>a+jul(f),0), aug=D.reduce((a,f)=>a+clusterV(f,4),0), sep=D.reduce((a,f)=>a+clusterV(f,5),0);
+  const prevT=D.reduce((a,f)=>a+f.groups.reduce((s,g)=>s+g.prevSubmitted,0),0);
+  const visible=D.filter(f=>!hiddenFerts.has(f.code)||f.isAdded);
+  const missing=visible.filter(f=>!hasEntry(f)).length;
+  const excCount=exceptionLines().length;
+  const delta=julT-prevT, pct=prevT?Math.round(delta/prevT*100):0;
+  const filtered=activeCount()>0||!!q;
+  document.getElementById('revSub').textContent=`S&OP-1A · July 2026 · ${LC().roleLine}`;
+  document.getElementById('reviewBody').innerHTML=`
+    ${filtered?`<div class="notice n-warn"><span>⚠</span><div><b>You have filters applied.</b> Submitting sends the <b>full</b> LMD indent — all ${visible.length} lines — not just the ${rows().length} on screen.</div></div>`:''}
+    ${missing?`<div class="notice n-warn"><span>⚠</span><div><b>${missing} lines have no entry.</b> They go up as zero. <button class="link" onclick="closeM('review');jumpFilter('noentry')">Review them first</button></div></div>`:''}
+    ${excCount?`<div class="notice n-warn"><span>⚠</span><div><b>${excCount} line${excCount>1?'s':''} still flagged</b> — give a reason before you submit. <button class="link" onclick="closeM('review');jumpFilter('exception')">Review them first</button></div></div>`:''}
+    <div>
+      <div class="mrow"><span class="k">Lines</span><span class="v">${visible.length}</span></div>
+      <div class="mrow"><span class="k">July (W1–W4)</span><span class="v">${julT}</span></div>
+      <div class="mrow"><span class="k">August</span><span class="v">${aug}</span></div>
+      <div class="mrow"><span class="k">September</span><span class="v">${sep}</span></div>
+      <div class="mrow"><span class="k">vs last cycle's plan for July</span>
+        <span class="v" style="color:${delta<0?'var(--warn)':'var(--ok)'}">${delta>0?'+':''}${delta} · ${pct>0?'+':''}${pct}%</span></div>
+    </div>
+    <div class="notice n-acc"><span>→</span><div>Goes to <b>${LC().nextName}</b>. You can reopen and resubmit until <b>${LC().cutoff}</b>.</div></div>`;
+  document.getElementById('revSubmitBtn').disabled=excCount>0;
+  document.getElementById('review').classList.add('on');
+}
+function doSubmit(){ submittedFlag=true; closeM('review'); render(); toast('LMD indent submitted to '+LC().nextName.split(',')[0]); }
+function reopen(){ submittedFlag=false; render(); toast('Reopened — resubmit before the cut-off'); }
+function closeM(id){ document.getElementById(id).classList.remove('on'); }
+
+let tt;
+function toast(m){ const el=document.getElementById('toast'); el.textContent=m; el.classList.add('on');
+  clearTimeout(tt); tt=setTimeout(()=>el.classList.remove('on'),2600); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){closeDrawer();['review','expM','addLineM'].forEach(closeM);} });
+buildRail(); render(); renderColPop();
+</script>
+<script id="coco-save">
+const COCO_SAVE_KEY='vecvplan-coco-saved-v1';
+let cocoSaved={};
+try{const v=JSON.parse(localStorage.getItem(COCO_SAVE_KEY)||'null');if(v?.version===1)cocoSaved=v.roles||{};}catch(e){}
+function restoreCoco(){const state=cocoSaved[role];if(state&&Array.isArray(state.rows)){D=JSON.parse(JSON.stringify(state.rows));hiddenFerts=new Set(state.hidden||[]);uid=Math.max(uid,...D.map(f=>Number(f.i)||0))+1;}}
+function saveCoco(){if(document.activeElement instanceof HTMLElement)document.activeElement.blur();try{const next={...cocoSaved,[role]:{rows:D,hidden:[...hiddenFerts],savedAt:new Date().toISOString()}};const json=JSON.stringify({version:1,roles:next});localStorage.setItem(COCO_SAVE_KEY,json);cocoSaved=JSON.parse(json).roles;closeM('review');render();toast('Saved in this browser. Entries remain editable.');}catch(e){toast('Unable to save. Please try again.');}}
+const cocoOriginalInit=initRoleView;
+initRoleView=function(resetHome){cocoOriginalInit(resetHome);restoreCoco();buildRail();render();};
+doSubmit=saveCoco;
+restoreCoco();buildRail();render();
+</script></body></html>

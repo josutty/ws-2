@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VECVplan — Demand Planning Workbench (Phase 0 · v5)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0D1B2A;--ink2:#1A2E42;--ink3:#2C4159;--grey:#5A6E82;--grey-lt:#E8EDF2;
+  --rule:#D1DAE3;--rule-lt:#EBF0F5;--bg:#F0F4F8;--surface:#FFFFFF;--s2:#F7F9FB;
+  --navy:#0B2545;--blue:#1565C0;--blue-lt:#E3EEFF;--blue-mid:#1976D2;
+  --lmd:#1565C0;--lmd-lt:#E3EEFF;--hd:#6A1B9A;--hd-lt:#F3E5F5;--bus:#00695C;--bus-lt:#E0F2F1;
+  --green:#1B5E20;--green-lt:#E8F5E9;--amber:#E65100;--amber-lt:#FFF3E0;--red:#B71C1C;--red-lt:#FEECEC;--teal:#00695C;
+  --run:#2E7D32;--run-lt:#E8F5E9;--slog:#E65100;--slog-lt:#FFF3E0;--dag:#C62828;--dag-lt:#FEECEC;
+  --enrich:#0277BD;--enrich-lt:#E1F5FE;
+  --font:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;--r:4px;
+  --sh:0 1px 3px rgba(13,27,42,.08);--sh2:0 2px 8px rgba(13,27,42,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);font-size:13px;color:var(--ink);background:var(--bg);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+/* LOGIN */
+#loginScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;
+  background:linear-gradient(135deg,var(--navy) 0%,#1A3A6B 60%,#0E6B8A 100%);position:relative;overflow:hidden;}
+#loginScreen::before{content:'';position:absolute;top:-20%;right:-10%;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(21,101,192,.25),transparent 70%);}
+#loginScreen::after{content:'';position:absolute;bottom:-15%;left:-5%;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(0,105,92,.2),transparent 70%);}
+.login-wrap{display:flex;gap:20px;position:relative;z-index:1;align-items:stretch;}
+.login-card{background:var(--surface);border-radius:12px;width:420px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;}
+.login-header{background:var(--navy);padding:24px 30px 20px;display:flex;align-items:center;gap:12px;}
+.login-logo{font-size:21px;font-weight:700;color:#fff;}
+.login-logo span{color:#7AB3E8;}
+.login-badge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:4px;padding:3px 10px;font-size:10px;color:#A8C4DC;margin-left:auto;}
+.login-body{padding:24px 30px;}
+.login-title{font-size:17px;font-weight:700;margin-bottom:4px;}
+.login-sub{font-size:12px;color:var(--grey);margin-bottom:20px;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--ink2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.03em;}
+.field input,.field select{width:100%;height:38px;padding:0 12px;border:1.5px solid var(--rule);border-radius:var(--r);font-size:13px;font-family:var(--font);color:var(--ink);}
+.field input:focus,.field select:focus{outline:none;border-color:var(--blue);background:var(--blue-lt);}
+.login-divider{display:flex;align-items:center;gap:10px;margin:18px 0;color:var(--grey);font-size:11px;}
+.login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:var(--rule);}
+.vertical-pills{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px;}
+.vpill{border:1.5px solid var(--rule);border-radius:6px;padding:9px 6px;text-align:center;cursor:pointer;transition:all .15s;}
+.vpill.lmd{border-color:var(--lmd);background:var(--lmd-lt);}
+.vpill.hd{border-color:var(--hd);background:var(--hd-lt);}
+.vpill.bus{border-color:var(--bus);background:var(--bus-lt);}
+.vpill-name{font-size:12px;font-weight:700;margin-bottom:1px;}
+.vpill.lmd .vpill-name{color:var(--lmd);}
+.vpill.hd .vpill-name{color:var(--hd);}
+.vpill.bus .vpill-name{color:var(--bus);}
+.vpill-sub{font-size:8px;color:var(--grey);}
+.login-btn{width:100%;height:40px;background:var(--blue);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);transition:background .12s;}
+.login-btn:hover{background:var(--blue-mid);}
+.login-note{font-size:10px;color:var(--grey);text-align:center;margin-top:12px;line-height:1.5;}
+.sso-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:12px;width:300px;padding:24px;display:flex;flex-direction:column;}
+.sso-card h3{color:#fff;font-size:15px;font-weight:700;margin-bottom:6px;}
+.sso-card p{color:#A8C4DC;font-size:11px;line-height:1.6;margin-bottom:18px;}
+.sso-roles{display:flex;flex-direction:column;gap:8px;margin-bottom:18px;}
+.sso-role{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:9px 12px;cursor:pointer;transition:all .12s;}
+.sso-role:hover{background:rgba(255,255,255,.14);}
+.sso-role-name{color:#fff;font-size:12px;font-weight:600;}
+.sso-role-desc{color:#7AB3E8;font-size:9px;margin-top:1px;}
+.sso-btn{width:100%;height:38px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:var(--r);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);margin-top:auto;}
+.sso-btn:hover{background:rgba(255,255,255,.22);}
+.sso-tag{font-size:9px;color:#7AB3E8;text-align:center;margin-top:8px;}
+
+/* APP */
+.app{display:none;flex-direction:column;height:100vh;}
+.app.active{display:flex;}
+.topbar{height:46px;background:var(--navy);border-bottom:1px solid var(--ink3);display:flex;align-items:center;padding:0 14px;gap:14px;flex-shrink:0;}
+.brand{font-weight:700;font-size:13px;color:#fff;white-space:nowrap;}
+.brand span{color:#7AB3E8;}
+.divpipe{width:1px;height:20px;background:var(--ink3);}
+.persona-switch{display:flex;align-items:center;gap:6px;background:var(--ink2);border-radius:6px;padding:3px;}
+.psw-label{font-size:8px;color:#5A7A96;text-transform:uppercase;letter-spacing:.08em;padding:0 4px;}
+.psw-btn{padding:4px 11px;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;border:none;background:transparent;color:#7A9AB8;transition:all .12s;font-family:var(--font);}
+.psw-btn.active{background:var(--blue);color:#fff;}
+.vtabs{display:flex;gap:2px;flex:1;}
+.vtab{display:flex;align-items:center;gap:6px;padding:0 13px;height:46px;font-size:11px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;transition:all .12s;color:#A8C4DC;white-space:nowrap;}
+.vtab:hover{color:#fff;background:rgba(255,255,255,.06);}
+.vtab.active{color:#fff;border-bottom-color:#fff;}
+.vtab .vdot{width:8px;height:8px;border-radius:2px;}
+.vtab-sub{font-size:9px;opacity:.7;}
+.phase-switch{display:flex;gap:3px;background:var(--ink2);border-radius:5px;padding:3px;}
+.ph-btn{padding:3px 11px;border-radius:3px;font-size:10px;font-weight:600;cursor:pointer;border:none;background:transparent;color:#7A9AB8;transition:all .12s;font-family:var(--font);}
+.ph-btn.active{background:var(--ink3);color:#fff;}
+.user-pill{display:flex;align-items:center;gap:6px;background:var(--ink3);border-radius:14px;padding:3px 10px 3px 4px;}
+.avatar{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;}
+.user-name{font-size:10px;color:#fff;font-weight:500;}
+.user-role{font-size:9px;color:#7AB3E8;}
+
+/* CYCLE BAR */
+.cycle-bar{background:var(--ink2);padding:0 16px;height:44px;display:flex;align-items:center;gap:14px;flex-shrink:0;border-bottom:1px solid #1A3A56;}
+.cycle-toggle{display:flex;gap:0;background:var(--navy);border-radius:7px;padding:3px;border:1px solid #1A3A56;}
+.cyc-btn{padding:4px 14px;border-radius:5px;font-size:11px;font-weight:600;border:none;background:transparent;color:#7A9AB8;display:flex;align-items:center;gap:6px;cursor:pointer;font-family:var(--font);}
+.cyc-btn.active{background:var(--blue);color:#fff;}
+.cyc-btn:disabled{opacity:.38;cursor:not-allowed;}
+.cyc-badge{font-size:8px;padding:1px 5px;border-radius:7px;background:rgba(255,255,255,.18);}
+.cycle-info{font-size:10px;color:#9DBDDB;}
+.cutoff-pill{margin-left:auto;display:flex;align-items:center;gap:8px;background:#7C2D12;border:1px solid #9A4318;border-radius:6px;padding:3px 12px;}
+.cutoff-mono{font-family:var(--mono,monospace);font-size:10px;color:#FBC99A;}
+.cutoff-lbl{font-size:9px;color:#E8A877;text-transform:uppercase;letter-spacing:.05em;}
+
+/* SCREEN TABS */
+.screen-tabs{background:var(--surface);border-bottom:2px solid var(--rule);display:flex;padding:0 16px;gap:2px;flex-shrink:0;box-shadow:var(--sh);}
+.stab{display:flex;align-items:center;gap:6px;padding:9px 14px;font-size:12px;font-weight:500;color:var(--grey);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .12s;white-space:nowrap;}
+.stab:hover{color:var(--ink);}
+.stab.active{color:var(--blue);border-bottom-color:var(--blue);}
+.stab-badge{font-size:9px;padding:1px 6px;border-radius:8px;font-weight:700;}
+.sb-open{background:var(--amber-lt);color:var(--amber);}
+.sb-lock{background:var(--green-lt);color:var(--green);}
+
+/* FILTER BAR */
+.filterbar{background:var(--s2);border-bottom:1px solid var(--rule);padding:7px 16px;display:flex;align-items:flex-end;gap:9px;flex-shrink:0;flex-wrap:wrap;}
+.fil{display:flex;flex-direction:column;gap:3px;}
+.fil label{font-size:8px;color:var(--grey);text-transform:uppercase;letter-spacing:.06em;font-weight:600;}
+.fil select,.fil input[type=text]{height:28px;padding:0 8px;border:1.5px solid var(--rule);border-radius:4px;background:#fff;font-size:11.5px;font-family:var(--font);color:var(--ink);min-width:110px;}
+.fil select:focus,.fil input:focus{outline:none;border-color:var(--blue);}
+.fil-search input{padding-left:8px;min-width:180px;}
+.fil-divider{width:1px;height:28px;background:var(--rule);margin:0 3px;}
+.seg-chips{display:flex;gap:4px;align-items:flex-end;padding-bottom:0;}
+.seg-chip{padding:5px 10px;border-radius:12px;font-size:10px;font-weight:600;border:1.5px solid var(--rule);background:#fff;color:var(--grey);cursor:pointer;transition:all .12s;}
+.seg-chip.on-all{background:var(--ink2);color:#fff;border-color:transparent;}
+.seg-chip.on-R{background:#1E6B35;color:#fff;border-color:transparent;}
+.seg-chip.on-S{background:#C77700;color:#fff;border-color:transparent;}
+.seg-chip.on-D{background:#B71C1C;color:#fff;border-color:transparent;}
+.fil-clear{height:28px;padding:0 10px;border:1.5px solid var(--rule);border-radius:4px;background:#fff;font-size:11px;color:var(--grey);cursor:pointer;}
+.result-count{font-size:10px;color:var(--grey);margin-left:auto;white-space:nowrap;}
+.result-count strong{color:var(--ink);font-family:var(--mono);}
+
+/* PAGE HEADER */
+.content{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.page-hdr{background:var(--surface);border-bottom:1px solid var(--rule);padding:9px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0;box-shadow:var(--sh);}
+.page-title{font-size:15px;font-weight:700;}
+.page-sub{font-size:11px;color:var(--grey);margin-top:1px;}
+.page-hdr-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.phase-badge{padding:2px 8px;border-radius:3px;font-size:9px;font-weight:700;letter-spacing:.04em;background:var(--amber-lt);color:var(--amber);border:1px solid #FED7AA;}
+
+/* SUB-VERT NAV */
+.sv-nav{display:flex;gap:8px;padding:9px 16px;background:var(--s2);border-bottom:1px solid var(--rule);flex-shrink:0;overflow-x:auto;align-items:center;}
+.sv-label{font-size:9px;color:var(--grey);text-transform:uppercase;letter-spacing:.06em;font-weight:600;white-space:nowrap;}
+.sv-chip{padding:5px 14px;border-radius:16px;font-size:11px;font-weight:500;cursor:pointer;border:1.5px solid var(--rule);background:var(--surface);color:var(--grey);white-space:nowrap;transition:all .12s;}
+.sv-chip:hover{border-color:var(--blue);color:var(--blue);}
+.sv-chip.active{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:600;}
+
+/* NOTICE */
+.notice{margin:8px 16px 0;padding:7px 12px;border-radius:var(--r);font-size:11px;display:flex;align-items:center;gap:8px;border-left:3px solid;flex-shrink:0;}
+.notice.warn{background:var(--amber-lt);border-color:var(--amber);color:var(--amber);}
+.notice.info{background:var(--blue-lt);border-color:var(--blue);color:var(--blue);}
+.notice.lock{background:var(--green-lt);border-color:var(--green);color:var(--green);}
+.notice.readonly{background:#FFF8E1;border-color:#F9A825;color:#6B4A12;}
+.notice strong{font-weight:600;}
+
+/* GRID */
+.grid-scroll{flex:1;overflow:auto;padding:8px 16px 16px;}
+.grid-scroll::-webkit-scrollbar{width:6px;height:6px;}
+.grid-scroll::-webkit-scrollbar-thumb{background:var(--rule);border-radius:3px;}
+
+/* ── STICKY FIRST 3 COLS ── Phase 0 freeze panes */
+.ptable{border-collapse:collapse;font-size:11px;background:var(--surface);border-radius:var(--r);box-shadow:var(--sh);}
+.ptable .cg{text-align:center;font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 6px;color:#fff;}
+.cg-fert{background:var(--ink);}
+.cg-dealer{background:#37474F;}
+.cg-ref{background:#455A64;}
+.cg-readonly{background:#546E7A;}
+.cg-csm{background:#00838F;}
+.cg-enrich{background:var(--enrich);}
+.cg-inp{background:var(--blue);}
+.cg-fut{background:var(--ink2);}
+.cg-p1{background:#90A4AE;font-size:8px;}
+.cg-netting{background:#0A4A2E;}
+.cg-is{background:#7C2D12;}
+
+.ptable th{position:sticky;top:0;z-index:10;padding:5px 6px;text-align:right;font-size:9px;font-weight:600;color:var(--grey);border-bottom:2px solid var(--rule);background:var(--s2);white-space:nowrap;letter-spacing:.03em;text-transform:uppercase;}
+.ptable th.left{text-align:left;}
+.ptable th.th-p1{background:var(--grey-lt)!important;color:#B0BEC5!important;}
+
+/* Freeze left columns */
+.ptable th.sticky-col,.ptable td.sticky-col{position:sticky;left:0;z-index:5;background:var(--surface);}
+.ptable th.sticky-col{z-index:15;background:var(--s2);}
+.ptable th.sticky-col2{left:90px;}
+.ptable th.sticky-col3{left:260px;}
+.ptable td.sticky-col2{left:90px;}
+.ptable td.sticky-col3{left:260px;}
+.ptable td.sticky-col,.ptable td.sticky-col2,.ptable td.sticky-col3{box-shadow:2px 0 4px rgba(0,0,0,.06);}
+
+.ptable td{padding:5px 6px;border-bottom:1px solid var(--rule-lt);vertical-align:middle;}
+.ptable tr:hover td{background:#EEF4FC;}
+.ptable tr:hover td.sticky-col,.ptable tr:hover td.sticky-col2,.ptable tr:hover td.sticky-col3{background:#EEF4FC;}
+.ptable tr.subtotal td{background:var(--s2);font-weight:600;}
+.ptable tr.added td{background:var(--enrich-lt);}
+
+.fert-code{font-family:var(--mono);font-size:10px;color:var(--blue);}
+.fert-desc{font-size:10px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.seg{display:inline-block;padding:1px 5px;border-radius:2px;font-size:8px;font-weight:700;}
+.seg-R{background:var(--run-lt);color:var(--run);}
+.seg-S{background:var(--slog-lt);color:var(--slog);}
+.seg-D{background:var(--dag-lt);color:var(--dag);}
+.ref-val{text-align:right;font-family:var(--mono);color:#4A6880;}
+.ro-val{text-align:right;font-family:var(--mono);color:#546E7A;background:#FAFBFC;}
+.csm-val{text-align:right;font-family:var(--mono);color:#00838F;}
+.calc-val{text-align:right;font-family:var(--mono);font-weight:500;}
+
+.inp{width:54px;padding:3px 5px;border:1px solid var(--rule);border-radius:2px;font-family:var(--mono);font-size:10px;text-align:right;color:var(--ink);background:var(--surface);}
+.inp:focus{outline:none;border-color:var(--blue);background:var(--blue-lt);}
+.inp.enrich{border-color:#B3E5FC;background:#F5FCFF;}
+.inp.w1{border-color:#FFCC80;}
+.inp.w1:focus{border-color:var(--amber);background:var(--amber-lt);}
+.inp.iso-ov{border-color:var(--blue);background:#EFF6FF;width:60px;}
+.inp.ss{border-color:#2E7D32;background:#F0FFF4;width:54px;}
+.inp[readonly]{background:var(--s2);color:var(--grey);cursor:not-allowed;border-color:var(--rule-lt);}
+
+.td-p1{background:repeating-linear-gradient(45deg,transparent,transparent 4px,rgba(0,0,0,.02) 4px,rgba(0,0,0,.02) 8px);}
+.p1-ph{font-size:8px;color:#B0BEC5;font-style:italic;white-space:nowrap;}
+.delta{display:inline-block;font-family:var(--mono);font-size:9px;padding:1px 4px;border-radius:2px;}
+.d-up{background:var(--red-lt);color:var(--red);}
+.d-dn{background:var(--green-lt);color:var(--green);}
+.d-fl{background:#E8EDF2;color:#3A4A5A;}
+.sub-status{display:inline-block;padding:1px 6px;border-radius:8px;font-size:8px;font-weight:600;}
+.ss-in{background:var(--green-lt);color:var(--green);}
+.ss-pend{background:var(--amber-lt);color:var(--amber);}
+
+/* OWNERSHIP BANNER (IB) */
+.ownership-bar{background:var(--ink2);border-bottom:1px solid var(--ink3);padding:5px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.own-label{font-size:9px;color:#7A9AB8;text-transform:uppercase;letter-spacing:.06em;}
+.own-stage{display:flex;align-items:center;gap:6px;}
+.own-pill{padding:3px 10px;border-radius:10px;font-size:10px;font-weight:700;}
+.own-active{background:var(--teal);color:#fff;}
+.own-done{background:#1A3A2A;color:#6DBFAB;}
+.own-pend{background:var(--ink3);color:#5A7A96;}
+.own-arrow{color:var(--ink3);font-size:12px;}
+.own-window{font-size:10px;color:#FBC99A;background:#7C2D12;border-radius:4px;padding:2px 8px;margin-left:auto;font-family:var(--mono);}
+
+/* SUM BAR */
+.sum-bar{background:var(--surface);border-top:1px solid var(--rule);padding:6px 16px;display:flex;align-items:center;gap:18px;flex-shrink:0;box-shadow:0 -1px 3px rgba(13,27,42,.06);}
+.si{display:flex;flex-direction:column;gap:1px;}
+.si-label{font-size:8px;color:var(--grey);text-transform:uppercase;letter-spacing:.06em;}
+.si-val{font-family:var(--mono);font-size:14px;font-weight:500;}
+.si-val.ok{color:var(--teal);}
+.si-val.warn{color:var(--amber);}
+.sb-divider{width:1px;height:28px;background:var(--rule);}
+.sb-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+
+/* KPI ROW */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:12px 16px;flex-shrink:0;}
+.kpi{background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:10px 14px;box-shadow:var(--sh);}
+.kpi-label{font-size:9px;color:var(--grey);text-transform:uppercase;letter-spacing:.06em;}
+.kpi-val{font-family:var(--mono);font-size:20px;font-weight:500;margin-top:2px;}
+.kpi-val.ok{color:var(--teal);}
+.kpi-val.warn{color:var(--amber);}
+.kpi-sub{font-size:9px;color:var(--grey);margin-top:2px;}
+
+/* SCREEN SWITCHING */
+.screen{display:none;}
+.screen.active{display:flex;flex-direction:column;flex:1;overflow:hidden;}
+
+/* MTO */
+.mto-subnav{display:flex;gap:2px;padding:8px 16px 0;background:#fff;border-bottom:1px solid var(--rule);}
+.mto-tab{padding:8px 16px;border-radius:7px 7px 0 0;font-size:12px;font-weight:600;color:var(--grey);background:var(--s2);border:1px solid var(--rule);border-bottom:none;display:flex;align-items:center;gap:7px;cursor:pointer;}
+.mto-tab .mdot{width:8px;height:8px;border-radius:50%;}
+.mto-tab.active-ib{background:#fff;color:#00695C;border-top:2.5px solid #00695C;}
+.mto-tab.active-is{background:#fff;color:#7C2D12;border-top:2.5px solid #7C2D12;}
+.mto-tab.active-eps{background:#fff;color:#5D4037;border-top:2.5px solid #5D4037;}
+
+/* IS read-only badge */
+.is-readonly-banner{background:#FFF8E1;border-bottom:2px solid #F9A825;padding:6px 16px;font-size:11px;color:#6B4A12;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.is-readonly-icon{font-size:14px;}
+
+/* S&OP 1B */
+.b1-notice{display:none;margin:0 16px;padding:7px 12px;border-radius:4px;font-size:11px;background:#FFF4E0;border-left:3px solid #B7791F;color:#6B4A12;flex-shrink:0;}
+
+/* COCO */
+.coco-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+
+/* MODALS */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(13,27,42,.5);z-index:100;align-items:center;justify-content:center;}
+.modal-bg.active{display:flex;}
+.modal{background:var(--surface);border-radius:10px;width:520px;max-height:70vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;}
+.modal-hdr{padding:16px 20px;border-bottom:1px solid var(--rule);display:flex;align-items:center;}
+.modal-hdr h3{font-size:15px;font-weight:700;}
+.modal-close{margin-left:auto;cursor:pointer;color:var(--grey);font-size:18px;background:none;border:none;}
+.modal-search{padding:12px 20px;border-bottom:1px solid var(--rule);}
+.modal-search input{width:100%;height:36px;padding:0 12px;border:1.5px solid var(--rule);border-radius:var(--r);font-size:12px;font-family:var(--font);}
+.modal-list{overflow-y:auto;padding:8px 0;}
+.modal-item{display:flex;align-items:center;gap:10px;padding:8px 20px;cursor:pointer;}
+.modal-item:hover{background:var(--s2);}
+.modal-ftr{padding:12px 20px;border-top:1px solid var(--rule);display:flex;justify-content:flex-end;gap:8px;}
+
+/* BTNS */
+.btn{height:30px;padding:0 13px;border-radius:var(--r);font-size:12px;font-weight:500;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:5px;font-family:var(--font);transition:all .12s;white-space:nowrap;}
+.btn-primary{background:var(--blue);color:#fff;}
+.btn-secondary{background:var(--surface);color:var(--ink2);border:1px solid var(--rule);}
+.btn-secondary:hover{background:var(--s2);}
+.btn-success{background:var(--green);color:#fff;}
+.btn-copy{background:var(--enrich);color:#fff;}
+.btn-add{background:var(--surface);color:var(--enrich);border:1px solid var(--enrich);}
+.btn-sm{height:26px;padding:0 10px;font-size:11px;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+</style>
+
+<!--[if gte mso 9]><xml>
+<mso:CustomDocumentProperties>
+<mso:xd_Signature msdt:dt="string"></mso:xd_Signature>
+<mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Editor msdt:dt="string">Mohd. Zakariya</mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Editor>
+<mso:Order msdt:dt="string">14100.0000000000</mso:Order>
+<mso:xd_ProgID msdt:dt="string"></mso:xd_ProgID>
+<mso:_ExtendedDescription msdt:dt="string"></mso:_ExtendedDescription>
+<mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Author msdt:dt="string">Mohd. Zakariya</mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Author>
+<mso:ComplianceAssetId msdt:dt="string"></mso:ComplianceAssetId>
+<mso:TemplateUrl msdt:dt="string"></mso:TemplateUrl>
+<mso:ContentTypeId msdt:dt="string">0x010100915D1156AF89E94CB4E0E819A4FFFAAD</mso:ContentTypeId>
+<mso:TriggerFlowInfo msdt:dt="string"></mso:TriggerFlowInfo>
+<mso:_SourceUrl msdt:dt="string"></mso:_SourceUrl>
+<mso:_SharedFileIndex msdt:dt="string"></mso:_SharedFileIndex>
+<mso:MediaLengthInSeconds msdt:dt="string"></mso:MediaLengthInSeconds>
+<mso:MediaServiceImageTags msdt:dt="string"></mso:MediaServiceImageTags>
+<mso:lcf76f155ced4ddcb4097134ff3c332f msdt:dt="string"></mso:lcf76f155ced4ddcb4097134ff3c332f>
+</mso:CustomDocumentProperties>
+</xml><![endif]-->
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="loginScreen">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-header">
+        <div><div class="login-logo">VECV<span>plan</span></div><div style="font-size:10px;color:#7AB3E8;margin-top:2px;">Demand Planning Workbench</div></div>
+        <div class="login-badge">Phase 0 · MVP</div>
+      </div>
+      <div class="login-body">
+        <div class="login-title">Dealer sign-in</div>
+        <div class="login-sub">S&OP Cycle — Jul 2026 · Indent open until 15 Jul</div>
+        <div class="field"><label>Dealer Code</label><input type="text" value="DLR-1002"></div>
+        <div class="field"><label>Password</label><input type="password" value="••••••••"></div>
+        <div class="login-divider">Select your vertical</div>
+        <div class="vertical-pills">
+          <div class="vpill lmd" onclick="selVert('lmd',this)"><div class="vpill-name">LMD</div><div class="vpill-sub">5-16T · Sub-5T</div></div>
+          <div class="vpill hd" onclick="selVert('hd',this)"><div class="vpill-name">HD</div><div class="vpill-sub">4x2·MAV·TT·Tipper</div></div>
+          <div class="vpill bus" onclick="selVert('bus',this)"><div class="vpill-name">Bus</div><div class="vpill-sub">LMD·HD·EV</div></div>
+        </div>
+        <button class="login-btn" onclick="login('dealer')">Open Indent Workbook →</button>
+        <div class="login-note">Access scoped to your dealer code only.</div>
+      </div>
+    </div>
+    <div class="sso-card">
+      <h3>VECV internal users</h3>
+      <p>CSM, RSM, Vertical Head and ISO sign in through VECVNet SSO.</p>
+      <div class="sso-roles">
+        <div class="sso-role" onclick="login('csm')"><div class="sso-role-name">CSM</div><div class="sso-role-desc">Country Sales Manager · cluster enrichment</div></div>
+        <div class="sso-role" onclick="login('rsm')"><div class="sso-role-name">RSM</div><div class="sso-role-desc">Regional Sales Manager · region moderation</div></div>
+        <div class="sso-role" onclick="login('vh')"><div class="sso-role-name">Vertical Head</div><div class="sso-role-desc">Final sales-side moderation · vertical lock</div></div>
+        <div class="sso-role" onclick="login('iso')" style="border-color:rgba(2,119,189,.4);background:rgba(2,119,189,.08)"><div class="sso-role-name" style="color:#7AB3E8">ISO / Central Planning</div><div class="sso-role-desc">National consolidation · netting · release to PPC</div></div>
+      </div>
+      <button class="sso-btn" onclick="login('csm')">Sign in with VECVNet (SSO)</button>
+      <div class="sso-tag">VECVNet SSO · Replaces Kinaxis eu20 access</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div class="app" id="app">
+  <div class="topbar">
+    <div class="brand">VECV<span>plan</span></div>
+    <div class="divpipe"></div>
+    <div class="persona-switch">
+      <span class="psw-label">View as</span>
+      <button class="psw-btn active" id="psw-dealer" onclick="setPersona('dealer')">Dealer</button>
+      <button class="psw-btn" id="psw-csm" onclick="setPersona('csm')">CSM</button>
+      <button class="psw-btn" id="psw-rsm" onclick="setPersona('rsm')">RSM</button>
+      <button class="psw-btn" id="psw-vh" onclick="setPersona('vh')">VH</button>
+      <button class="psw-btn" id="psw-iso" onclick="setPersona('iso')">ISO</button>
+    </div>
+    <div class="divpipe"></div>
+    <div class="vtabs" id="vtabs">
+      <div class="vtab active" id="vt-lmd" onclick="switchVert('lmd')"><div class="vdot" style="background:var(--lmd)"></div>LMD <span class="vtab-sub">5-16T/Sub-5T</span></div>
+      <div class="vtab" id="vt-hd" onclick="switchVert('hd')"><div class="vdot" style="background:var(--hd)"></div>HD <span class="vtab-sub">4x2/MAV/TT/Tipper</span></div>
+      <div class="vtab" id="vt-bus" onclick="switchVert('bus')"><div class="vdot" style="background:var(--bus)"></div>Bus <span class="vtab-sub">LMD/HD/EV</span></div>
+    </div>
+    <div class="phase-switch">
+      <button class="ph-btn active" onclick="setPhase(0)">Phase 0</button>
+      <button class="ph-btn" onclick="setPhase(1)">Phase 1</button>
+    </div>
+    <div class="user-pill">
+      <div class="avatar" id="avatar">SM</div>
+      <div><div class="user-name" id="userName">Sharma Motors</div><div class="user-role" id="userRole">DLR-1002 · Dealer</div></div>
+    </div>
+    <button class="btn" onclick="logout()" style="height:28px;padding:0 12px;font-size:11px;background:rgba(255,255,255,.08);color:#A8C4DC;border:1px solid rgba(255,255,255,.15);">⎋ Sign out</button>
+  </div>
+
+  <!-- CYCLE BAR -->
+  <div class="cycle-bar">
+    <div class="cycle-toggle">
+      <button class="cyc-btn active" id="cyc1" onclick="setCycle('1A')">S&OP-1A <span class="cyc-badge">Main Cycle</span></button>
+      <button class="cyc-btn" id="cyc2" onclick="setCycle('1B')">S&OP-1B <span class="cyc-badge">Revision</span></button>
+    </div>
+    <span class="cycle-info" id="cycleInfo">Main planning cycle · all personas indent</span>
+    <div id="cycleSteps" style="display:flex;align-items:center;gap:8px;margin-left:12px;"></div>
+    <div class="cutoff-pill"><span class="cutoff-lbl">Cut-off</span><span class="cutoff-mono" id="cutoffDate">15 Jul · 23:59</span></div>
+  </div>
+
+  <!-- SCREEN TABS -->
+  <div class="screen-tabs" id="screenTabs">
+    <div class="stab active" id="tab-workbook" onclick="switchScreen('workbook')">Indent Workbook <span class="stab-badge sb-open" id="wbBadge">Open</span></div>
+    <div class="stab" id="tab-summary" onclick="switchScreen('summary')">Summary</div>
+    <div class="stab" id="tab-coco" onclick="switchScreen('coco')" style="display:none">COCO <span class="stab-badge" style="background:#FCE4EC;color:#AD1457">RSM+</span></div>
+    <div class="stab" id="tab-mto" onclick="switchScreen('mto')" style="display:none">MTO <span class="stab-badge" style="background:#F3E5F5;color:#6A1B9A">IB · IS · EPS</span></div>
+  </div>
+
+  <!-- ══ WORKBOOK SCREEN ══ -->
+  <div class="screen active" id="screen-workbook">
+    <div class="page-hdr">
+      <div><div class="page-title" id="wbTitle">LMD — Indent Workbook</div><div class="page-sub" id="wbSub">Jul 2026 · M1 weekly + M2/M3</div></div>
+      <span class="phase-badge" id="wbPhase">Phase 0 · MVP</span>
+      <div class="page-hdr-right" id="wbActions"></div>
+    </div>
+    <div class="sv-nav" id="svNav"></div>
+    <div id="wbFilterbar" class="filterbar"></div>
+    <div id="wbNotice"></div>
+    <div class="b1-notice" id="wb1BNotice"><strong>S&OP-1B Revision active</strong> — Only RSM, VH and ISO can modify. Dealer and CSM are read-only in 1B. Compare against locked 1A plan.</div>
+    <div class="grid-scroll"><table class="ptable" id="wbTable" style="min-width:900px"><thead id="wbHead"></thead><tbody id="wbBody"></tbody></table></div>
+    <div class="sum-bar" id="wbSumBar"></div>
+  </div>
+
+  <!-- ══ SUMMARY SCREEN ══ -->
+  <div class="screen" id="screen-summary">
+    <div class="page-hdr">
+      <div><div class="page-title" id="sumTitle">Summary Dashboard</div><div class="page-sub" id="sumSub">Jul 2026</div></div>
+      <span class="phase-badge">Phase 0 · MVP</span>
+      <div class="page-hdr-right"><button class="btn btn-secondary" onclick="exportCSV('summary')">↓ Export CSV</button></div>
+    </div>
+    <div class="filterbar" id="sumFilterbar"></div>
+    <div class="kpi-row" id="sumKpi"></div>
+    <div class="grid-scroll"><table class="ptable" id="sumTable" style="min-width:900px"><thead id="sumHead"></thead><tbody id="sumBody"></tbody></table>
+      <div style="font-size:10px;color:var(--grey);font-style:italic;margin-top:8px;" id="sumNote"></div>
+    </div>
+  </div>
+
+  <!-- ══ COCO SCREEN ══ -->
+  <div class="screen" id="screen-coco">
+    <div class="page-hdr">
+      <div><div class="page-title">COCO Dashboard</div>
+      <div class="page-sub">Company Owned Company Operated — tracked separately from private dealers · RSM and VH only</div></div>
+      <span class="phase-badge">Phase 0 · MVP</span>
+      <div class="page-hdr-right"><button class="btn btn-secondary" onclick="exportCSV('coco')">↓ Export</button></div>
+    </div>
+    <div class="filterbar" id="cocoFilterbar"></div>
+    <div style="margin:8px 16px 0;padding:8px 12px;border-radius:4px;font-size:11px;background:#FCE4EC;border-left:3px solid #AD1457;color:#7A0E3D;flex-shrink:0">
+      <strong>COCO view:</strong> COCO outlets tracked separately from private dealers. Indent is never blended. RSMs analyse city-wise and vertical-wise COCO demand.
+    </div>
+    <div class="grid-scroll" id="cocoGrid"></div>
+  </div>
+
+  <!-- ══ MTO SCREEN ══ -->
+  <div class="screen" id="screen-mto">
+    <div class="page-hdr">
+      <div><div class="page-title">MTO — Make to Order</div>
+      <div class="page-sub" id="mtoSub">Order-backed demand · firm + projected · IB / IS / EPS channels · CSM → RSM → Country Head → ISO</div></div>
+      <span class="phase-badge" id="mtoPhBadge">Phase 0 · MVP</span>
+      <div class="page-hdr-right"><button class="btn btn-secondary" onclick="exportCSV('mto')">↓ Export order book</button></div>
+    </div>
+    <div class="mto-subnav">
+      <div class="mto-tab active-ib" id="mto-ib" onclick="setMtoTab('ib')"><span class="mdot" style="background:#00695C"></span>IB — Institutional Buyer <span style="font-size:9px;opacity:.7">Country / Dealer key</span></div>
+      <div class="mto-tab" id="mto-is" onclick="setMtoTab('is')"><span class="mdot" style="background:#7C2D12"></span>IS — Inter-State / Export <span style="font-size:9px;opacity:.7">Customer / Channel key · Read-only</span></div>
+      <div class="mto-tab" id="mto-eps" onclick="setMtoTab('eps')"><span class="mdot" style="background:#5D4037"></span>EPS <span style="font-size:9px;opacity:.7">structure pending</span></div>
+    </div>
+    <div id="mtoOwnership" class="ownership-bar" style="display:none"></div>
+    <div id="isReadonlyBanner" class="is-readonly-banner" style="display:none"><span class="is-readonly-icon">🔒</span><strong>Read-only monitoring view.</strong> IS users validate SAP order data only — no forecasting or projection entry. All fields are locked.</div>
+    <div class="filterbar" id="mtoFilterbar"></div>
+    <div id="mtoNotice" style="margin:8px 16px 0;flex-shrink:0"></div>
+    <div class="grid-scroll">
+      <table class="ptable" id="mtoTable" style="min-width:900px">
+        <thead id="mtoHead"></thead>
+        <tbody id="mtoBody"></tbody>
+      </table>
+    </div>
+    <div class="sum-bar" id="mtoSumBar"></div>
+  </div>
+</div>
+
+<!-- ADD FERT MODAL -->
+<div class="modal-bg" id="addFertModal">
+  <div class="modal">
+    <div class="modal-hdr"><h3>Add FERT to indent</h3><button class="modal-close" onclick="closeAddFert()">×</button></div>
+    <div class="modal-search"><input type="text" placeholder="Search FERT code or description…" oninput="filterModalList(this.value)"></div>
+    <div class="modal-list" id="modalList"></div>
+    <div class="modal-ftr"><button class="btn btn-secondary" onclick="closeAddFert()">Cancel</button><button class="btn btn-primary" onclick="confirmAddFert()">Add selected</button></div>
+  </div>
+</div>
+
+<script>
+// ══ MASTER DATA ══
+// seg = Dealer FERT Segment (R/S/D), eseg = Eicher FERT Segment (Runner A/B, Slogger A, Dragger)
+// trl3/6/12/y = Trend Retail L3/L6/L12/LYSM, tol3/6/12/y = Trend Offtake L3/L6/L12/LYSM
+// openFg = Opening Finished Goods, openPO = Open Purchase Order
+// cocoD/A/V/N = COCO Dealer stock / Actual / Virtual / National (VH only)
+// tonnage = Marketing Tonnage, ac = AC/NonAC, mpg = MPG Model name
+const FERTS=[
+  {code:"V4130CAF",desc:"Pro 2110 H HSD 20FT BSVI NGB AC",seg:"R",eseg:"Runner A",sv:"5–16T",vert:"LMD",fuel:"Diesel",ac:"AC",tonnage:"21T",mpg:"Pro 2110",
+   trl3:18,trl6:35,trl12:19,trly:0, tol3:84,tol6:91,tol12:88,toly:76,
+   openFg:4,openPO:1, st60:0,stAged:4,
+   cocoD:10,cocoA:2,cocoV:0,cocoN:12,
+   w1:24,w2:23,w3:23,w4:22,m2:88,m3:82},
+  {code:"V4030DZL",desc:"Pro 2110 L CBC 22FT BSVI NGB AC",seg:"R",eseg:"Runner A",sv:"5–16T",vert:"LMD",fuel:"Diesel",ac:"AC",tonnage:"21T",mpg:"Pro 2110",
+   trl3:20,trl6:22,trl12:16,trly:0, tol3:71,tol6:78,tol12:74,toly:62,
+   openFg:17,openPO:0, st60:17,stAged:0,
+   cocoD:2,cocoA:0,cocoV:0,cocoN:2,
+   w1:19,w2:18,w3:18,w4:18,m2:70,m3:65},
+  {code:"V5530TKR",desc:"Pro 2059XP Plus F HSD EW 14FT BSVI AC",seg:"R",eseg:"Runner B",sv:"5–16T",vert:"LMD",fuel:"Diesel",ac:"AC",tonnage:"14T",mpg:"Pro 2059XP",
+   trl3:10,trl6:15,trl12:16,trly:0, tol3:42,tol6:48,tol12:44,toly:38,
+   openFg:1,openPO:0, st60:0,stAged:1,
+   cocoD:4,cocoA:1,cocoV:0,cocoN:5,
+   w1:9,w2:8,w3:8,w4:8,m2:35,m3:32},
+  {code:"V4025EXP",desc:"Pro 2095XPT D FBT BSVI LY PRM",seg:"S",eseg:"Slogger A",sv:"5–16T",vert:"LMD",fuel:"Diesel",ac:"NonAC",tonnage:"21T",mpg:"Pro 2095XPT",
+   trl3:12,trl6:16,trl12:12,trly:0, tol3:28,tol6:31,tol12:30,toly:24,
+   openFg:5,openPO:0, st60:5,stAged:0,
+   cocoD:0,cocoA:0,cocoV:0,cocoN:0,
+   w1:8,w2:8,w3:7,w4:7,m2:28,m3:26},
+  {code:"V3515SUB",desc:"Pro 2095XP F HSD 16FT BSVI AC NGB",seg:"R",eseg:"Runner B",sv:"Sub-5T",vert:"LMD",fuel:"CNG",ac:"AC",tonnage:"9T",mpg:"Pro 2095XP",
+   trl3:17,trl6:14,trl12:11,trly:0, tol3:36,tol6:40,tol12:38,toly:30,
+   openFg:8,openPO:3, st60:24,stAged:5,
+   cocoD:3,cocoA:0,cocoV:0,cocoN:3,
+   w1:10,w2:10,w3:9,w4:9,m2:38,m3:35},
+  {code:"V6030HDT",desc:"Pro 3018XP Plus M HSD 22FT BSVI AC",seg:"D",eseg:"Dragger",sv:"5–16T",vert:"LMD",fuel:"Diesel",ac:"AC",tonnage:"31T",mpg:"Pro 3018XP Plus",
+   trl3:21,trl6:23,trl12:12,trly:0, tol3:12,tol6:14,tol12:13,toly:10,
+   openFg:46,openPO:0, st60:28,stAged:18,
+   cocoD:0,cocoA:0,cocoV:0,cocoN:0,
+   w1:4,w2:4,w3:3,w4:3,m2:12,m3:11},
+  {code:"H4940MAV",desc:"HD 4940 MAV 4x2 BSVI",seg:"R",eseg:"Runner A",sv:"HD 4x2",vert:"HD",fuel:"Diesel",ac:"NonAC",tonnage:"49T",mpg:"HD 4x2",
+   trl3:12,trl6:14,trl12:10,trly:0, tol3:32,tol6:36,tol12:34,toly:28,
+   openFg:5,openPO:2, st60:8,stAged:2,
+   cocoD:0,cocoA:0,cocoV:0,cocoN:0,
+   w1:9,w2:8,w3:8,w4:8,m2:30,m3:28},
+  {code:"H6030TIP",desc:"HD 6030 Tipper BSVI",seg:"S",eseg:"Slogger A",sv:"Tipper",vert:"HD",fuel:"Diesel",ac:"NonAC",tonnage:"60T",mpg:"HD Tipper",
+   trl3:8,trl6:10,trl12:8,trly:0, tol3:18,tol6:21,tol12:20,toly:16,
+   openFg:3,openPO:1, st60:5,stAged:2,
+   cocoD:0,cocoA:0,cocoV:0,cocoN:0,
+   w1:5,w2:5,w3:4,w4:4,m2:18,m3:16},
+  {code:"B3215LMD",desc:"Bus LMD 32-Seater CNG BSVI AC",seg:"R",eseg:"Runner A",sv:"LMD Bus",vert:"Bus",fuel:"CNG",ac:"AC",tonnage:"Bus",mpg:"Skyline Pro 3008",
+   trl3:5,trl6:8,trl12:7,trly:0, tol3:14,tol6:16,tol12:15,toly:12,
+   openFg:8,openPO:0, st60:10,stAged:0,
+   cocoD:6,cocoA:1,cocoV:0,cocoN:7,
+   w1:4,w2:4,w3:3,w4:3,m2:14,m3:12},
+];
+const DEALERS=[
+  {code:"DLR-1002",name:"Sharma Motors",loc:"Delhi NCR",csm:"North Cluster",rsm:"North Region"},
+  {code:"DLR-1014",name:"Capital Trucks",loc:"Gurugram",csm:"North Cluster",rsm:"North Region"},
+  {code:"DLR-1021",name:"Highway Auto",loc:"Noida",csm:"North Cluster",rsm:"North Region"},
+];
+const ADDABLE=[
+  {code:"V4140LPG",desc:"LMD 4140 LPG Flatbed",seg:"S",vert:"LMD"},
+  {code:"V5020REF",desc:"LMD 5020 Reefer",seg:"D",vert:"LMD"},
+  {code:"V3210SUB",desc:"LMD 3210 Sub-5T Diesel",seg:"S",vert:"LMD"},
+];
+const VERTS={
+  lmd:{name:"LMD",sv:["All LMD","5–16 Ton","Sub-5 Ton"],color:"var(--lmd)"},
+  hd:{name:"HD",sv:["All HD","HD 4x2","MAV","Tractor Trailer","Tipper"],color:"var(--hd)"},
+  bus:{name:"Bus",sv:["All Bus","LMD Bus","HD Bus","EV Bus"],color:"var(--bus)"}
+};
+
+// IB data — single shared worksheet, keyed by Country/Dealer/FERT
+const IB_DATA=[
+  {dealer:"1XV1002",dealerName:"Bangladesh Motors",country:"Bangladesh",code:"80709022",desc:"Pro 1075 H CBC BS3 CKD",vert:"LMD",seg:"R",pastOrders:24,currentMonth:12,futureOrders:0,totalDemand:36,my:"2026",po:"PO-BD-3320",aug:12,sep:0,oct:0},
+  {dealer:"1XV1002",dealerName:"Bangladesh Motors",country:"Bangladesh",code:"85200143",desc:"Pro 3015 J CBC BS3 AB TY",vert:"LMD",seg:"S",pastOrders:18,currentMonth:0,futureOrders:6,totalDemand:24,my:"2026",po:"PO-BD-3322",aug:14,sep:10,oct:0},
+  {dealer:"1XV1002",dealerName:"Bangladesh Motors",country:"Bangladesh",code:"85200676",desc:"Pro 3015 M SLP CBC BS3",vert:"LMD",seg:"D",pastOrders:0,currentMonth:0,futureOrders:8,totalDemand:8,my:"2027",po:"—",aug:4,sep:4,oct:0},
+  {dealer:"1V3333",dealerName:"Himalayan Motors",country:"Nepal",code:"85900385",desc:"Pro 1075 F CBC RHD BS3",vert:"LMD",seg:"R",pastOrders:32,currentMonth:20,futureOrders:12,totalDemand:64,my:"2026",po:"PO-NP-7741",aug:12,sep:12,oct:8},
+  {dealer:"1V7035",dealerName:"Everest Trucks",country:"Nepal",code:"86306204",desc:"Pro 1112XP G CBC 17FT BS3",vert:"LMD",seg:"S",pastOrders:0,currentMonth:6,futureOrders:16,totalDemand:22,my:"2027",po:"—",aug:10,sep:0,oct:0},
+  {dealer:"1XA2201",dealerName:"EastAfrica Fleet",country:"Africa",code:"94203523",desc:"Pro 2049 HD Tipper BS6",vert:"HD",seg:"S",pastOrders:14,currentMonth:8,futureOrders:8,totalDemand:30,my:"2026",po:"PO-AF-1187",aug:8,sep:6,oct:6},
+  {dealer:"1XL3340",dealerName:"Ceylon Auto",country:"Sri Lanka",code:"80709022",desc:"Skyline Pro LMD Bus 32-Seater",vert:"Bus",seg:"R",pastOrders:0,currentMonth:0,futureOrders:10,totalDemand:10,my:"2026",po:"—",aug:6,sep:4,oct:0},
+];
+
+// IS data — SAP orders, read-only monitoring view
+const IS_DATA=[
+  {ordNo:"1112898726",creDate:"14 May 2026",poNo:"511687779447146",cname:"Union of India – DIG",color:"BLUE MOON",code:"96051543",desc:"Skl Pro 3011L Stf 3L Dd BSVI",ordQty:10,shipped:4,openQty:6,curStock:3,reqDate:"14 May 2026",edd:"TBC"},
+  {ordNo:"1112901234",creDate:"18 May 2026",poNo:"511687779449021",cname:"Metro Transport Corp",color:"WHITE",code:"85200143",desc:"Pro 3015 J CBC BS3 AB",ordQty:20,shipped:0,openQty:20,curStock:8,reqDate:"5 Aug 2026",edd:"22 Jul 2026"},
+  {ordNo:"1112905678",creDate:"2 Jun 2026",poNo:"511687779450088",cname:"Defence Procurement Dept",color:"OLIVE",code:"96100617",desc:"Pro X 3.5T EV C CBC DW",ordQty:24,shipped:0,openQty:24,curStock:0,reqDate:"30 Sep 2026",edd:"TBC"},
+  {ordNo:"1112909900",creDate:"10 Jun 2026",poNo:"511687779451500",cname:"The Executive Officer",color:"WHITE",code:"94203523",desc:"Pro 2049 HD Tipper BS6",ordQty:18,shipped:0,openQty:18,curStock:5,reqDate:"15 Aug 2026",edd:"30 Jul 2026"},
+  {ordNo:"1112911122",creDate:"15 Jun 2026",poNo:"511687779452200",cname:"General Manager PWD",color:"YELLOW",code:"94900443",desc:"Pro 5530 MAV BS6 Tractor",ordQty:16,shipped:0,openQty:16,curStock:2,reqDate:"1 Sep 2026",edd:"TBC"},
+];
+
+// COCO data
+const COCO_DATA=[
+  {vert:"LMD",code:"85900385",desc:"Pro 1075 F CBC RHD BS3",seg:"R",city:"Mumbai",cocoStock:8,cocoIndent:18,pvtIndent:42},
+  {vert:"LMD",code:"85200143",desc:"Pro 3015 J CBC BS3",seg:"S",city:"Delhi",cocoStock:3,cocoIndent:8,pvtIndent:30},
+  {vert:"HD",code:"94203523",desc:"Pro 2049 HD Tipper BS6",seg:"S",city:"Pune",cocoStock:5,cocoIndent:12,pvtIndent:22},
+  {vert:"HD",code:"94900443",desc:"Pro 5530 MAV BS6",seg:"D",city:"Chennai",cocoStock:1,cocoIndent:4,pvtIndent:14},
+  {vert:"Bus",code:"80709022",desc:"Skyline Pro LMD Bus 32S",seg:"R",city:"Hyderabad",cocoStock:6,cocoIndent:14,pvtIndent:18},
+  {vert:"Bus",code:"81203011",desc:"Skyline Pro HD Bus 45S AC",seg:"S",city:"Bangalore",cocoStock:2,cocoIndent:6,pvtIndent:10},
+];
+
+// ISO netting data
+const ISO_DATA=[
+  {code:"V4130CAF",desc:"LMD 4130 CNG Flatbed",seg:"R",sv:"LMD",d:88,c:91,r:94,vh:90,a3:84,abp:95,fg:28,ss:12,iso:null},
+  {code:"V4030DZL",desc:"LMD 4030 Diesel Tipper",seg:"R",sv:"LMD",d:74,c:76,r:78,vh:76,a3:71,abp:80,fg:22,ss:8,iso:null},
+  {code:"V5530TKR",desc:"LMD 5530 Tractor",seg:"S",sv:"LMD",d:44,c:46,r:48,vh:48,a3:42,abp:52,fg:10,ss:6,iso:null},
+  {code:"V4025EXP",desc:"LMD 4025 Export Variant",seg:"S",sv:"LMD",d:30,c:31,r:32,vh:32,a3:28,abp:33,fg:5,ss:4,iso:38},
+  {code:"V3515SUB",desc:"LMD 3515 Sub-5T CNG",seg:"R",sv:"LMD",d:38,c:40,r:41,vh:40,a3:36,abp:44,fg:14,ss:6,iso:null},
+  {code:"V6030HDT",desc:"LMD 6030 Heavy Duty Tipper",seg:"D",sv:"LMD",d:13,c:13,r:14,vh:14,a3:12,abp:15,fg:3,ss:2,iso:null},
+];
+
+// ══ FILTER STATE ══
+let fSearch="",fVert="all",fSeg="all",fFuel="all",fStockFlag="all";
+let mtoTabActive="ib",activeCycle="1A",phase=0;
+let persona='dealer',vert='lmd',selVertical='lmd';
+
+function applyFiltersTo(rows){
+  return rows.filter(f=>{
+    const code=(f.code||"").toLowerCase(), desc=(f.desc||"").toLowerCase();
+    if(fSearch){const s=fSearch.toLowerCase();if(!code.includes(s)&&!desc.includes(s))return false;}
+    const fv=f.vert||f.vertical||"";
+    if(fVert!=="all"&&fv!==fVert)return false;
+    if(fSeg!=="all"&&f.seg!==fSeg)return false;
+    if(fFuel!=="all"&&f.fuel!==fFuel)return false;
+    if(fStockFlag==="aged"&&!(f.invAged||Math.round((f.a3||0)*0.15)>0))return false;
+    return true;
+  });
+}
+function clearFilters(){fSearch="";fVert="all";fSeg="all";fFuel="all";fStockFlag="all";rebuildFilterbars();renderWorkbook();renderSummary();}
+
+// ══ PERSONA CONFIG ══
+const PERSONA_CFG={
+  dealer:{name:"Sharma Motors",role:"DLR-1002 · Dealer",av:"SM",avColor:"var(--blue)",cycleIdx:0,cycles:["1A"],cutoff:"15 Jul · 23:59",tabs:["workbook","summary"]},
+  csm:{name:"R. Khanna",role:"CSM · North Cluster",av:"RK",avColor:"#00838F",cycleIdx:1,cycles:["1A"],cutoff:"16 Jul · 23:59",tabs:["workbook","summary","mto"]},
+  rsm:{name:"P. Mehta",role:"RSM · North Region",av:"PM",avColor:"#6A1B9A",cycleIdx:2,cycles:["1A","1B"],cutoff:"17 Jul · 23:59",tabs:["workbook","summary","coco","mto"]},
+  vh:{name:"A. Reddy",role:"VH · LMD Vertical",av:"AR",avColor:"#1B5E20",cycleIdx:3,cycles:["1A","1B"],cutoff:"18 Jul · 23:59",tabs:["workbook","summary","coco","mto"]},
+  iso:{name:"S. Mehta",role:"ISO · Central Planning",av:"SM",avColor:"#0277BD",cycleIdx:4,cycles:["1A","1B"],cutoff:"19 Jul · 23:59",tabs:["workbook","summary","mto"]},
+};
+const CYCLE_STEPS=[
+  {k:"dealer",label:"Dealer",cut:"15th"},
+  {k:"csm",label:"CSM",cut:"16th"},
+  {k:"rsm",label:"RSM",cut:"17th"},
+  {k:"vh",label:"VH",cut:"18th"},
+  {k:"iso",label:"ISO",cut:"19th"},
+];
+
+// ══ LOGIN / LOGOUT ══
+function selVert(v,el){document.querySelectorAll('.vpill').forEach(p=>p.style.opacity='.5');el.style.opacity='1';selVertical=v;}
+document.querySelectorAll('.vpill').forEach((p,i)=>p.style.opacity=i===0?'1':'.5');
+function login(p){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').classList.add('active');
+  persona=p; vert=(p==='dealer')?selVertical:'lmd';
+  setPersona(p,true); startCountdown();
+}
+function logout(){
+  document.getElementById('app').classList.remove('active');
+  document.getElementById('loginScreen').style.display='flex';
+  document.querySelectorAll('.vpill').forEach((p,i)=>p.style.opacity=i===0?'1':'.5');
+  selVertical='lmd'; activeCycle='1A';
+  const wb=document.getElementById('wbBadge');
+  if(wb){wb.className='stab-badge sb-open';wb.textContent='Open';}
+  switchScreen('workbook');
+}
+
+// ══ PERSONA SWITCH ══
+function setPersona(p,skipScreen){
+  persona=p;
+  document.querySelectorAll('.psw-btn').forEach(b=>b.classList.remove('active'));
+  const pid=document.getElementById('psw-'+p);if(pid)pid.classList.add('active');
+  const pd=PERSONA_CFG[p];
+  document.getElementById('avatar').textContent=pd.av;
+  document.getElementById('avatar').style.background=pd.avColor;
+  document.getElementById('userName').textContent=pd.name;
+  document.getElementById('userRole').textContent=pd.role;
+  document.getElementById('cutoffDate').textContent=pd.cutoff;
+  // Update 1B button
+  const cyc2=document.getElementById('cyc2');
+  if(cyc2){cyc2.disabled=!pd.cycles.includes("1B");if(!pd.cycles.includes("1B")&&activeCycle==="1B"){activeCycle="1A";}}
+  // Tabs visibility
+  ["workbook","summary","coco","mto"].forEach(t=>{
+    const el=document.getElementById('tab-'+t);
+    if(el)el.style.display=pd.tabs.includes(t)?"":"none";
+  });
+  buildCycleSteps();
+  buildVertTabs();
+  if(!skipScreen)switchScreen('workbook');
+  renderWorkbook();
+  renderSummary();
+}
+
+function buildCycleSteps(){
+  const pd=PERSONA_CFG[persona];
+  const active=pd.cycleIdx;
+  let h='';
+  CYCLE_STEPS.forEach((c,i)=>{
+    const cls=i<active?'cs-done':i===active?'cs-active':'cs-pend';
+    const dot=`<div style="width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff;background:${i<active?'var(--teal)':i===active?'var(--blue)':'#2C4159'};${i===active?'box-shadow:0 0 0 3px rgba(21,101,192,.3)':''}">${i<active?'✓':i+1}</div>`;
+    const lbl=`<span style="font-size:10px;color:${i===active?'#7AB3E8':'#A8C4DC'};font-weight:${i===active?600:400}">${c.label}</span>`;
+    h+=`<div style="display:flex;align-items:center;gap:4px">${dot}${lbl}</div>`;
+    if(i<CYCLE_STEPS.length-1)h+=`<span style="color:#1A3A56;font-size:12px">›</span>`;
+  });
+  document.getElementById('cycleSteps').innerHTML=h;
+}
+
+function buildVertTabs(){
+  document.querySelectorAll('.vtab').forEach(t=>{t.classList.remove('active');t.style.display='flex';});
+  document.getElementById('vt-'+vert).classList.add('active');
+}
+function switchVert(v){vert=v;buildVertTabs();renderWorkbook();renderSummary();}
+
+// ══ CYCLE MANAGEMENT ══
+function setCycle(c){
+  const pd=PERSONA_CFG[persona];
+  if(!pd.cycles.includes(c))return;
+  activeCycle=c;
+  document.getElementById('cyc1').classList.toggle('active',c==="1A");
+  document.getElementById('cyc2').classList.toggle('active',c==="1B");
+  const info=document.getElementById('cycleInfo');
+  if(info)info.textContent=c==="1A"?"Main planning cycle · all personas indent":"Revision cycle · RSM / VH / ISO only · compare vs locked 1A";
+  const nb=document.getElementById('wb1BNotice');
+  if(nb)nb.style.display=c==='1B'?'block':'none';
+  renderWorkbook();
+}
+function setPhase(p){
+  phase=p;
+  document.querySelectorAll('.ph-btn').forEach((b,i)=>b.classList.toggle('active',i===p));
+  renderWorkbook();renderSummary();
+}
+
+// ══ SCREEN SWITCH ══
+const ALL_SCREENS=["workbook","summary","coco","mto"];
+function switchScreen(s){
+  ALL_SCREENS.forEach(n=>{
+    const sc=document.getElementById('screen-'+n);
+    const tb=document.getElementById('tab-'+n);
+    if(sc)sc.classList.toggle('active',n===s);
+    if(tb)tb.classList.toggle('active',n===s);
+  });
+  if(s==="coco")renderCoco();
+  if(s==="mto")renderMto();
+  if(s==="summary")renderSummary();
+  if(s==="workbook")renderWorkbook();
+}
+
+// ══ FILTER BAR BUILDER ══
+function buildFilterbar(hostId,rows,opts){
+  const host=document.getElementById(hostId);
+  if(!host)return;
+  const verts=["all",...new Set(rows.map(r=>r.vert||"").filter(Boolean))];
+  const fuels=["all",...new Set(rows.map(r=>r.fuel||"").filter(Boolean))];
+  const segBtns=['all','R','S','D'].map(s=>{
+    let cls='seg-chip';
+    if(fSeg===s)cls+=' on-'+s;
+    const label=s==='all'?'All':s==='R'?'Runner':s==='S'?'Slogger':'Dagger';
+    return `<button class="${cls}" onclick="onFilter('seg','${s}')">${label}</button>`;
+  }).join('');
+  host.innerHTML=`
+    <div class="fil fil-search"><label>Search FERT</label><input type="text" placeholder="Code or description…" value="${fSearch}" oninput="onFilter('search',this.value)"></div>
+    ${verts.length>1?`<div class="fil"><label>Vertical</label><select onchange="onFilter('vert',this.value)">${verts.map(v=>`<option value="${v}" ${fVert===v?'selected':''}>${v==='all'?'All verticals':v}</option>`).join('')}</select></div>`:''}
+    ${fuels.length>2?`<div class="fil"><label>Fuel</label><select onchange="onFilter('fuel',this.value)">${fuels.map(f=>`<option value="${f}" ${fFuel===f?'selected':''}>${f==='all'?'All fuel':f}</option>`).join('')}</select></div>`:''}
+    <div class="fil-divider"></div>
+    <div class="seg-chips">${segBtns}</div>
+    ${opts&&opts.stockFlag?`<div class="fil-divider"></div><div class="fil"><label>Stock</label><select onchange="onFilter('stockflag',this.value)"><option value="all">All stock</option><option value="aged">Has aged &gt;60D</option></select></div>`:''}
+    <button class="fil-clear" onclick="clearFilters()">✕ Clear</button>
+    <div class="result-count">Showing <strong id="${hostId}-count">${rows.length}</strong> rows</div>`;
+}
+
+function rebuildFilterbars(){
+  const active=ALL_SCREENS.find(s=>document.getElementById('screen-'+s)&&document.getElementById('screen-'+s).classList.contains('active'));
+  if(active==='workbook')buildFilterbar('wbFilterbar',FERTS,{stockFlag:true});
+  if(active==='summary')buildFilterbar('sumFilterbar',FERTS,{});
+}
+
+function onFilter(key,val){
+  if(key==='search')fSearch=val;
+  else if(key==='vert')fVert=val;
+  else if(key==='seg')fSeg=val;
+  else if(key==='fuel')fFuel=val;
+  else if(key==='stockflag')fStockFlag=val;
+  renderWorkbook();
+  if(document.getElementById('screen-summary').classList.contains('active'))renderSummary();
+  if(document.getElementById('screen-coco').classList.contains('active'))renderCoco();
+}
+
+// ══ WORKBOOK RENDER ══
+function renderWorkbook(){
+  const vc=VERTS[vert];
+  document.getElementById('wbTitle').textContent=vc.name+' — Indent Workbook';
+  document.getElementById('wbPhase').textContent=phase===0?'Phase 0 · MVP':'Phase 1 · Full';
+  document.getElementById('wbSub').textContent='Jul 2026 · M1 weekly (W1–W4) + M2/M3 monthly';
+  // Sub-vert nav
+  const sv=document.getElementById('svNav');
+  sv.innerHTML='<span class="sv-label">Sub-vertical</span>'+vc.sv.map((s,i)=>`<div class="sv-chip${i===0?' active':''}" onclick="setSV(this)">${s}</div>`).join('');
+  // Rebuild filter bar with current vertical's FERTs
+  const vertFERTS=FERTS.filter(f=>f.vert===vc.name);
+  buildFilterbar('wbFilterbar',vertFERTS,{stockFlag:true});
+
+  const act=document.getElementById('wbActions');
+  const nt=document.getElementById('wbNotice');
+  const sb=document.getElementById('wbSumBar');
+  const badge=document.getElementById('wbBadge');
+
+  // is1B = revision cycle active?
+  const is1B=activeCycle==='1B';
+
+  if(persona==='dealer'){
+    act.innerHTML=`<button class="btn btn-secondary">Save draft</button>`;
+    nt.innerHTML=`<div class="notice info"><strong>Auto-submit:</strong> Your indent will auto-move to CSM at 15 Jul 23:59. Save as often as you like before then.</div>`;
+    badge.className='stab-badge sb-open';badge.textContent='Open';
+    renderDealerTable(is1B);
+    sb.innerHTML=`<div class="si"><div class="si-label">M1 Total</div><div class="si-val" id="m1tot">—</div></div><div class="sb-divider"></div><div class="si"><div class="si-label">vs 6M Avg</div><div class="si-val warn">-8%</div></div><div class="sb-divider"></div><div class="si"><div class="si-label">vs ABP</div><div class="si-val warn">88%</div></div><div class="sb-right"><span style="font-size:10px;color:var(--grey)">Auto-submits 15 Jul 23:59</span></div>`;
+  } else if(persona==='csm'){
+    const ro=is1B;
+    act.innerHTML=ro?`<span style="font-size:11px;color:var(--grey)">Read-only in 1B revision cycle</span>`:`<button class="btn btn-copy" onclick="copyBelow('dealer')">⎘ Copy Dealer Indent</button><button class="btn btn-add" onclick="openAddFert()">+ Add FERT</button><button class="btn btn-success" onclick="submitWB('RSM')">Submit CSM Indent ↑</button>`;
+    nt.innerHTML=ro?`<div class="notice readonly"><strong>1B Revision:</strong> CSM is read-only in the revision cycle. RSM, VH and ISO can modify.</div>`:`<div class="notice info"><strong>Start from dealer numbers.</strong> Use "Copy Dealer Indent" to pull submissions into CSM columns, then validate or modify.</div>`;
+    badge.className='stab-badge sb-open';badge.textContent='Open';
+    renderCsmTable(ro);
+    sb.innerHTML=`<div class="si"><div class="si-label">CSM Total</div><div class="si-val" id="m1tot">—</div></div><div class="sb-divider"></div><div class="si"><div class="si-label">Dealers submitted</div><div class="si-val ok">2 / 3</div></div><div class="sb-right">${ro?'':`<button class="btn btn-success btn-sm" onclick="submitWB('RSM')">Submit CSM Indent ↑</button>`}</div>`;
+  } else if(persona==='rsm'){
+    act.innerHTML=`<button class="btn btn-copy" onclick="copyBelow('csm')">⎘ Copy CSM Indent</button><button class="btn btn-add" onclick="openAddFert()">+ Add FERT</button><button class="btn btn-success" onclick="submitWB('VH')">Submit RSM Indent ↑</button>`;
+    nt.innerHTML=`<div class="notice info"><strong>Dealer + CSM layers visible (read-only).</strong> Enter your RSM layer. Both 1A and 1B revision available to you.</div>`;
+    badge.className='stab-badge sb-open';badge.textContent='Open';
+    renderRsmTable(is1B);
+    sb.innerHTML=`<div class="si"><div class="si-label">RSM Total</div><div class="si-val" id="m1tot">—</div></div><div class="sb-divider"></div><div class="si"><div class="si-label">Dealers in region</div><div class="si-val">10</div></div><div class="sb-right"><button class="btn btn-success btn-sm" onclick="submitWB('VH')">Submit RSM Indent ↑</button></div>`;
+  } else if(persona==='vh'){
+    act.innerHTML=`<button class="btn btn-add" onclick="openAddFert()">+ Add FERT</button><button class="btn btn-success" onclick="submitWB('ISO')">Submit to ISO ↑</button>`;
+    nt.innerHTML=`<div class="notice info"><strong>Final sales-side moderation.</strong> All lower layers visible (read-only). Enter VH view and submit to ISO.</div>`;
+    badge.className='stab-badge sb-open';badge.textContent='Open';
+    renderVhTable(is1B);
+    sb.innerHTML=`<div class="si"><div class="si-label">VH Total</div><div class="si-val" id="m1tot">—</div></div><div class="sb-divider"></div><div class="si"><div class="si-label">vs RSM</div><div class="si-val">+2%</div></div><div class="sb-divider"></div><div class="si"><div class="si-label">vs ABP</div><div class="si-val warn">91%</div></div><div class="sb-right"><button class="btn btn-success btn-sm" onclick="submitWB('ISO')">Submit to ISO ↑</button></div>`;
+  } else if(persona==='iso'){
+    act.innerHTML=`<button class="btn btn-secondary" onclick="exportCSV('net')">↓ Net Plan CSV</button><button class="btn btn-success" disabled onclick="submitWB('PPC')">Release Net Plan to PPC ↑</button>`;
+    nt.innerHTML=`<div class="notice info"><strong>ISO / Central Planning.</strong> All 4 layers visible. Override with mandatory reason code. Net = VH (or override) + SS − FG. Release gated until all VH submitted.</div>`;
+    badge.className='stab-badge sb-open';badge.textContent='Open';
+    renderIsoTable();
+    sb.innerHTML=`<div class="si"><div class="si-label">VH Total</div><div class="si-val" id="m1tot">284</div></div><div class="sb-divider"></div><div class="si"><div class="si-label">Safety Stock</div><div class="si-val warn">+42</div></div><div class="sb-divider"></div><div class="si"><div class="si-label">FG On Hand</div><div class="si-val ok">−68</div></div><div class="sb-divider"></div><div class="si"><div class="si-label">Net Prod Req</div><div class="si-val" style="color:var(--blue);font-size:18px">258</div></div><div class="sb-divider"></div><div class="si"><div class="si-label">VH submitted</div><div class="si-val warn">2 / 3</div></div><div class="sb-right"><span style="font-size:10px;color:var(--grey)">Bus VH pending</span><button class="btn btn-success btn-sm" disabled>Release locked</button></div>`;
+  }
+}
+
+function p1cell(phaseVal){
+  return phase===0
+    ? `<td class="td-p1"><span class="p1-ph">Phase 1</span></td>`
+    : `<td class="ref-val">${phaseVal}</td>`;
+}
+
+// DEALER TABLE — Kinaxis-aligned columns
+// Segments (Dealer + Eicher), Current Stock <60/>60/Total, Opening FG, Open PO,
+// Pipeline (Phase 1 greyed), Trend Retail L3/L6/L12/LYSM, Indent W1-W4+Jul Total+Aug+Sep+Grand Total
+function renderDealerTable(is1B){
+  const ferts=applyFiltersTo(FERTS.filter(f=>f.vert===VERTS[vert].name));
+  const cntEl=document.getElementById('wbFilterbar-count');if(cntEl)cntEl.textContent=ferts.length;
+  const ro=is1B;
+  document.getElementById('wbHead').innerHTML=`<tr>
+    <th colspan="5" class="cg cg-fert left sticky-col">FERT</th>
+    <th colspan="3" class="cg" style="background:#00695C">Current Stock</th>
+    <th colspan="2" class="cg cg-ref">Opening</th>
+    <th colspan="4" class="cg cg-p1" style="${phase===1?'background:#455A64':''}">${phase===0?'Phase 1 — Pipeline':'Pipeline'}</th>
+    <th colspan="4" class="cg cg-ref">Trend — Retail</th>
+    <th colspan="5" class="cg cg-inp">Dealer Indent — Jul 26</th>
+    <th colspan="3" class="cg cg-fut">Forward + Total</th></tr>
+    <tr>
+    <th class="left sticky-col">Code</th>
+    <th class="left sticky-col sticky-col2">Description</th>
+    <th class="sticky-col sticky-col3">Dlr Seg</th>
+    <th style="font-size:8px">Eicher Seg</th>
+    <th style="font-size:8px">Sub-V</th>
+    <th style="background:#E0F2F1;color:#004D40">&lt;60D</th>
+    <th style="background:#FEECEC;color:#B71C1C">&gt;60D ⚠</th>
+    <th>Total</th>
+    <th>Opn FG</th><th>Open PO</th>
+    <th class="${phase===0?'th-p1':''}">Conf</th>
+    <th class="${phase===0?'th-p1':''}">FA</th>
+    <th class="${phase===0?'th-p1':''}">FC</th>
+    <th class="${phase===0?'th-p1':''}">Hot Inq</th>
+    <th>L3</th><th>L6</th><th>L12</th><th>LYSM</th>
+    <th>W1 ●</th><th>W2</th><th>W3</th><th>W4</th><th>Jul Tot</th>
+    <th>Aug 26</th><th>Sep 26</th><th>Total</th></tr>`;
+  let body='',tot=0;
+  ferts.forEach(f=>{
+    const m1=f.w1+f.w2+f.w3+f.w4; tot+=m1;
+    const stTotal=(f.st60||0)+(f.stAged||0);
+    const agedCell=(f.stAged||0)>0?`<span style="color:#B71C1C;font-weight:700">${f.stAged}</span>`:'—';
+    const grand=m1+(f.m2||0)+(f.m3||0);
+    // pipeline cols — greyed in Phase 0
+    const p1Cell=(v)=>phase===0?`<td class="td-p1"><span class="p1-ph">—</span></td>`:`<td class="ref-val">${v}</td>`;
+    body+=`<tr>
+      <td class="sticky-col"><span class="fert-code">${f.code}</span></td>
+      <td class="sticky-col sticky-col2"><span class="fert-desc" title="${f.desc}">${f.desc}</span></td>
+      <td class="sticky-col sticky-col3"><span class="seg seg-${f.seg}">${f.seg==='R'?'Runner':f.seg==='S'?'Slogger':'Dagger'}</span></td>
+      <td style="font-size:9px;color:var(--grey);white-space:nowrap">${f.eseg}</td>
+      <td style="font-size:9px;color:var(--grey)">${f.sv}</td>
+      <td style="text-align:right;color:#00695C;font-family:var(--mono);font-weight:500">${f.st60||0}</td>
+      <td style="text-align:right;background:#FFF5F5;font-family:var(--mono)">${agedCell}</td>
+      <td style="text-align:right;font-family:var(--mono);font-weight:600">${stTotal}</td>
+      <td class="ref-val">${f.openFg||0}</td>
+      <td class="ref-val">${f.openPO||0}</td>
+      ${p1Cell(Math.round((f.tol3||0)*0.4))}
+      ${p1Cell(Math.round((f.tol3||0)*0.35))}
+      ${p1Cell(Math.round((f.tol3||0)*0.25))}
+      ${p1Cell(Math.round((f.tol6||0)*0.6))}
+      <td class="ref-val">${f.trl3||0}</td>
+      <td class="ref-val">${f.trl6||0}</td>
+      <td class="ref-val">${f.trl12||0}</td>
+      <td class="ref-val">${f.trly||'—'}</td>
+      <td><input class="inp w1" type="number" value="${f.w1}" ${ro?'readonly':''} oninput="recalcDealer(this)"></td>
+      <td><input class="inp" type="number" value="${f.w2}" ${ro?'readonly':''} oninput="recalcDealer(this)"></td>
+      <td><input class="inp" type="number" value="${f.w3}" ${ro?'readonly':''} oninput="recalcDealer(this)"></td>
+      <td><input class="inp" type="number" value="${f.w4}" ${ro?'readonly':''} oninput="recalcDealer(this)"></td>
+      <td class="calc-val" style="font-weight:600">${m1}</td>
+      <td><input class="inp" type="number" value="${f.m2||0}" ${ro?'readonly':''}></td>
+      <td><input class="inp" type="number" value="${f.m3||0}" ${ro?'readonly':''}></td>
+      <td class="calc-val" style="font-weight:700;color:var(--blue)">${grand}</td></tr>`;
+  });
+  document.getElementById('wbBody').innerHTML=body;
+  const mt=document.getElementById('m1tot');if(mt)mt.textContent=tot;
+}
+function recalcDealer(inp){
+  if(inp){
+    const tr=inp.closest('tr');
+    const ins=tr.querySelectorAll('.inp');
+    let m1=0;for(let i=0;i<4;i++)m1+=parseInt(ins[i].value)||0;
+    const cells=tr.querySelectorAll('.calc-val');
+    if(cells[0])cells[0].textContent=m1;
+    const aug=parseInt(ins[4]?.value)||0,sep=parseInt(ins[5]?.value)||0;
+    if(cells[1])cells[1].textContent=m1+aug+sep;
+  }
+  let tot=0;
+  document.querySelectorAll('#wbBody .calc-val:first-of-type').forEach(c=>tot+=parseInt(c.textContent)||0);
+  const mt=document.getElementById('m1tot');if(mt)mt.textContent=tot;
+}
+
+// CSM TABLE — Kinaxis-aligned: Eicher seg, Trend Offtake+Retail, FA/FC/HotInq, full Dealer indent, CSM indent with Aug/Sep/Total
+function renderCsmTable(readOnly){
+  const ferts=applyFiltersTo(FERTS.filter(f=>f.vert===VERTS[vert].name));
+  document.getElementById('wbHead').innerHTML=`<tr>
+    <th colspan="5" class="cg cg-fert left">FERT</th>
+    <th colspan="2" class="cg cg-dealer">Dealer</th>
+    <th colspan="3" class="cg" style="background:#00695C">Current Stock</th>
+    <th colspan="2" class="cg cg-ref">Opening</th>
+    <th colspan="3" class="cg" style="background:#546E7A">Pipeline</th>
+    <th colspan="4" class="cg cg-ref">Trend — Offtake</th>
+    <th colspan="4" class="cg cg-ref">Trend — Retail</th>
+    <th colspan="8" class="cg cg-readonly">Dealer Indent (read-only)</th>
+    <th colspan="3" class="cg cg-enrich">CSM Enrichment</th>
+    <th colspan="8" class="cg cg-inp">CSM Indent — Jul 26</th></tr>
+    <tr>
+    <th class="left sticky-col">Code</th>
+    <th class="left sticky-col sticky-col2">Description</th>
+    <th class="sticky-col sticky-col3">Dlr Seg</th>
+    <th style="font-size:8px">Eicher Seg</th><th style="font-size:8px">Sub-V</th>
+    <th class="left">Dealer</th><th>Status</th>
+    <th style="background:#E0F2F1;color:#004D40">&lt;60D</th>
+    <th style="background:#FEECEC;color:#B71C1C">&gt;60D ⚠</th><th>Total</th>
+    <th>Opn FG</th><th>Open PO</th>
+    <th style="font-size:8px">FA</th><th style="font-size:8px">FC</th><th style="font-size:8px">Hot Inq</th>
+    <th>L3</th><th>L6</th><th>L12</th><th>LYSM</th>
+    <th>L3</th><th>L6</th><th>L12</th><th>LYSM</th>
+    <th>W1</th><th>W2</th><th>W3</th><th>W4</th><th>Jul Tot</th><th>Aug</th><th>Sep</th><th>Total</th>
+    <th>Likely Supply</th><th>Exp Offtake</th><th>Exp Retail</th>
+    <th>W1</th><th>W2</th><th>W3</th><th>W4</th><th>Jul Tot</th><th>Aug</th><th>Sep</th><th>Total</th></tr>`;
+  let body='';
+  ferts.slice(0,4).forEach(f=>{
+    DEALERS.forEach((d,di)=>{
+      const fac=di===0?1:di===1?0.7:0.5;
+      const dW1=Math.round(f.w1*fac),dW2=Math.round(f.w2*fac),dW3=Math.round(f.w3*fac),dW4=Math.round(f.w4*fac);
+      const dJul=dW1+dW2+dW3+dW4,dAug=Math.round((f.m2||0)*fac),dSep=Math.round((f.m3||0)*fac);
+      const dTotal=dJul+dAug+dSep;
+      const cW1=Math.round(dW1*1.05),cW2=Math.round(dW2*1.05),cW3=Math.round(dW3*1.05),cW4=Math.round(dW4*1.05);
+      const cJul=cW1+cW2+cW3+cW4,cAug=Math.round(dAug*1.05),cSep=Math.round(dSep*1.05);
+      const cTotal=cJul+cAug+cSep;
+      const subm=di<2;
+      const stTot=(f.st60||0)+(f.stAged||0);
+      const fa=Math.round((f.tol3||0)*0.3),fc=Math.round((f.tol3||0)*0.2),hi=Math.round((f.tol6||0)*0.5);
+      body+=`<tr>
+        <td class="sticky-col"><span class="fert-code">${f.code}</span></td>
+        <td class="sticky-col sticky-col2"><span class="fert-desc" title="${f.desc}">${f.desc}</span></td>
+        <td class="sticky-col sticky-col3"><span class="seg seg-${f.seg}">${f.seg==='R'?'Run':f.seg==='S'?'Slog':'Drag'}</span></td>
+        <td style="font-size:9px;color:var(--grey);white-space:nowrap">${f.eseg}</td>
+        <td style="font-size:9px;color:var(--grey)">${f.sv}</td>
+        <td><div style="font-size:10px;font-weight:500">${d.name}</div><div style="font-size:8px;color:var(--grey)">${d.code}</div></td>
+        <td><span class="sub-status ${subm?'ss-in':'ss-pend'}">${subm?'Submitted':'Pending'}</span></td>
+        <td style="text-align:right;color:#00695C;font-family:var(--mono)">${f.st60||0}</td>
+        <td style="text-align:right;background:#FFF5F5;font-family:var(--mono);color:#B71C1C">${(f.stAged||0)||'—'}</td>
+        <td style="text-align:right;font-family:var(--mono);font-weight:600">${stTot}</td>
+        <td class="ref-val">${f.openFg||0}</td><td class="ref-val">${f.openPO||0}</td>
+        <td class="ref-val" style="color:#0277BD">${subm?fa:'—'}</td>
+        <td class="ref-val" style="color:#0277BD">${subm?fc:'—'}</td>
+        <td class="ref-val" style="color:#0277BD">${subm?hi:'—'}</td>
+        <td class="ref-val">${f.tol3||0}</td><td class="ref-val">${f.tol6||0}</td><td class="ref-val">${f.tol12||0}</td><td class="ref-val">${f.toly||'—'}</td>
+        <td class="ref-val">${f.trl3||0}</td><td class="ref-val">${f.trl6||0}</td><td class="ref-val">${f.trl12||0}</td><td class="ref-val">${f.trly||'—'}</td>
+        <td class="ro-val">${subm?dW1:'—'}</td><td class="ro-val">${subm?dW2:'—'}</td><td class="ro-val">${subm?dW3:'—'}</td><td class="ro-val">${subm?dW4:'—'}</td>
+        <td class="ro-val" style="font-weight:600">${subm?dJul:'—'}</td>
+        <td class="ro-val">${subm?dAug:'—'}</td><td class="ro-val">${subm?dSep:'—'}</td>
+        <td class="ro-val" style="font-weight:700;color:var(--ink2)">${subm?dTotal:'—'}</td>
+        <td><input class="inp enrich" type="number" value="${Math.round((f.tol3||10)*fac*1.1)}" ${readOnly?'readonly':''}></td>
+        <td><input class="inp enrich" type="number" value="${Math.round((f.tol3||10)*fac*0.9)}" ${readOnly?'readonly':''}></td>
+        <td><input class="inp enrich" type="number" value="${Math.round((f.trl3||5)*fac)}" ${readOnly?'readonly':''}></td>
+        <td><input class="inp" type="number" value="${readOnly?0:cW1}" ${readOnly?'readonly':''} oninput="recalcRow(this)"></td>
+        <td><input class="inp" type="number" value="${readOnly?0:cW2}" ${readOnly?'readonly':''} oninput="recalcRow(this)"></td>
+        <td><input class="inp" type="number" value="${readOnly?0:cW3}" ${readOnly?'readonly':''} oninput="recalcRow(this)"></td>
+        <td><input class="inp" type="number" value="${readOnly?0:cW4}" ${readOnly?'readonly':''} oninput="recalcRow(this)"></td>
+        <td class="calc-val" style="font-weight:600">${readOnly?0:cJul}</td>
+        <td><input class="inp" type="number" value="${readOnly?0:cAug}" ${readOnly?'readonly':''}></td>
+        <td><input class="inp" type="number" value="${readOnly?0:cSep}" ${readOnly?'readonly':''}></td>
+        <td class="calc-val" style="font-weight:700;color:var(--blue)">${readOnly?0:cTotal}</td></tr>`;
+    });
+  });
+  document.getElementById('wbBody').innerHTML=body;
+  recalcTotals();
+}
+
+// RSM TABLE — Eicher seg, Trend Offtake+Retail, Pipeline, full Dealer+CSM indent layers (W1-W4+Aug+Sep+Total read-only), RSM indent with Aug/Sep/Total, 1B cols
+function renderRsmTable(is1B){
+  const ferts=applyFiltersTo(FERTS.filter(f=>f.vert===VERTS[vert].name));
+  const b1cols=is1B?`<th colspan="4" class="cg" style="background:#B7791F">1B Comparison</th>`:'';
+  const b1hdrs=is1B?`<th style="background:#FEF3C7;color:#6B4A12">Gap vs Norm</th><th style="background:#FEF3C7;color:#6B4A12">Pend FC</th><th style="background:#FEF3C7;color:#6B4A12">Chg NOS</th><th style="background:#FEF3C7;color:#6B4A12">Chg %</th>`:'';
+  document.getElementById('wbHead').innerHTML=`<tr>
+    <th colspan="4" class="cg cg-fert left">FERT</th>
+    <th colspan="4" class="cg cg-ref">Pipeline + Trends</th>
+    <th colspan="4" class="cg cg-ref">Trend — Offtake</th>
+    <th colspan="4" class="cg cg-ref">Trend — Retail</th>
+    <th colspan="8" class="cg cg-readonly">Dealer Indent (read-only)</th>
+    <th colspan="8" class="cg cg-csm" style="background:#00838F">CSM Indent (read-only)</th>
+    <th colspan="3" class="cg cg-enrich">RSM Enrichment</th>
+    <th colspan="8" class="cg cg-inp">RSM Indent — Jul 26</th>
+    ${b1cols}</tr>
+    <tr>
+    <th class="left sticky-col">Code</th>
+    <th class="left sticky-col sticky-col2">Description</th>
+    <th class="sticky-col sticky-col3">Eicher Seg</th><th>Dealer</th>
+    <th>Opn FG</th><th>Open PO</th><th>FA</th><th>FC</th>
+    <th>L3</th><th>L6</th><th>L12</th><th>LYSM</th>
+    <th>L3</th><th>L6</th><th>L12</th><th>LYSM</th>
+    <th>W1</th><th>W2</th><th>W3</th><th>W4</th><th>Jul Tot</th><th>Aug</th><th>Sep</th><th>Total</th>
+    <th>W1</th><th>W2</th><th>W3</th><th>W4</th><th>Jul Tot</th><th>Aug</th><th>Sep</th><th>Total</th>
+    <th>Likely Supply</th><th>Exp Offtake</th><th>Retail</th>
+    <th>W1</th><th>W2</th><th>W3</th><th>W4</th><th>Jul Tot</th><th>Aug</th><th>Sep</th><th>Total</th>
+    ${b1hdrs}</tr>`;
+  let body='';
+  ferts.slice(0,3).forEach(f=>{
+    DEALERS.forEach((d,di)=>{
+      const fac=di===0?1:di===1?0.7:0.5;
+      const dW1=Math.round(f.w1*fac),dW2=Math.round(f.w2*fac),dW3=Math.round(f.w3*fac),dW4=Math.round(f.w4*fac);
+      const dJul=dW1+dW2+dW3+dW4,dAug=Math.round((f.m2||0)*fac),dSep=Math.round((f.m3||0)*fac);
+      const cW1=Math.round(dW1*1.05),cW2=Math.round(dW2*1.05),cW3=Math.round(dW3*1.05),cW4=Math.round(dW4*1.05);
+      const cJul=cW1+cW2+cW3+cW4,cAug=Math.round(dAug*1.05),cSep=Math.round(dSep*1.05);
+      const rW1=Math.round(cW1*1.03),rW2=Math.round(cW2*1.03),rW3=Math.round(cW3*1.03),rW4=Math.round(cW4*1.03);
+      const rJul=rW1+rW2+rW3+rW4,rAug=Math.round(cAug*1.03),rSep=Math.round(cSep*1.03);
+      const rTotal=rJul+rAug+rSep;
+      const gap=Math.round(f.trl6*0.1*-1);
+      const b1cells=is1B?`<td style="text-align:right;font-family:var(--mono);color:${gap<0?'var(--red)':'var(--teal)'}">${gap}</td><td class="ref-val">${Math.round(rJul*0.3)}</td><td class="ref-val">${rJul-cJul}</td><td class="ref-val">${Math.round((rJul/cJul-1)*100)}%</td>`:'';
+      body+=`<tr>
+        <td class="sticky-col"><span class="fert-code">${f.code}</span></td>
+        <td class="sticky-col sticky-col2"><span class="fert-desc" title="${f.desc}">${f.desc}</span></td>
+        <td class="sticky-col sticky-col3" style="font-size:9px;white-space:nowrap;color:var(--grey)">${f.eseg}</td>
+        <td><div style="font-size:10px;font-weight:500">${d.name}</div><div style="font-size:8px;color:var(--grey)">${d.code} · ${d.loc}</div></td>
+        <td class="ref-val">${f.openFg||0}</td><td class="ref-val">${f.openPO||0}</td>
+        <td class="ref-val" style="color:#0277BD">${Math.round((f.tol3||0)*0.3)}</td>
+        <td class="ref-val" style="color:#0277BD">${Math.round((f.tol3||0)*0.2)}</td>
+        <td class="ref-val">${f.tol3||0}</td><td class="ref-val">${f.tol6||0}</td><td class="ref-val">${f.tol12||0}</td><td class="ref-val">${f.toly||'—'}</td>
+        <td class="ref-val">${f.trl3||0}</td><td class="ref-val">${f.trl6||0}</td><td class="ref-val">${f.trl12||0}</td><td class="ref-val">${f.trly||'—'}</td>
+        <td class="ro-val">${dW1}</td><td class="ro-val">${dW2}</td><td class="ro-val">${dW3}</td><td class="ro-val">${dW4}</td>
+        <td class="ro-val" style="font-weight:600">${dJul}</td><td class="ro-val">${dAug}</td><td class="ro-val">${dSep}</td>
+        <td class="ro-val" style="font-weight:700">${dJul+dAug+dSep}</td>
+        <td class="csm-val">${cW1}</td><td class="csm-val">${cW2}</td><td class="csm-val">${cW3}</td><td class="csm-val">${cW4}</td>
+        <td class="csm-val" style="font-weight:600">${cJul}</td><td class="csm-val">${cAug}</td><td class="csm-val">${cSep}</td>
+        <td class="csm-val" style="font-weight:700">${cJul+cAug+cSep}</td>
+        <td><input class="inp enrich" type="number" value="${Math.round((f.tol3||10)*fac*1.05)}" oninput="recalcRow(this)"></td>
+        <td><input class="inp enrich" type="number" value="${Math.round((f.tol3||10)*fac*0.95)}"></td>
+        <td><input class="inp enrich" type="number" value="${Math.round((f.trl3||5)*fac)}"></td>
+        <td><input class="inp" type="number" value="${rW1}" oninput="recalcRow(this)"></td>
+        <td><input class="inp" type="number" value="${rW2}" oninput="recalcRow(this)"></td>
+        <td><input class="inp" type="number" value="${rW3}" oninput="recalcRow(this)"></td>
+        <td><input class="inp" type="number" value="${rW4}" oninput="recalcRow(this)"></td>
+        <td class="calc-val" style="font-weight:600">${rJul}</td>
+        <td><input class="inp" type="number" value="${rAug}"></td>
+        <td><input class="inp" type="number" value="${rSep}"></td>
+        <td class="calc-val" style="font-weight:700;color:var(--blue)">${rTotal}</td>
+        ${b1cells}</tr>`;
+    });
+  });
+  document.getElementById('wbBody').innerHTML=body;
+  recalcTotals();
+}
+
+// VH TABLE — Eicher seg, Marketing dims (Tonnage/Fuel/AC/MPG), COCO breakdown (Dlr/Actual/Virtual/National),
+// Current Offtake+Retail, Trend Offtake+Retail, all 3 lower layers full W1-W4+Aug+Sep+Total (read-only),
+// VH indent W1-W4+Aug+Sep+Total, 1B comparison, Revenue/GM (Phase 1 greyed)
+function renderVhTable(is1B){
+  const ferts=applyFiltersTo(FERTS.filter(f=>f.vert===VERTS[vert].name));
+  const b1cols=is1B?`<th colspan="4" class="cg" style="background:#B7791F">1B Comparison</th>`:'';
+  const b1hdrs=is1B?`<th style="background:#FEF3C7;color:#6B4A12">Gap vs Norm</th><th style="background:#FEF3C7;color:#6B4A12">Pend FC</th><th style="background:#FEF3C7;color:#6B4A12">Chg NOS</th><th style="background:#FEF3C7;color:#6B4A12">Chg %</th>`:'';
+  document.getElementById('wbHead').innerHTML=`<tr>
+    <th colspan="4" class="cg cg-fert left">FERT</th>
+    <th colspan="4" class="cg" style="background:#37474F">Product Dimensions</th>
+    <th colspan="4" class="cg" style="background:#AD1457">COCO Stock</th>
+    <th colspan="1" class="cg cg-ref">Opn FG</th>
+    <th colspan="2" class="cg cg-ref">Current</th>
+    <th colspan="4" class="cg cg-ref">Trend — Offtake</th>
+    <th colspan="4" class="cg cg-ref">Trend — Retail</th>
+    <th colspan="8" class="cg cg-readonly">Dealer Indent (read-only)</th>
+    <th colspan="8" class="cg cg-csm" style="background:#00838F">CSM Indent (read-only)</th>
+    <th colspan="8" class="cg cg-readonly" style="background:#6A1B9A;color:#fff">RSM Indent (read-only)</th>
+    ${phase===0?'<th colspan="2" class="cg cg-p1">Phase 1</th>':'<th colspan="2" class="cg cg-enrich">Commercial</th>'}
+    <th colspan="8" class="cg cg-inp">VH Indent — Jul 26</th>
+    ${b1cols}</tr>
+    <tr>
+    <th class="left sticky-col">Code</th>
+    <th class="left sticky-col sticky-col2">Description</th>
+    <th class="sticky-col sticky-col3">Dlr Seg</th><th style="font-size:8px">Eicher Seg</th>
+    <th style="font-size:8px">Tonnage</th><th style="font-size:8px">Fuel</th><th style="font-size:8px">AC</th><th style="font-size:8px">MPG</th>
+    <th style="background:#FCE4EC;font-size:8px">Dlr</th><th style="background:#FCE4EC;font-size:8px">Actual</th><th style="background:#FCE4EC;font-size:8px">Virtual</th><th style="background:#FCE4EC;font-size:8px">National</th>
+    <th>VECV FG</th>
+    <th>Offtake</th><th>Retail</th>
+    <th>L3</th><th>L6</th><th>L12</th><th>LYSM</th>
+    <th>L3</th><th>L6</th><th>L12</th><th>LYSM</th>
+    <th>W1</th><th>W2</th><th>W3</th><th>W4</th><th>Jul Tot</th><th>Aug</th><th>Sep</th><th>Total</th>
+    <th>W1</th><th>W2</th><th>W3</th><th>W4</th><th>Jul Tot</th><th>Aug</th><th>Sep</th><th>Total</th>
+    <th>W1</th><th>W2</th><th>W3</th><th>W4</th><th>Jul Tot</th><th>Aug</th><th>Sep</th><th>Total</th>
+    <th class="${phase===0?'th-p1':''}">Revenue</th><th class="${phase===0?'th-p1':''}">GM%</th>
+    <th>W1</th><th>W2</th><th>W3</th><th>W4</th><th>Jul Tot</th><th>Aug</th><th>Sep</th><th>Total</th>
+    ${b1hdrs}</tr>`;
+  let body='';
+  ferts.forEach(f=>{
+    const dW1=f.w1,dW2=f.w2,dW3=f.w3,dW4=f.w4;
+    const dJul=dW1+dW2+dW3+dW4,dAug=f.m2||0,dSep=f.m3||0;
+    const cW1=Math.round(dW1*1.05),cW2=Math.round(dW2*1.05),cW3=Math.round(dW3*1.05),cW4=Math.round(dW4*1.05);
+    const cJul=cW1+cW2+cW3+cW4,cAug=Math.round(dAug*1.05),cSep=Math.round(dSep*1.05);
+    const rW1=Math.round(cW1*1.03),rW2=Math.round(cW2*1.03),rW3=Math.round(cW3*1.03),rW4=Math.round(cW4*1.03);
+    const rJul=rW1+rW2+rW3+rW4,rAug=Math.round(cAug*1.03),rSep=Math.round(cSep*1.03);
+    const vW1=Math.round(rW1*1.02),vW2=Math.round(rW2*1.02),vW3=Math.round(rW3*1.02),vW4=Math.round(rW4*1.02);
+    const vJul=vW1+vW2+vW3+vW4,vAug=Math.round(rAug*1.02),vSep=Math.round(rSep*1.02);
+    const vTotal=vJul+vAug+vSep;
+    const gap=Math.round(f.trl6*-0.12);
+    const b1cells=is1B?`<td style="text-align:right;font-family:var(--mono);color:${gap<0?'var(--red)':'var(--teal)'}">${gap}</td><td class="ref-val">${Math.round(rJul*0.25)}</td><td class="ref-val">${vJul-rJul}</td><td class="ref-val">${Math.round((vJul/rJul-1)*100)}%</td>`:'';
+    const cocoTotal=(f.cocoD||0)+(f.cocoA||0)+(f.cocoV||0)+(f.cocoN||0);
+    body+=`<tr>
+      <td class="sticky-col"><span class="fert-code">${f.code}</span></td>
+      <td class="sticky-col sticky-col2"><span class="fert-desc" title="${f.desc}">${f.desc}</span></td>
+      <td class="sticky-col sticky-col3"><span class="seg seg-${f.seg}">${f.seg==='R'?'Runner':f.seg==='S'?'Slogger':'Dagger'}</span></td>
+      <td style="font-size:9px;white-space:nowrap;color:var(--grey)">${f.eseg}</td>
+      <td style="font-size:9px;color:var(--grey)">${f.tonnage||'—'}</td>
+      <td style="font-size:9px;color:var(--grey)">${f.fuel||'—'}</td>
+      <td style="font-size:9px;color:var(--grey)">${f.ac||'—'}</td>
+      <td style="font-size:9px;color:var(--grey);white-space:nowrap">${f.mpg||'—'}</td>
+      <td style="text-align:right;font-family:var(--mono);font-size:10px;color:#AD1457">${f.cocoD||0}</td>
+      <td style="text-align:right;font-family:var(--mono);font-size:10px;color:#AD1457">${f.cocoA||0}</td>
+      <td style="text-align:right;font-family:var(--mono);font-size:10px;color:#AD1457">${f.cocoV||0}</td>
+      <td style="text-align:right;font-family:var(--mono);font-size:10px;font-weight:600;color:#AD1457">${cocoTotal}</td>
+      <td class="ref-val">${f.openFg||0}</td>
+      <td class="ref-val" style="color:var(--teal)">${f.tol3||0}</td>
+      <td class="ref-val" style="color:var(--teal)">${f.trl3||0}</td>
+      <td class="ref-val">${f.tol3||0}</td><td class="ref-val">${f.tol6||0}</td><td class="ref-val">${f.tol12||0}</td><td class="ref-val">${f.toly||'—'}</td>
+      <td class="ref-val">${f.trl3||0}</td><td class="ref-val">${f.trl6||0}</td><td class="ref-val">${f.trl12||0}</td><td class="ref-val">${f.trly||'—'}</td>
+      <td class="ro-val">${dW1}</td><td class="ro-val">${dW2}</td><td class="ro-val">${dW3}</td><td class="ro-val">${dW4}</td>
+      <td class="ro-val" style="font-weight:600">${dJul}</td><td class="ro-val">${dAug}</td><td class="ro-val">${dSep}</td><td class="ro-val" style="font-weight:700">${dJul+dAug+dSep}</td>
+      <td class="csm-val">${cW1}</td><td class="csm-val">${cW2}</td><td class="csm-val">${cW3}</td><td class="csm-val">${cW4}</td>
+      <td class="csm-val" style="font-weight:600">${cJul}</td><td class="csm-val">${cAug}</td><td class="csm-val">${cSep}</td><td class="csm-val" style="font-weight:700">${cJul+cAug+cSep}</td>
+      <td style="text-align:right;font-family:var(--mono);color:#6A1B9A">${rW1}</td><td style="text-align:right;font-family:var(--mono);color:#6A1B9A">${rW2}</td>
+      <td style="text-align:right;font-family:var(--mono);color:#6A1B9A">${rW3}</td><td style="text-align:right;font-family:var(--mono);color:#6A1B9A">${rW4}</td>
+      <td style="text-align:right;font-family:var(--mono);font-weight:600;color:#6A1B9A">${rJul}</td>
+      <td style="text-align:right;font-family:var(--mono);color:#6A1B9A">${rAug}</td><td style="text-align:right;font-family:var(--mono);color:#6A1B9A">${rSep}</td>
+      <td style="text-align:right;font-family:var(--mono);font-weight:700;color:#6A1B9A">${rJul+rAug+rSep}</td>
+      <td class="td-p1"><span class="p1-ph">${phase===1?'₹'+(f.tol6*12)+'L':'Phase 1'}</span></td>
+      <td class="td-p1"><span class="p1-ph">${phase===1?'14%':'Phase 1'}</span></td>
+      <td><input class="inp" type="number" value="${vW1}" oninput="recalcRow(this)"></td>
+      <td><input class="inp" type="number" value="${vW2}" oninput="recalcRow(this)"></td>
+      <td><input class="inp" type="number" value="${vW3}" oninput="recalcRow(this)"></td>
+      <td><input class="inp" type="number" value="${vW4}" oninput="recalcRow(this)"></td>
+      <td class="calc-val" style="font-weight:600">${vJul}</td>
+      <td><input class="inp" type="number" value="${vAug}"></td>
+      <td><input class="inp" type="number" value="${vSep}"></td>
+      <td class="calc-val" style="font-weight:700;color:var(--blue)">${vTotal}</td>
+      ${b1cells}</tr>`;
+  });
+  document.getElementById('wbBody').innerHTML=body;
+  recalcTotals();
+}
+
+
+// ISO TABLE — all 4 layers + netting; M0 current month editable by ISO only
+function renderIsoTable(){
+  document.getElementById('wbHead').innerHTML=`<tr>
+    <th colspan="4" class="cg cg-fert left">FERT</th>
+    <th colspan="4" class="cg cg-readonly">All Demand Layers — read-only</th>
+    <th colspan="3" class="cg cg-ref">Reference</th>
+    <th colspan="2" class="cg" style="background:var(--blue)">ISO Override</th>
+    <th colspan="3" class="cg cg-netting">Phase 0 Netting</th>
+    <th colspan="3" class="cg cg-p1">Phase 1 Adds</th></tr>
+    <tr>
+    <th class="left sticky-col">Code</th>
+    <th class="left sticky-col sticky-col2">Description</th>
+    <th class="sticky-col sticky-col3">Seg</th><th>Sub-V</th>
+    <th>Dealer</th><th>CSM</th><th>RSM</th><th>VH</th>
+    <th>3M Avg</th><th>ABP</th><th>FG OnHand</th>
+    <th style="background:#EFF6FF">Override Qty</th>
+    <th style="background:#EFF6FF">Reason Code</th>
+    <th style="background:#E8F5E9">SS Qty</th>
+    <th style="background:#E8F5E9">Net Prod Req</th>
+    <th style="background:#E8F5E9">vs VH</th>
+    <th class="th-p1">WIP+RGP</th><th class="th-p1">Auto SS</th><th class="th-p1">API-PPC</th></tr>`;
+  let body='';
+  ISO_DATA.forEach((f,i)=>{
+    const useVal=f.iso!==null?f.iso:f.vh;
+    const net=useVal+f.ss-f.fg;
+    const vsVH=net-f.vh;
+    body+=`<tr style="background:${i%2===0?'#fff':'#F8FAFC'}">
+      <td class="sticky-col"><span class="fert-code">${f.code}</span></td>
+      <td class="sticky-col sticky-col2"><span class="fert-desc" title="${f.desc}">${f.desc}</span></td>
+      <td class="sticky-col sticky-col3"><span class="seg seg-${f.seg}">${f.seg}</span></td>
+      <td style="font-size:9px;color:var(--grey)">${f.sv}</td>
+      <td class="ro-val">${f.d}</td><td class="csm-val">${f.c}</td>
+      <td class="ro-val">${f.r}</td><td class="ro-val" style="font-weight:600">${f.vh}</td>
+      <td class="ref-val">${f.a3}</td><td class="ref-val">${f.abp}</td>
+      <td class="ref-val" style="color:var(--teal);font-weight:500">${f.fg}</td>
+      <td style="background:#EFF6FF"><input class="inp iso-ov" type="number" value="${f.iso!==null?f.iso:''}" placeholder="—" id="iso-inp-${i}" oninput="recalcIso(${i},${f.ss},${f.fg},${f.vh})"></td>
+      <td style="background:#EFF6FF"><select class="inp" style="width:115px;font-size:9px;border-color:var(--blue)">
+        <option value="">Select reason…</option>
+        <option ${f.iso!==null?'selected':''}>Market intelligence</option>
+        <option>FG position adjustment</option>
+        <option>Supply constraint</option>
+        <option>Scheme impact</option>
+        <option>Pipeline signal override</option>
+      </select></td>
+      <td style="background:#E8F5E9"><input class="inp ss" type="number" value="${f.ss}" id="ss-inp-${i}" oninput="recalcIso(${i},null,${f.fg},${f.vh})"></td>
+      <td class="calc-val" style="background:#E8F5E9;font-size:12px;font-weight:700;color:var(--blue)" id="net-${i}">${net}</td>
+      <td style="background:#E8F5E9"><span class="delta ${vsVH>0?'d-up':vsVH<0?'d-dn':'d-fl'}" id="vs-${i}">${vsVH>=0?'+':''}${vsVH}</span></td>
+      <td class="td-p1"><span class="p1-ph">${phase===1?f.fg+'+5':'Phase 1'}</span></td>
+      <td class="td-p1"><span class="p1-ph">${phase===1?Math.round(f.a3*0.3):'Phase 1'}</span></td>
+      <td class="td-p1"><span class="p1-ph">${phase===1?'API':'Phase 1'}</span></td>
+    </tr>`;
+  });
+  // Totals
+  const totVH=ISO_DATA.reduce((a,f)=>a+f.vh,0);
+  const totSS=ISO_DATA.reduce((a,f)=>a+f.ss,0);
+  const totFG=ISO_DATA.reduce((a,f)=>a+f.fg,0);
+  body+=`<tr class="subtotal"><td class="sticky-col" colspan="2"><strong>Total (6 of 42 FERTs)</strong></td>
+    <td class="sticky-col sticky-col3"></td><td></td>
+    <td class="ro-val"><strong>${ISO_DATA.reduce((a,f)=>a+f.d,0)}</strong></td>
+    <td class="csm-val"><strong>${ISO_DATA.reduce((a,f)=>a+f.c,0)}</strong></td>
+    <td class="ro-val"><strong>${ISO_DATA.reduce((a,f)=>a+f.r,0)}</strong></td>
+    <td class="ro-val"><strong>${totVH}</strong></td>
+    <td class="ref-val"><strong>${ISO_DATA.reduce((a,f)=>a+f.a3,0)}</strong></td>
+    <td class="ref-val"><strong>${ISO_DATA.reduce((a,f)=>a+f.abp,0)}</strong></td>
+    <td class="ref-val" style="color:var(--teal)"><strong>${totFG}</strong></td>
+    <td colspan="2" style="background:#EFF6FF"></td>
+    <td style="background:#D4EDDA"><strong>${totSS}</strong></td>
+    <td style="background:#D4EDDA;font-size:13px;color:var(--blue)"><strong>${totVH+totSS-totFG}</strong></td>
+    <td style="background:#D4EDDA"></td>
+    <td colspan="3"></td></tr>`;
+  document.getElementById('wbBody').innerHTML=body;
+}
+
+function recalcIso(idx,ss,fg,vh){
+  const isoInp=document.getElementById('iso-inp-'+idx);
+  const ssInp=document.getElementById('ss-inp-'+idx);
+  const isoVal=parseInt(isoInp.value)||vh;
+  const ssVal=parseInt(ssInp.value)||(ss||0);
+  const net=isoVal+ssVal-fg;
+  const vsVH=net-vh;
+  const netEl=document.getElementById('net-'+idx);
+  const vsEl=document.getElementById('vs-'+idx);
+  if(netEl)netEl.textContent=net;
+  if(vsEl){vsEl.textContent=(vsVH>=0?'+':'')+vsVH;vsEl.className='delta '+(vsVH>5?'d-up':vsVH<-5?'d-dn':'d-fl');}
+}
+
+function recalcRow(inp){
+  const tr=inp.closest('tr');
+  const allInps=Array.from(tr.querySelectorAll('.inp'));
+  // Find the 4 weekly indent inputs (w1-w4) — they are the inp.w1 and the 3 after it
+  const w1Inp=tr.querySelector('.inp.w1')||tr.querySelector('.inp[oninput]');
+  if(!w1Inp)return;
+  const w1Idx=allInps.indexOf(w1Inp);
+  if(w1Idx<0)return;
+  const w1=parseInt(allInps[w1Idx]?.value)||0;
+  const w2=parseInt(allInps[w1Idx+1]?.value)||0;
+  const w3=parseInt(allInps[w1Idx+2]?.value)||0;
+  const w4=parseInt(allInps[w1Idx+3]?.value)||0;
+  const jul=w1+w2+w3+w4;
+  const allCalc=tr.querySelectorAll('.calc-val');
+  // First calc-val after the 4 inputs = Jul total
+  if(allCalc.length>0){
+    // find which calc-val to update — it's the one for the current indent layer
+    // For simplicity: last persona's Jul Total is the last calc-val before the grand total
+    allCalc[allCalc.length-2]&&(allCalc[allCalc.length-2].textContent=jul);
+    // Update grand total
+    const aug=parseInt(allInps[w1Idx+4]?.value)||0;
+    const sep=parseInt(allInps[w1Idx+5]?.value)||0;
+    allCalc[allCalc.length-1]&&(allCalc[allCalc.length-1].textContent=jul+aug+sep);
+  }
+  recalcTotals();
+}
+function recalcTotals(){
+  // Sum only the editable persona's Jul total (second-to-last calc-val in each row)
+  let tot=0;
+  document.querySelectorAll('#wbBody tr').forEach(tr=>{
+    const cvs=tr.querySelectorAll('.calc-val');
+    if(cvs.length>=2)tot+=parseInt(cvs[cvs.length-2].textContent)||0;
+  });
+  const mt=document.getElementById('m1tot');if(mt)mt.textContent=tot;
+}
+
+// ══ SUMMARY ══
+function renderSummary(){
+  const pd=PERSONA_CFG[persona];
+  const scope=persona==='dealer'?'Sharma Motors (DLR-1002)':persona==='csm'?'North Cluster':persona==='rsm'?'North Region':persona==='vh'?VERTS[vert].name+' Vertical':'All Verticals';
+  document.getElementById('sumTitle').textContent='Summary — '+scope;
+  document.getElementById('sumSub').textContent='Jul 2026 · S&OP '+activeCycle;
+  buildFilterbar('sumFilterbar',FERTS,{});
+  document.getElementById('sumKpi').innerHTML=`
+    <div class="kpi"><div class="kpi-label">Total M1 Indent</div><div class="kpi-val">92</div><div class="kpi-sub">${scope}</div></div>
+    <div class="kpi"><div class="kpi-label">vs ABP</div><div class="kpi-val warn">88%</div><div class="kpi-sub">Below target</div></div>
+    <div class="kpi"><div class="kpi-label">Total Stock</div><div class="kpi-val ok">152</div><div class="kpi-sub">96 &lt;60D · 56 &gt;60D</div></div>
+    <div class="kpi"><div class="kpi-label">Cycle Status</div><div class="kpi-val warn">In progress</div><div class="kpi-sub">Cut-off ${pd.cutoff}</div></div>`;
+  document.getElementById('sumHead').innerHTML=`<tr>
+    <th colspan="2" class="cg cg-fert left">Vertical</th>
+    <th colspan="3" class="cg cg-ref">Stock</th>
+    <th colspan="2" class="cg cg-ref">vs Norm</th>
+    <th colspan="3" class="cg cg-ref">Trend — Offtake</th>
+    <th colspan="4" class="cg cg-inp">Indent (Jul)</th>
+    <th colspan="2" class="cg cg-fut">Forward</th></tr>
+    <tr><th class="left">Vertical</th><th>Run%</th>
+    <th>&lt;60D</th><th>&gt;60D</th><th>Total</th>
+    <th>Norm</th><th>Gap</th>
+    <th>L3</th><th>L6</th><th>LYSM</th>
+    <th>W1</th><th>W2</th><th>W3</th><th>W4</th>
+    <th>Aug</th><th>Sep</th></tr>`;
+  const rows=[
+    {v:'LMD',c:'var(--lmd)',d:[43,28,25,53,33,-20,48,97,70,17,22,18,1,40,24,29]},
+    {v:'HD',c:'var(--hd)',d:[8,15,15,30,14,-16,10,13,10,6,2,0,0,8,10,10]},
+    {v:'Bus',c:'var(--bus)',d:[48,53,16,69,4,65,61,77,55,5,22,17,0,44,22,22]},
+  ];
+  let body='';
+  rows.forEach(r=>{
+    body+=`<tr><td style="font-weight:600;color:${r.c}">${r.v}</td><td class="ref-val">${r.d[0]}%</td>
+    <td class="ref-val">${r.d[1]}</td><td class="ref-val">${r.d[2]}</td><td class="ref-val" style="font-weight:500">${r.d[3]}</td>
+    <td class="ref-val">${r.d[4]}</td><td class="ref-val" style="color:${r.d[5]<0?'var(--red)':'var(--teal)'}">${r.d[5]>0?'+':''}${r.d[5]}</td>
+    <td class="ref-val">${r.d[6]}</td><td class="ref-val">${r.d[7]}</td><td class="ref-val">${r.d[8]}</td>
+    <td class="calc-val">${r.d[9]}</td><td class="calc-val">${r.d[10]}</td><td class="calc-val">${r.d[11]}</td><td class="calc-val">${r.d[12]}</td>
+    <td class="ref-val">${r.d[13]}</td><td class="ref-val">${r.d[14]}</td></tr>`;
+  });
+  body+=`<tr class="subtotal"><td style="font-weight:700">Grand Total</td><td></td>
+    <td class="ref-val">96</td><td class="ref-val">56</td><td class="ref-val" style="font-weight:700">152</td>
+    <td class="ref-val">51</td><td class="ref-val" style="color:var(--amber)">—</td>
+    <td class="ref-val">119</td><td class="ref-val">187</td><td class="ref-val">135</td>
+    <td class="calc-val">28</td><td class="calc-val">46</td><td class="calc-val">18</td><td class="calc-val">40</td>
+    <td class="ref-val">76</td><td class="ref-val">61</td></tr>`;
+  document.getElementById('sumBody').innerHTML=body;
+  document.getElementById('sumNote').textContent='Pipeline intelligence columns and System Recommended Indent activate in Phase 1. Phase 0 shows 3M/6M actuals, ABP, and prior cycle only.';
+}
+
+// ══ COCO ══
+function renderCoco(){
+  const filt=COCO_DATA.filter(r=>fVert==='all'||r.vert===fVert);
+  const fb=document.getElementById('cocoFilterbar');
+  if(fb){
+    const verts=["all",...new Set(COCO_DATA.map(r=>r.vert))];
+    const cities=["all",...new Set(COCO_DATA.map(r=>r.city))];
+    fb.innerHTML=`<div class="fil"><label>Vertical</label><select onchange="fVert=this.value;renderCoco()">${verts.map(v=>`<option value="${v}" ${fVert===v?'selected':''}>${v==='all'?'All verticals':v}</option>`).join('')}</select></div>
+    <div class="fil"><label>City</label><select onchange="renderCoco()"><option value="all">All cities</option>${cities.slice(1).map(c=>`<option>${c}</option>`).join('')}</select></div>
+    <div class="fil-divider"></div>
+    <div class="result-count">Showing <strong>${filt.length}</strong> lines</div>`;
+  }
+  const grid=document.getElementById('cocoGrid');
+  if(!grid)return;
+  const totC=filt.reduce((a,r)=>a+r.cocoIndent,0),totP=filt.reduce((a,r)=>a+r.pvtIndent,0),totS=filt.reduce((a,r)=>a+r.cocoStock,0);
+  let kpi=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:12px 16px 0">
+    <div class="kpi" style="border-left:3px solid #AD1457"><div class="kpi-label">COCO Indent</div><div class="kpi-val" style="color:#AD1457">${totC}</div><div class="kpi-sub">${filt.length} lines</div></div>
+    <div class="kpi" style="border-left:3px solid var(--teal)"><div class="kpi-label">COCO Stock</div><div class="kpi-val ok">${totS}</div><div class="kpi-sub">at COCO outlets</div></div>
+    <div class="kpi" style="border-left:3px solid var(--blue)"><div class="kpi-label">Private Dealer Indent</div><div class="kpi-val" style="color:var(--blue)">${totP}</div><div class="kpi-sub">tracked separately</div></div>
+  </div>`;
+  let t=`<div style="padding:10px 16px 0"><table class="ptable" style="min-width:700px"><thead>
+    <tr><th colspan="4" class="cg cg-fert left">FERT</th><th colspan="3" class="cg" style="background:#AD1457">COCO</th><th colspan="2" class="cg" style="background:var(--blue)">vs Private</th></tr>
+    <tr><th class="left">Code</th><th class="left">Description</th><th>Seg</th><th>City</th>
+    <th class="right">Indent</th><th class="right">Stock</th><th>Vertical</th>
+    <th class="right">Pvt Indent</th><th class="right">COCO %</th></tr>
+    </thead><tbody>`;
+  filt.forEach((r,i)=>{
+    const pct=Math.round(r.cocoIndent/(r.cocoIndent+r.pvtIndent)*100);
+    t+=`<tr style="background:${i%2===0?'#fff':'#F7F9FB'}">
+      <td><span class="fert-code">${r.code}</span></td>
+      <td style="font-size:10.5px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.desc}</td>
+      <td><span class="seg seg-${r.seg}">${r.seg}</span></td>
+      <td style="font-size:10px;color:var(--grey)">${r.city}</td>
+      <td style="text-align:right;color:#AD1457;font-family:var(--mono);font-weight:600">${r.cocoIndent}</td>
+      <td style="text-align:right;font-family:var(--mono);color:var(--teal)">${r.cocoStock}</td>
+      <td style="text-align:center;font-size:10px;color:var(--grey)">${r.vert}</td>
+      <td style="text-align:right;font-family:var(--mono)">${r.pvtIndent}</td>
+      <td style="text-align:right;font-size:10px;color:var(--grey)">${pct}%</td></tr>`;
+  });
+  t+=`<tr class="subtotal"><td colspan="4"><strong>Total · ${filt.length} lines</strong></td>
+    <td style="text-align:right;color:#AD1457"><strong>${totC}</strong></td>
+    <td style="text-align:right;color:var(--teal)"><strong>${totS}</strong></td>
+    <td></td><td style="text-align:right"><strong>${totP}</strong></td><td></td></tr>
+    </tbody></table></div>`;
+  grid.innerHTML=kpi+t;
+}
+
+// ══ MTO RENDER ══
+function setMtoTab(t){
+  mtoTabActive=t;
+  ["ib","is","eps"].forEach(k=>{
+    const el=document.getElementById('mto-'+k);
+    if(el)el.className="mto-tab"+(t===k?" active-"+k:"");
+  });
+  renderMto();
+}
+
+function renderMto(){
+  const fb=document.getElementById('mtoFilterbar');
+  const head=document.getElementById('mtoHead'),body=document.getElementById('mtoBody');
+  const notice=document.getElementById('mtoNotice'),sumbar=document.getElementById('mtoSumBar');
+  const ownBar=document.getElementById('mtoOwnership');
+  const isRoBanner=document.getElementById('isReadonlyBanner');
+  if(!head||!body)return;
+  // reset banners
+  if(ownBar)ownBar.style.display='none';
+  if(isRoBanner)isRoBanner.style.display='none';
+
+  if(mtoTabActive==='ib'){
+    // IB — single shared worksheet, ownership transfer by cutoff
+    if(ownBar){
+      ownBar.style.display='flex';
+      const ibOwner=persona==='csm'?'csm':persona==='rsm'?'rsm':'vh';
+      const stages=['CSM','RSM','Country Head','ISO'];
+      const activeIdx=persona==='csm'?0:persona==='rsm'?1:persona==='vh'?2:3;
+      ownBar.innerHTML=`<span class="own-label">IB Ownership</span>
+        ${stages.map((s,i)=>`<div class="own-stage">
+          <span class="own-pill ${i<activeIdx?'own-done':i===activeIdx?'own-active':'own-pend'}">${s}</span>
+          ${i<stages.length-1?'<span class="own-arrow">›</span>':''}
+        </div>`).join('')}
+        <span class="own-window">Edit window: ${persona==='csm'?'4–12 Jul':persona==='rsm'?'13–14 Jul':persona==='vh'?'15 Jul':'Post 15 Jul'}</span>`;
+    }
+    const canEdit=['csm','rsm','vh','iso'].includes(persona);
+    const ibVerts=["all",...new Set(IB_DATA.map(d=>d.vert))];
+    const ibCountries=["all",...new Set(IB_DATA.map(d=>d.country))];
+    const ibMY=["all","2026","2027"];
+    if(fb) fb.innerHTML=`<div class="fil"><label>Country</label><select onchange="renderMto()">${ibCountries.map(c=>`<option value="${c}">${c==='all'?'All countries':c}</option>`).join('')}</select></div>
+      <div class="fil"><label>Vertical</label><select onchange="renderMto()">${ibVerts.map(v=>`<option value="${v}">${v==='all'?'All verticals':v}</option>`).join('')}</select></div>
+      <div class="fil"><label>Model Year</label><select onchange="renderMto()">${ibMY.map(y=>`<option value="${y}">${y==='all'?'All years':y}</option>`).join('')}</select></div>
+      <div class="fil"><label>Order Type</label><select onchange="renderMto()"><option>All orders</option><option>Firm (PO-backed)</option><option>Projected</option></select></div>
+      <div class="result-count">Showing <strong>${IB_DATA.length}</strong> IB lines</div>`;
+    if(notice) notice.innerHTML=`<div style="padding:7px 12px;border-radius:4px;font-size:11px;background:#E0F2F1;border-left:3px solid #00695C;color:#004D40;margin-bottom:0"><strong>IB — Institutional Buyer:</strong> Single shared worksheet. Edit rights transfer on cutoff: CSM (4–12 Jul) → RSM (13 Jul) → Country Head (15 Jul) → ISO moderation. Model Year is assigned by CSM during enrichment window.</div>`;
+    head.innerHTML=`<tr>
+      <th colspan="3" class="cg cg-fert left">FERT</th>
+      <th colspan="3" class="cg cg-dealer">Country / Dealer</th>
+      <th colspan="4" class="cg" style="background:#00695C">Order Book (Jul)</th>
+      <th colspan="1" class="cg" style="background:#C77700">MY</th>
+      <th colspan="3" class="cg cg-fut">Projection by Date</th>
+      ${canEdit&&persona!=='iso'?'<th colspan="1" class="cg" style="background:#B7791F">Action</th>':''}</tr>
+      <tr>
+      <th class="left">Code</th><th class="left">Description</th><th>Seg</th>
+      <th class="left">Country</th><th class="left">Dealer</th><th>PO Ref</th>
+      <th style="text-align:right">Past Orders</th>
+      <th style="text-align:right">Jul (Current)</th>
+      <th style="text-align:right">Future</th>
+      <th style="text-align:right">Total Demand</th>
+      <th style="text-align:center">Year</th>
+      <th style="text-align:right">Aug</th>
+      <th style="text-align:right">Sep</th>
+      <th style="text-align:right">Oct</th>
+      ${canEdit&&persona!=='iso'?'<th>Model Year</th>':''}</tr>`;
+    let h='';
+    IB_DATA.forEach((d,i)=>{
+      const myBg=d.my==='2027'?'#FFF3E0':'#E8EDF2',myColor=d.my==='2027'?'#C77700':'#3A4A5A';
+      const editMY=canEdit&&persona==='csm';
+      h+=`<tr style="background:${i%2===0?'#fff':'#F7F9FB'}">
+        <td><span class="fert-code">${d.code}</span></td>
+        <td style="font-size:10px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.desc}</td>
+        <td><span class="seg seg-${d.seg}">${d.seg}</span></td>
+        <td style="font-weight:600;font-size:11px">${d.country}</td>
+        <td><div style="font-size:10px">${d.dealerName}</div><div style="font-size:9px;color:#888;font-family:var(--mono)">${d.dealer}</div></td>
+        <td style="font-size:9px;color:#888;font-family:var(--mono)">${d.po}</td>
+        <td style="text-align:right;color:#3A4A5A;font-family:var(--mono)">${d.pastOrders||'—'}</td>
+        <td style="text-align:right;color:${canEdit&&persona!=='iso'?'var(--blue)':'#3A4A5A'};font-family:var(--mono);font-weight:600">${d.currentMonth||'—'}</td>
+        <td style="text-align:right;color:#C77700;font-family:var(--mono)">${d.futureOrders||'—'}</td>
+        <td style="text-align:right;font-family:var(--mono);font-weight:700">${d.totalDemand}</td>
+        <td style="text-align:center"><span style="background:${myBg};color:${myColor};font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px">${d.my}</span></td>
+        <td style="text-align:right;font-family:var(--mono)">${d.aug||'—'}</td>
+        <td style="text-align:right;font-family:var(--mono)">${d.sep||'—'}</td>
+        <td style="text-align:right;font-family:var(--mono)">${d.oct||'—'}</td>
+        ${canEdit&&persona!=='iso'?`<td><select class="inp" style="width:68px;font-size:9px;border-color:#C77700;background:#FFF8E1"><option ${d.my==='2026'?'selected':''}>2026</option><option ${d.my==='2027'?'selected':''}>2027</option></select></td>`:''}</tr>`;
+    });
+    const totPast=IB_DATA.reduce((a,d)=>a+d.pastOrders,0);
+    const totCur=IB_DATA.reduce((a,d)=>a+d.currentMonth,0);
+    const totFut=IB_DATA.reduce((a,d)=>a+d.futureOrders,0);
+    const totDem=IB_DATA.reduce((a,d)=>a+d.totalDemand,0);
+    h+=`<tr style="background:#E0F2F1;font-weight:700"><td colspan="6"><strong>Total IB order book</strong></td>
+      <td style="text-align:right">${totPast}</td>
+      <td style="text-align:right;color:var(--blue)">${totCur}</td>
+      <td style="text-align:right;color:#C77700">${totFut}</td>
+      <td style="text-align:right">${totDem}</td>
+      <td></td>
+      <td style="text-align:right">${IB_DATA.reduce((a,d)=>a+d.aug,0)}</td>
+      <td style="text-align:right">${IB_DATA.reduce((a,d)=>a+d.sep,0)}</td>
+      <td style="text-align:right">${IB_DATA.reduce((a,d)=>a+d.oct,0)}</td>
+      ${canEdit&&persona!=='iso'?'<td></td>':''}</tr>`;
+    body.innerHTML=h;
+    if(sumbar) sumbar.innerHTML=`<div class="si"><div class="si-label">Past Orders</div><div class="si-val">${totPast}</div></div><div class="sb-divider"></div><div class="si"><div class="si-label">Jul Demand</div><div class="si-val" style="color:var(--blue)">${totCur}</div></div><div class="sb-divider"></div><div class="si"><div class="si-label">Future Orders</div><div class="si-val warn">${totFut}</div></div><div class="sb-divider"></div><div class="si"><div class="si-label">Total IB Demand</div><div class="si-val ok">${totDem}</div></div><div class="sb-right"><span style="font-size:10px;color:var(--grey)">Single shared worksheet · firm order-backed · bypasses stocking-norm netting</span></div>`;
+  }
+
+  else if(mtoTabActive==='is'){
+    // IS — read-only SAP monitoring view
+    if(isRoBanner)isRoBanner.style.display='flex';
+    const isChan=["all",...new Set(IS_DATA.map(d=>'Institutional'))];
+    if(fb) fb.innerHTML=`<div class="fil"><label>Customer</label><input type="text" placeholder="Search customer…" style="min-width:180px"></div>
+      <div class="fil"><label>FERT Code</label><input type="text" placeholder="Filter by FERT…" style="min-width:120px"></div>
+      <div class="fil"><label>Status</label><select><option>All orders</option><option>Open</option><option>Shipped</option></select></div>
+      <div class="result-count">Showing <strong>${IS_DATA.length}</strong> IS orders</div>`;
+    if(notice) notice.innerHTML=`<div style="padding:7px 12px;border-radius:4px;font-size:11px;background:#FFF8E1;border-left:3px solid #F9A825;color:#6B4A12;margin-bottom:0"><strong>IS — Inter-State / Export monitoring:</strong> Keyed by Customer. Read-only view of SAP order status. IS users validate order data — no forecasting or projection. EDD feeds back from supply planning (Phase 1).</div>`;
+    head.innerHTML=`<tr>
+      <th colspan="3" class="cg cg-is left">SAP Order</th>
+      <th colspan="3" class="cg cg-dealer">Customer</th>
+      <th colspan="2" class="cg cg-fert">FERT</th>
+      <th colspan="4" class="cg cg-readonly">Order Status (read-only)</th>
+      <th colspan="2" class="cg cg-ref">Delivery</th></tr>
+      <tr>
+      <th class="left">Order No.</th><th class="left">Created</th><th>PO No.</th>
+      <th class="left">Customer</th><th>Color</th><th>Region</th>
+      <th class="left">FERT Code</th><th class="left">Description</th>
+      <th style="text-align:right">Ordered Qty</th>
+      <th style="text-align:right">Shipped</th>
+      <th style="text-align:right;color:var(--amber)">Open Qty</th>
+      <th style="text-align:right">Cur Stock</th>
+      <th>Req. Delivery</th>
+      <th style="color:var(--teal)">EDD</th></tr>`;
+    let h='';
+    IS_DATA.forEach((d,i)=>{
+      const hasStock=d.curStock>=d.openQty;
+      h+=`<tr style="background:${i%2===0?'#fff':'#F7F9FB'}">
+        <td style="font-family:var(--mono);font-size:10px;color:var(--blue)">${d.ordNo}</td>
+        <td style="font-size:9px;color:var(--grey)">${d.creDate}</td>
+        <td style="font-size:9px;font-family:var(--mono);color:var(--grey);max-width:100px;overflow:hidden;text-overflow:ellipsis">${d.poNo}</td>
+        <td style="font-size:10px;font-weight:500">${d.cname}</td>
+        <td style="font-size:9px;color:var(--grey)">${d.color}</td>
+        <td style="font-size:9px;color:var(--grey)">IS</td>
+        <td><span class="fert-code">${d.code}</span></td>
+        <td style="font-size:10px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.desc}</td>
+        <td style="text-align:right;font-family:var(--mono);font-weight:600">${d.ordQty}</td>
+        <td style="text-align:right;font-family:var(--mono);color:var(--teal)">${d.shipped}</td>
+        <td style="text-align:right;font-family:var(--mono);color:${d.openQty>0?'var(--amber)':'var(--teal)'};font-weight:600">${d.openQty}</td>
+        <td style="text-align:right;font-family:var(--mono);color:${hasStock?'var(--teal)':'var(--red)'}">${d.curStock}</td>
+        <td style="font-size:10px;color:var(--grey)">${d.reqDate}</td>
+        <td style="font-size:10px;color:${d.edd==='TBC'?'var(--amber)':'var(--teal)'};font-weight:600">${d.edd}</td>
+      </tr>`;
+    });
+    const totOrd=IS_DATA.reduce((a,d)=>a+d.ordQty,0),totShip=IS_DATA.reduce((a,d)=>a+d.shipped,0),totOpen=IS_DATA.reduce((a,d)=>a+d.openQty,0);
+    h+=`<tr class="subtotal"><td colspan="8"><strong>Total · ${IS_DATA.length} orders</strong></td>
+      <td style="text-align:right"><strong>${totOrd}</strong></td>
+      <td style="text-align:right;color:var(--teal)"><strong>${totShip}</strong></td>
+      <td style="text-align:right;color:var(--amber)"><strong>${totOpen}</strong></td>
+      <td colspan="3"></td></tr>`;
+    body.innerHTML=h;
+    if(sumbar) sumbar.innerHTML=`<div class="si"><div class="si-label">Total Ordered</div><div class="si-val">${totOrd}</div></div><div class="sb-divider"></div><div class="si"><div class="si-label">Shipped</div><div class="si-val ok">${totShip}</div></div><div class="sb-divider"></div><div class="si"><div class="si-label">Open / Balance</div><div class="si-val warn">${totOpen}</div></div><div class="sb-right"><span style="font-size:10px;color:var(--grey)">Read-only · SAP order monitoring only · no forecasting in Phase 0</span></div>`;
+  }
+
+  else {
+    // EPS — pending
+    if(fb) fb.innerHTML=`<div class="result-count" style="color:var(--amber)">EPS structure not yet shared by business</div>`;
+    if(notice) notice.innerHTML='';
+    head.innerHTML='';
+    body.innerHTML=`<tr><td colspan="14"><div style="padding:60px;text-align:center;color:#888">
+      <div style="font-size:28px;opacity:.3;margin-bottom:12px">◷</div>
+      <strong>EPS — structure pending</strong><br>
+      <span style="font-size:11px">EPS is the third MTO stream. Share the EPS workbook structure with the team to build this screen.</span>
+    </div></td></tr>`;
+    if(sumbar) sumbar.innerHTML=`<div class="si"><div class="si-label">Status</div><div class="si-val warn">Awaiting EPS structure from business</div></div>`;
+  }
+}
+
+// ══ ADD FERT MODAL ══
+function openAddFert(){
+  document.getElementById('addFertModal').classList.add('active');
+  renderModalList('');
+}
+function renderModalList(q){
+  const items=ADDABLE.filter(f=>!q||f.code.toLowerCase().includes(q)||f.desc.toLowerCase().includes(q));
+  document.getElementById('modalList').innerHTML=items.map((f,i)=>`<label class="modal-item"><input type="checkbox" data-i="${i}"><div><div class="fert-code">${f.code}</div><div style="font-size:11px;color:var(--ink)">${f.desc}</div></div><span class="seg seg-${f.seg}" style="margin-left:auto">${f.seg}</span></label>`).join('');
+}
+function filterModalList(q){renderModalList(q.toLowerCase());}
+function closeAddFert(){document.getElementById('addFertModal').classList.remove('active');}
+function confirmAddFert(){
+  const checked=document.querySelectorAll('#modalList input:checked');
+  if(checked.length>0)alert(`Added ${checked.length} FERT(s) to indent. Highlighted rows require quantity entry.`);
+  closeAddFert();
+}
+
+// ══ MISC ══
+function setSV(el){document.querySelectorAll('.sv-chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');}
+function copyBelow(level){alert(`Copied ${level==='dealer'?'Dealer':'CSM'} indent into your columns. Validate or modify each line.`);renderWorkbook();}
+function submitWB(next){
+  if(persona==='iso'&&next==='PPC'){alert('Net Production Plan released to PPC. Plan locked.');return;}
+  alert(`Indent submitted to ${next}. Your entries are locked for this cycle.`);
+  document.getElementById('wbBadge').className='stab-badge sb-lock';
+  document.getElementById('wbBadge').textContent='Submitted';
+}
+function exportCSV(type){alert('Exporting '+type.toUpperCase()+' as CSV…');}
+
+// ══ COUNTDOWN ══
+function startCountdown(){
+  function u(){
+    const n=new Date(),c=new Date(n);c.setDate(15);c.setHours(23,59,59);
+    if(c<n){c.setMonth(c.getMonth()+1);}
+    const d=Math.max(0,c-n);
+    const days=Math.floor(d/864e5),h=String(Math.floor((d%864e5)/3.6e6)).padStart(2,'0'),m=String(Math.floor(d%3.6e6/6e4)).padStart(2,'0'),s=String(Math.floor(d%6e4/1e3)).padStart(2,'0');
+    const el=document.getElementById('cutoffDate');
+    if(el)el.textContent=days>0?`${days}d ${h}:${m}:${s}`:h+':'+m+':'+s;
+  }
+  u();setInterval(u,1000);
+}
+</script>
+</body>
+</html>

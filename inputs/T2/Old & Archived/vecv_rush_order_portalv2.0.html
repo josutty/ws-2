@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>VECVplan — Rush Order Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0B2545;--blue:#1565C0;--blue-lt:#E3EEFF;--ink:#0D1B2A;--ink2:#1A2E42;
+  --grey:#5A6E82;--rule:#D1DAE3;--rule-lt:#EBF0F5;--bg:#F0F4F8;--surface:#fff;--s2:#F7F9FB;
+  --green:#1B5E20;--green-lt:#E8F5E9;--amber:#E65100;--amber-lt:#FFF3E0;
+  --red:#B71C1C;--red-lt:#FEECEC;--teal:#00695C;--teal-lt:#E0F2F1;--purple:#4A148C;
+  --sh:0 1px 3px rgba(13,27,42,.08);--r:6px;--font:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);font-size:13px;color:var(--ink);background:var(--bg);min-height:100vh;display:flex;flex-direction:column;}
+
+/* ── TOP BAR ── */
+.topbar{height:46px;background:var(--navy);display:flex;align-items:center;padding:0 16px;gap:14px;flex-shrink:0;border-bottom:1px solid #1A3A56;}
+.brand{font-weight:700;font-size:13px;color:#fff;}.brand span{color:#7AB3E8;}
+.divpipe{width:1px;height:20px;background:#1A3A56;}
+.nav-tabs{display:flex;gap:2px;}
+.ntab{padding:0 14px;height:46px;display:flex;align-items:center;font-size:11px;font-weight:600;color:#7A9AB8;cursor:pointer;border-bottom:2px solid transparent;transition:all .12s;}
+.ntab:hover{color:#fff;}.ntab.active{color:#fff;border-bottom-color:#fff;}
+.persona-sw{display:flex;align-items:center;gap:5px;background:var(--ink2);border-radius:6px;padding:3px;margin-left:auto;}
+.psw-lbl{font-size:8px;color:#5A7A96;text-transform:uppercase;letter-spacing:.08em;padding:0 4px;}
+.psw-btn{padding:4px 11px;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;border:none;background:transparent;color:#7A9AB8;font-family:var(--font);transition:all .12s;}
+.psw-btn.active{background:var(--blue);color:#fff;}
+.user-pill{display:flex;align-items:center;gap:6px;background:var(--ink2);border-radius:14px;padding:3px 10px 3px 4px;margin-left:8px;}
+.avatar{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;background:var(--blue);}
+.uname{font-size:10px;color:#fff;font-weight:500;}.urole{font-size:9px;color:#7AB3E8;}
+
+/* ── WORKFLOW BANNER ── */
+.wf-banner{background:var(--ink2);padding:0 16px;height:48px;display:flex;align-items:center;gap:6px;flex-shrink:0;border-bottom:1px solid #1A3A56;overflow-x:auto;}
+.wf-step{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.wf-node{padding:4px 12px;border-radius:16px;font-size:10px;font-weight:700;display:flex;align-items:center;gap:5px;white-space:nowrap;}
+.wf-done{background:#1A3A2A;color:#6DBFAB;border:1px solid #2A5A3A;}
+.wf-active{background:var(--blue);color:#fff;box-shadow:0 0 0 3px rgba(21,101,192,.3);}
+.wf-pend{background:#1A2E42;color:#5A7A96;border:1px solid #243A52;}
+.wf-num{width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;}
+.wf-arrow{color:#1A3A56;font-size:14px;padding:0 2px;}
+.wf-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.sla-pill{background:#7C2D12;border:1px solid #9A4318;border-radius:6px;padding:3px 12px;font-size:10px;color:#FBC99A;font-family:var(--mono);}
+
+/* ── SCREEN TABS ── */
+.screen-tabs{background:var(--surface);border-bottom:2px solid var(--rule);display:flex;padding:0 16px;gap:2px;flex-shrink:0;box-shadow:var(--sh);}
+.stab{display:flex;align-items:center;gap:6px;padding:9px 14px;font-size:12px;font-weight:500;color:var(--grey);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .12s;white-space:nowrap;}
+.stab:hover{color:var(--ink);}.stab.active{color:var(--blue);border-bottom-color:var(--blue);}
+.badge{display:inline-block;padding:1px 7px;border-radius:8px;font-size:9px;font-weight:700;}
+.b-open{background:var(--amber-lt);color:var(--amber);}
+.b-new{background:#EDE7F6;color:#4A148C;}
+
+/* ── PAGE HDR ── */
+.page-hdr{background:var(--surface);border-bottom:1px solid var(--rule);padding:10px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0;box-shadow:var(--sh);}
+.page-title{font-size:15px;font-weight:700;}.page-sub{font-size:11px;color:var(--grey);margin-top:2px;}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+
+/* ── FILTER BAR ── */
+.filterbar{background:var(--s2);border-bottom:1px solid var(--rule);padding:8px 16px;display:flex;align-items:flex-end;gap:9px;flex-wrap:wrap;flex-shrink:0;}
+.fil{display:flex;flex-direction:column;gap:3px;}.fil label{font-size:8px;color:var(--grey);text-transform:uppercase;letter-spacing:.06em;font-weight:600;}
+.fil select,.fil input[type=text]{height:28px;padding:0 8px;border:1.5px solid var(--rule);border-radius:4px;background:#fff;font-size:11.5px;font-family:var(--font);color:var(--ink);min-width:100px;}
+.fil select:focus,.fil input:focus{outline:none;border-color:var(--blue);}
+.fdiv{width:1px;height:28px;background:var(--rule);}
+.count{font-size:10px;color:var(--grey);margin-left:auto;}
+
+/* ── MAIN CONTENT ── */
+.content{flex:1;overflow:auto;padding:12px 16px 24px;}
+
+/* ── STATUS CARDS ── */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px;}
+.kpi{background:var(--surface);border:1px solid var(--rule);border-radius:var(--r);padding:10px 14px;border-left:3px solid;}
+.kpi-lbl{font-size:9px;color:var(--grey);text-transform:uppercase;letter-spacing:.06em;}
+.kpi-val{font-family:var(--mono);font-size:22px;font-weight:500;margin-top:2px;}
+.kpi-sub{font-size:9px;color:var(--grey);margin-top:2px;}
+
+/* ── RO TABLE ── */
+.ro-table-wrap{background:var(--surface);border:1px solid var(--rule);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);}
+.ro-table{width:100%;border-collapse:collapse;font-size:11px;min-width:1100px;}
+.ro-table th{padding:6px 10px;text-align:left;font-size:9px;font-weight:700;color:var(--grey);border-bottom:2px solid var(--rule);background:var(--s2);white-space:nowrap;text-transform:uppercase;letter-spacing:.04em;}
+.ro-table td{padding:8px 10px;border-bottom:1px solid var(--rule-lt);vertical-align:middle;}
+.ro-table tr:hover td{background:#EEF4FC;}
+.mono{font-family:var(--mono);font-size:10px;}
+.ro-id{font-family:var(--mono);font-size:9px;color:var(--blue);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.fert-code{font-family:var(--mono);font-size:10px;color:var(--blue);}
+.seg{display:inline-block;padding:1px 5px;border-radius:2px;font-size:8px;font-weight:700;}
+.seg-R{background:var(--green-lt);color:var(--green);}
+.seg-S{background:var(--amber-lt);color:var(--amber);}
+.seg-D{background:var(--red-lt);color:var(--red);}
+
+/* STATUS CHIPS */
+.status{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700;white-space:nowrap;}
+.s-open{background:#FFF3E0;color:#E65100;border:1px solid #FFCC80;}
+.s-vh{background:#E3F2FD;color:#0D47A1;border:1px solid #90CAF9;}
+.s-iso{background:var(--teal-lt);color:var(--teal);border:1px solid #80CBC4;}
+.s-ppc{background:var(--green-lt);color:var(--green);border:1px solid #A5D6A7;}
+.s-rej{background:var(--red-lt);color:var(--red);border:1px solid #FFCDD2;}
+.s-dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
+
+/* QTY COLS */
+.qty-field{text-align:right;font-family:var(--mono);font-weight:600;color:var(--blue);}
+.qty-vh{text-align:right;font-family:var(--mono);color:#0D47A1;}
+.qty-iso{text-align:right;font-family:var(--mono);color:var(--teal);}
+.qty-ppc{text-align:right;font-family:var(--mono);font-weight:600;color:var(--green);}
+.qty-na{text-align:right;font-family:var(--mono);color:var(--rule);}
+.edd-val{font-family:var(--mono);font-size:10px;color:var(--teal);}
+.edd-pend{font-family:var(--mono);font-size:10px;color:var(--amber);}
+
+/* ── CREATE / REVIEW FORM ── */
+.form-card{background:var(--surface);border:1px solid var(--rule);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;}
+.form-hdr{padding:12px 16px;border-bottom:1px solid var(--rule);display:flex;align-items:center;gap:10px;}
+.form-hdr-title{font-size:14px;font-weight:700;}
+.form-body{padding:20px 24px;display:grid;grid-template-columns:1fr 1fr;gap:16px 24px;}
+.form-body.three{grid-template-columns:1fr 1fr 1fr;}
+.form-full{grid-column:1/-1;}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field label{font-size:10px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:.04em;}
+.field input,.field select,.field textarea{width:100%;padding:7px 10px;border:1.5px solid var(--rule);border-radius:4px;font-size:12px;font-family:var(--font);color:var(--ink);background:#fff;}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--blue);background:var(--blue-lt);}
+.field textarea{resize:vertical;min-height:72px;}
+.field .hint{font-size:9px;color:var(--grey);}
+.ro-val{background:var(--s2);padding:7px 10px;border-radius:4px;border:1px solid var(--rule-lt);font-size:12px;color:var(--ink2);}
+.ro-val.mono{font-family:var(--mono);font-size:11px;}
+
+.reason-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.reason-opt{border:1.5px solid var(--rule);border-radius:4px;padding:8px 10px;cursor:pointer;transition:all .12s;}
+.reason-opt:hover{border-color:var(--blue);background:var(--blue-lt);}
+.reason-opt.selected{border-color:var(--blue);background:var(--blue-lt);}
+.reason-opt .rt{font-size:11px;font-weight:600;}
+.reason-opt .rs{font-size:9px;color:var(--grey);margin-top:2px;}
+
+/* ── QTY REVIEW TABLE ── */
+.qty-review{width:100%;border-collapse:collapse;font-size:11px;}
+.qty-review th{padding:5px 10px;text-align:right;font-size:9px;font-weight:700;color:var(--grey);border-bottom:2px solid var(--rule);background:var(--s2);text-transform:uppercase;letter-spacing:.04em;}
+.qty-review th:first-child{text-align:left;}
+.qty-review td{padding:7px 10px;border-bottom:1px solid var(--rule-lt);}
+
+/* ── STAGE TIMELINE ── */
+.timeline{display:flex;flex-direction:column;gap:0;}
+.tl-item{display:flex;gap:14px;padding:12px 0;}
+.tl-item:not(:last-child){border-bottom:1px solid var(--rule-lt);}
+.tl-dot-wrap{display:flex;flex-direction:column;align-items:center;gap:0;width:28px;flex-shrink:0;}
+.tl-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.tl-done{background:var(--teal);color:#fff;}
+.tl-active{background:var(--blue);color:#fff;box-shadow:0 0 0 3px rgba(21,101,192,.2);}
+.tl-pend{background:var(--s2);color:var(--grey);border:1px solid var(--rule);}
+.tl-body{flex:1;}
+.tl-title{font-size:12px;font-weight:600;margin-bottom:2px;}
+.tl-sub{font-size:10px;color:var(--grey);}
+.tl-detail{font-size:11px;margin-top:4px;color:var(--ink2);}
+
+/* ── BTNS ── */
+.btn{height:32px;padding:0 14px;border-radius:4px;font-size:12px;font-weight:500;cursor:pointer;border:none;font-family:var(--font);display:inline-flex;align-items:center;gap:6px;transition:all .12s;}
+.btn-primary{background:var(--blue);color:#fff;}
+.btn-primary:hover{background:#1976D2;}
+.btn-success{background:var(--green);color:#fff;}
+.btn-success:hover{background:#2E7D32;}
+.btn-danger{background:var(--red);color:#fff;}
+.btn-danger:hover{background:#C62828;}
+.btn-secondary{background:var(--surface);color:var(--ink2);border:1px solid var(--rule);}
+.btn-secondary:hover{background:var(--s2);}
+.btn-sm{height:26px;padding:0 10px;font-size:11px;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.form-actions{grid-column:1/-1;display:flex;align-items:center;gap:8px;padding-top:8px;border-top:1px solid var(--rule);}
+
+/* ── NOTICE ── */
+.notice{padding:8px 12px;border-radius:4px;font-size:11px;display:flex;align-items:center;gap:8px;border-left:3px solid;margin-bottom:12px;}
+.notice.info{background:var(--blue-lt);border-color:var(--blue);color:var(--blue);}
+.notice.warn{background:var(--amber-lt);border-color:var(--amber);color:var(--amber);}
+.notice.success{background:var(--green-lt);border-color:var(--green);color:var(--green);}
+
+/* ── SCREEN ── */
+.screen{display:none;}.screen.active{display:block;}
+
+
+/* ── PIPELINE INLINE PANEL ── */
+.pipeline-panel{background:#F0F4F8;border:1.5px solid var(--rule);border-radius:var(--r);padding:12px 16px;margin-top:6px;}
+.pipeline-panel .pp-title{font-size:10px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
+.pipeline-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.pp-card{background:var(--surface);border:1px solid var(--rule);border-radius:4px;padding:8px 10px;text-align:center;}
+.pp-card .pp-stage{font-size:8px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:.05em;}
+.pp-card .pp-qty{font-family:var(--mono);font-size:18px;font-weight:500;margin-top:2px;}
+.pp-card.pp-conf .pp-qty{color:var(--teal);}
+.pp-card.pp-fa .pp-qty{color:var(--blue);}
+.pp-card.pp-fc .pp-qty{color:var(--amber);}
+.pp-card.pp-hi .pp-qty{color:var(--purple);}
+.pp-card .pp-pct{font-size:9px;color:var(--grey);margin-top:1px;}
+
+/* ── STRANGER VALIDATION ALERT ── */
+.stranger-alert{background:var(--red-lt);border:1.5px solid #EF9A9A;border-radius:var(--r);padding:10px 14px;margin-top:8px;display:flex;align-items:center;gap:10px;}
+.stranger-alert .sa-icon{font-size:18px;flex-shrink:0;}
+.stranger-alert .sa-text{font-size:11px;color:var(--red);}
+.stranger-alert .sa-text strong{font-weight:700;}
+
+/* ── HISTORICAL SALES MINI TABLE ── */
+.hist-sales{width:100%;border-collapse:collapse;font-size:10px;margin-top:6px;}
+.hist-sales th{padding:4px 8px;text-align:right;font-size:8px;font-weight:700;color:var(--grey);border-bottom:1px solid var(--rule);text-transform:uppercase;}
+.hist-sales th:first-child{text-align:left;}
+.hist-sales td{padding:4px 8px;text-align:right;font-family:var(--mono);border-bottom:1px solid var(--rule-lt);}
+.hist-sales td:first-child{text-align:left;font-weight:500;}
+
+/* ── MULTI-DATE EDD TABLE ── */
+.edd-multi{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px;}
+.edd-multi th{padding:5px 10px;text-align:left;font-size:9px;font-weight:700;color:var(--grey);border-bottom:2px solid var(--rule);background:var(--s2);text-transform:uppercase;}
+.edd-multi td{padding:7px 10px;border-bottom:1px solid var(--rule-lt);}
+
+/* ── NOTIFICATION BANNER ── */
+.notif-banner{background:#E8F5E9;border:1px solid #A5D6A7;border-radius:var(--r);padding:8px 14px;font-size:11px;color:var(--green);display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.notif-banner .nb-icon{font-size:14px;}
+
+/* ── MODERATION HISTORY (RSM tracking view) ── */
+.mod-row{display:flex;gap:6px;align-items:center;font-size:10px;margin-top:4px;}
+.mod-chip{padding:1px 6px;border-radius:3px;font-size:9px;font-weight:600;font-family:var(--mono);}
+.mod-original{background:var(--blue-lt);color:var(--blue);}
+.mod-changed{background:var(--amber-lt);color:var(--amber);}
+.mod-arrow{color:var(--grey);font-size:10px;}
+</style>
+
+<!--[if gte mso 9]><xml>
+<mso:CustomDocumentProperties>
+<mso:xd_Signature msdt:dt="string"></mso:xd_Signature>
+<mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Editor msdt:dt="string">Mohd. Zakariya</mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Editor>
+<mso:Order msdt:dt="string">19300.0000000000</mso:Order>
+<mso:xd_ProgID msdt:dt="string"></mso:xd_ProgID>
+<mso:_ExtendedDescription msdt:dt="string"></mso:_ExtendedDescription>
+<mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Author msdt:dt="string">Mohd. Zakariya</mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Author>
+<mso:ComplianceAssetId msdt:dt="string"></mso:ComplianceAssetId>
+<mso:TemplateUrl msdt:dt="string"></mso:TemplateUrl>
+<mso:ContentTypeId msdt:dt="string">0x010100915D1156AF89E94CB4E0E819A4FFFAAD</mso:ContentTypeId>
+<mso:TriggerFlowInfo msdt:dt="string"></mso:TriggerFlowInfo>
+<mso:_SourceUrl msdt:dt="string"></mso:_SourceUrl>
+<mso:_SharedFileIndex msdt:dt="string"></mso:_SharedFileIndex>
+<mso:MediaLengthInSeconds msdt:dt="string"></mso:MediaLengthInSeconds>
+<mso:MediaServiceImageTags msdt:dt="string"></mso:MediaServiceImageTags>
+<mso:lcf76f155ced4ddcb4097134ff3c332f msdt:dt="string"></mso:lcf76f155ced4ddcb4097134ff3c332f>
+</mso:CustomDocumentProperties>
+</xml><![endif]-->
+</head>
+<body>
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="brand">VECV<span>plan</span></div>
+  <div class="divpipe"></div>
+  <div class="nav-tabs">
+    <div class="ntab" onclick="alert('Navigate to Indent Workbook')">Indent Workbook</div>
+    <div class="ntab" onclick="alert('Navigate to MTO')">MTO</div>
+    <div class="ntab active">Rush Orders</div>
+    <div class="ntab" onclick="alert('Navigate to Summary')">Summary</div>
+  </div>
+  <div class="persona-sw">
+    <span class="psw-lbl">View as</span>
+    <button class="psw-btn active" id="psw-rsm" onclick="setPersona('rsm')">RSM</button>
+    <button class="psw-btn" id="psw-vh" onclick="setPersona('vh')">VH</button>
+    <button class="psw-btn" id="psw-iso" onclick="setPersona('iso')">ISO</button>
+    <button class="psw-btn" id="psw-ppc" onclick="setPersona('ppc')">PPC</button>
+  </div>
+  <div class="user-pill">
+    <div class="avatar" id="av">PM</div>
+    <div><div class="uname" id="uname">P. Mehta</div><div class="urole" id="urole">RSM · North Region</div></div>
+  </div>
+</div>
+
+<!-- WORKFLOW BANNER -->
+<div class="wf-banner">
+  <div class="wf-step"><div class="wf-node" id="wf1"><span class="wf-num">1</span>RSM — Create</div></div>
+  <div class="wf-arrow">›</div>
+  <div class="wf-step"><div class="wf-node" id="wf2"><span class="wf-num">2</span>VH — Review</div></div>
+  <div class="wf-arrow">›</div>
+  <div class="wf-step"><div class="wf-node" id="wf3"><span class="wf-num">3</span>ISO — Release</div></div>
+  <div class="wf-arrow">›</div>
+  <div class="wf-step"><div class="wf-node" id="wf4"><span class="wf-num">4</span>PPC — Commit EDD</div></div>
+  <div class="wf-right">
+    <span style="font-size:10px;color:#7A9AB8">Event-driven · no cutoff · any time during the month</span>
+    <div class="sla-pill">PPC SLA: 4 hrs</div>
+  </div>
+</div>
+
+<!-- SCREEN TABS -->
+<div class="screen-tabs">
+  <div class="stab active" id="tab-dashboard" onclick="showTab('dashboard')">Dashboard <span class="badge b-open" id="open-badge">4 Open</span></div>
+  <div class="stab" id="tab-create" onclick="showTab('create')" style="display:none">+ Create Rush Order</div>
+  <div class="stab" id="tab-review" onclick="showTab('review')" style="display:none">Review Request <span class="badge b-new" id="review-badge">1 Pending</span></div>
+  <div class="stab" id="tab-ppc" onclick="showTab('ppc')" style="display:none">Commit EDD <span class="badge b-new">1 Awaiting</span></div>
+</div>
+
+<!-- ════════ DASHBOARD SCREEN ════════ -->
+<div class="screen active" id="screen-dashboard">
+  <div class="page-hdr">
+    <div>
+      <div class="page-title" id="dash-title">Rush Orders — RSM Dashboard</div>
+      <div class="page-sub">All rush orders raised by or visible to your persona · Jul 2026</div>
+    </div>
+    <div class="hdr-right">
+      <button class="btn btn-secondary btn-sm" onclick="alert('Exporting CSV…')">↓ Export CSV</button>
+      <button class="btn btn-primary" id="create-btn" onclick="showTab('create')" style="display:none">+ Create Rush Order</button>
+    </div>
+  </div>
+  <div class="filterbar">
+    <div class="fil"><label>Vertical</label><select onchange="applyFilters()"><option>All verticals</option><option>LMD</option><option>HD</option><option>Bus</option></select></div>
+    <div class="fil"><label>Status</label><select onchange="applyFilters()"><option>All statuses</option><option>Open</option><option>VH Approved</option><option>ISO Released</option><option>PPC Committed</option><option>Rejected</option></select></div>
+    <div class="fil"><label>Reason</label><select onchange="applyFilters()"><option>All reasons</option><option>Business Critical</option><option>Competitor threat</option><option>Runner FERT stockout</option><option>Post-cutoff demand</option></select></div>
+    <div class="fil"><label>Date range</label><select><option>Jul 2026</option><option>Jun 2026</option><option>All</option></select></div>
+    <div class="fdiv"></div>
+    <div class="count">Showing <strong id="ro-count">4</strong> rush orders</div>
+  </div>
+  <div class="content">
+    <div class="kpi-row">
+      <div class="kpi" style="border-left-color:#E65100"><div class="kpi-lbl">Open</div><div class="kpi-val" style="color:#E65100">4</div><div class="kpi-sub">awaiting action</div></div>
+      <div class="kpi" style="border-left-color:var(--blue)"><div class="kpi-lbl">VH Pending</div><div class="kpi-val" style="color:var(--blue)">1</div><div class="kpi-sub">awaiting VH review</div></div>
+      <div class="kpi" style="border-left-color:var(--teal)"><div class="kpi-lbl">ISO Released</div><div class="kpi-val" style="color:var(--teal)">1</div><div class="kpi-sub">awaiting PPC</div></div>
+      <div class="kpi" style="border-left-color:var(--green)"><div class="kpi-lbl">PPC Committed</div><div class="kpi-val" style="color:var(--green)">2</div><div class="kpi-sub">EDD confirmed</div></div>
+      <div class="kpi" style="border-left-color:var(--red)"><div class="kpi-lbl">Rejected</div><div class="kpi-val" style="color:var(--red)">0</div><div class="kpi-sub">this month</div></div>
+    </div>
+
+    <!-- RO #3: Change — RSM dashboard now shows moderation visibility per RO -->
+    <div class="ro-table-wrap">
+      <table class="ro-table" id="ro-table">
+        <thead>
+          <tr>
+            <th>Rush Order ID</th>
+            <th>Vertical / Sub-V</th>
+            <th>FERT</th>
+            <th>Seg</th>
+            <th>Customer / Dealer</th>
+            <th>Location</th>
+            <th>Created By</th>
+            <th>Req. Delivery</th>
+            <th>Status</th>
+            <th style="text-align:right">Field Qty</th>
+            <th style="text-align:right">VH Qty</th>
+            <th style="text-align:right">ISO Qty</th>
+            <th style="text-align:right">PPC Qty</th>
+            <th>EDD</th>
+            <th>Moderation</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="ro-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ CREATE SCREEN (RSM) — Change #1: Simplified, auto-fill, pipeline inline ════════ -->
+<div class="screen" id="screen-create">
+  <div class="page-hdr">
+    <div><div class="page-title">Create Rush Order</div><div class="page-sub">RSM · North Region · Jul 2026</div></div>
+    <div class="hdr-right"><button class="btn btn-secondary" onclick="showTab('dashboard')">← Back to Dashboard</button></div>
+  </div>
+  <div class="content">
+    <div class="notice info">Rush orders bypass the monthly cutoff cycle. Select a FERT code to auto-fill details and see pipeline data inline.</div>
+
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;">
+      <!-- LEFT: Simplified form — resembles indent screen, auto-fills on FERT selection -->
+      <div class="form-card">
+        <div class="form-hdr">
+          <div><div class="form-hdr-title">Rush Order — Quick Entry</div><div style="font-size:10px;color:var(--grey);margin-top:2px">Fields auto-populate on FERT selection</div></div>
+          <div style="margin-left:auto;font-size:10px;color:var(--grey)">P. Mehta · RSM · 30 Jun 2026</div>
+        </div>
+        <div class="form-body three">
+          <div class="field">
+            <label>FERT Code * <span style="font-size:9px;color:var(--grey)">— start typing to search</span></label>
+            <input type="text" placeholder="Search FERT code or description…" value="92009092" style="font-family:var(--mono);font-size:13px;font-weight:600" oninput="onFertSelect(this.value)">
+          </div>
+          <div class="field">
+            <label>Description</label>
+            <div class="ro-val" id="create-desc">Pro2095XP PG DSD BS6 CNGNGB 18 2C 5SAC</div>
+          </div>
+          <div class="field">
+            <label>Segment</label>
+            <div class="ro-val" id="create-seg"><span class="seg seg-R">Runner</span> — auto from FERT master</div>
+          </div>
+          <div class="field">
+            <label>Vertical</label>
+            <div class="ro-val" id="create-vert">LMD · 5–16T · PRIVATE</div>
+          </div>
+          <div class="field">
+            <label>Quantity *</label>
+            <input type="number" value="8" min="1" max="50" id="create-qty" oninput="checkStrangerValidation()">
+          </div>
+          <div class="field">
+            <label>Requested Delivery *</label>
+            <input type="date" value="2026-07-15">
+          </div>
+          <div class="field">
+            <label>Customer</label>
+            <input type="text" value="Manishkumar V. Harinkhede" placeholder="Customer name…">
+          </div>
+          <div class="field">
+            <label>Dealer</label>
+            <div class="ro-val">8040 · APCO-NAROL · Ahmedabad</div>
+          </div>
+          <div class="field form-full">
+            <label>Reason Code *</label>
+            <div class="reason-grid">
+              <div class="reason-opt selected" onclick="selReason(this)"><div class="rt">Business Critical</div><div class="rs">Customer deadline at risk</div></div>
+              <div class="reason-opt" onclick="selReason(this)"><div class="rt">Competitor threat</div><div class="rs">Risk of losing deal</div></div>
+              <div class="reason-opt" onclick="selReason(this)"><div class="rt">Runner FERT stockout</div><div class="rs">High-velocity FERT unavailable</div></div>
+              <div class="reason-opt" onclick="selReason(this)"><div class="rt">Post-cutoff demand</div><div class="rs">Demand after S&OP closed</div></div>
+              <div class="reason-opt" onclick="selReason(this)"><div class="rt">Scheme / incentive</div><div class="rs">Time-bound scheme ending</div></div>
+              <div class="reason-opt" onclick="selReason(this)"><div class="rt">Pipeline conversion</div><div class="rs">Hot inquiry → confirmed</div></div>
+            </div>
+          </div>
+          <div class="field form-full">
+            <label>Justification (optional)</label>
+            <textarea placeholder="Any context for VH…" style="min-height:50px">Customer fleet replacement deadline. Competitor offer expires 15 Jul.</textarea>
+          </div>
+          <!-- Change #2: Stranger validation gate — shown dynamically -->
+          <div class="field form-full" id="stranger-gate" style="display:none">
+            <div class="stranger-alert">
+              <div class="sa-icon">⚠</div>
+              <div class="sa-text"><strong>Stranger FERT validation:</strong> This FERT is classified as a Stranger. Requested qty (<span id="sg-qty">8</span>) exceeds confirmed pipeline qty (<span id="sg-pipe">0</span>). Rush order submission is blocked until pipeline confirmation covers the requested quantity.</div>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-success" id="submit-ro-btn" onclick="submitRO()">Submit Rush Order → Alert sent to VH</button>
+            <button class="btn btn-secondary" onclick="showTab('dashboard')">Cancel</button>
+            <span style="font-size:9px;color:var(--grey);margin-left:auto">RO ID auto-generated on submission</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Pipeline data inline panel — Change #1 continued -->
+      <div>
+        <div class="form-card" style="margin-bottom:14px">
+          <div class="form-hdr"><div class="form-hdr-title">Pipeline — 92009092</div></div>
+          <div style="padding:14px 16px;">
+            <div class="pipeline-grid">
+              <div class="pp-card pp-conf"><div class="pp-stage">Confirmed</div><div class="pp-qty">12</div><div class="pp-pct">35%</div></div>
+              <div class="pp-card pp-fa"><div class="pp-stage">FA</div><div class="pp-qty">8</div><div class="pp-pct">24%</div></div>
+              <div class="pp-card pp-fc"><div class="pp-stage">FC</div><div class="pp-qty">6</div><div class="pp-pct">18%</div></div>
+              <div class="pp-card pp-hi"><div class="pp-stage">Hot Inquiry</div><div class="pp-qty">8</div><div class="pp-pct">24%</div></div>
+            </div>
+            <div style="text-align:center;font-size:10px;color:var(--grey);margin-top:8px">Total pipeline: <strong>34</strong> units · Confirmed+FA: <strong>20</strong></div>
+          </div>
+        </div>
+        <div class="form-card">
+          <div class="form-hdr"><div class="form-hdr-title">Historical Sales — 92009092</div></div>
+          <div style="padding:10px 16px;">
+            <table class="hist-sales">
+              <tr><th>Period</th><th>Offtake</th><th>Retail</th></tr>
+              <tr><td>L3 (avg)</td><td>14</td><td>12</td></tr>
+              <tr><td>L6 (avg)</td><td>16</td><td>14</td></tr>
+              <tr><td>L12 (avg)</td><td>13</td><td>11</td></tr>
+              <tr><td>LYSM</td><td>18</td><td>15</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ VH/ISO REVIEW SCREEN — Changes #4,#5,#6 ════════ -->
+<div class="screen" id="screen-review">
+  <div class="page-hdr">
+    <div><div class="page-title" id="review-title">Rush Order Review — VH</div><div class="page-sub" id="review-sub">Review and approve or reject the RSM request</div></div>
+    <div class="hdr-right"><button class="btn btn-secondary" onclick="showTab('dashboard')">← Dashboard</button></div>
+  </div>
+  <div class="content">
+    <div class="notice warn" id="review-notice">Awaiting your review. RSM submitted this request. You can modify qty or date before approving.</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+      <!-- REQUEST DETAIL -->
+      <div class="form-card">
+        <div class="form-hdr"><div class="form-hdr-title">Request Detail</div><span class="status s-open"><span class="s-dot"></span>Open — awaiting VH</span></div>
+        <div class="form-body">
+          <div class="field"><label>Rush Order ID</label><div class="ro-val mono" style="font-size:9px">RO_PRIVATE_92009092_8_BusinessCritical_26-Jun-26__RO_8040</div></div>
+          <div class="field"><label>Reason Code</label><div class="ro-val" style="font-weight:600;color:#E65100">Business Critical</div></div>
+          <div class="field"><label>FERT Code</label><div class="ro-val"><span class="fert-code">92009092</span> · Pro2095XP PG DSD BS6 CNGNGB</div></div>
+          <div class="field"><label>Segment</label><div class="ro-val"><span class="seg seg-R">Runner</span></div></div>
+          <div class="field"><label>Customer</label><div class="ro-val">RO_CUST_001 · Manishkumar Vinod Harinkhede</div></div>
+          <div class="field"><label>Dealer</label><div class="ro-val">8040 · APCO-NAROL · Ahmedabad</div></div>
+          <div class="field"><label>Requested Delivery</label><div class="ro-val" style="font-weight:600">15 Jul 2026</div></div>
+          <div class="field"><label>RSM Justification</label><div class="ro-val" style="font-size:11px">Customer fleet replacement deadline. Competitor offer expires 15 Jul.</div></div>
+        </div>
+      </div>
+
+      <!-- Change #4: Pipeline + Historical Sales inline for VH -->
+      <div>
+        <div class="form-card" style="margin-bottom:14px">
+          <div class="form-hdr"><div class="form-hdr-title">Pipeline — 92009092</div></div>
+          <div style="padding:14px 16px;">
+            <div class="pipeline-grid">
+              <div class="pp-card pp-conf"><div class="pp-stage">Confirmed</div><div class="pp-qty">12</div></div>
+              <div class="pp-card pp-fa"><div class="pp-stage">FA</div><div class="pp-qty">8</div></div>
+              <div class="pp-card pp-fc"><div class="pp-stage">FC</div><div class="pp-qty">6</div></div>
+              <div class="pp-card pp-hi"><div class="pp-stage">Hot Inquiry</div><div class="pp-qty">8</div></div>
+            </div>
+            <!-- Change #5: Pipeline validation gate for VH too -->
+            <div id="vh-stranger-gate" style="display:none;margin-top:8px">
+              <div class="stranger-alert">
+                <div class="sa-icon">⚠</div>
+                <div class="sa-text"><strong>Stranger FERT:</strong> Requested qty exceeds confirmed pipeline. Review carefully before approving.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-card" style="margin-bottom:14px">
+          <div class="form-hdr"><div class="form-hdr-title">Historical Sales</div></div>
+          <div style="padding:10px 16px;">
+            <table class="hist-sales">
+              <tr><th>Period</th><th>Offtake</th><th>Retail</th></tr>
+              <tr><td>L3 (avg)</td><td>14</td><td>12</td></tr>
+              <tr><td>L6 (avg)</td><td>16</td><td>14</td></tr>
+              <tr><td>L12 (avg)</td><td>13</td><td>11</td></tr>
+              <tr><td>LYSM</td><td>18</td><td>15</td></tr>
+            </table>
+          </div>
+        </div>
+        <!-- Stage Timeline -->
+        <div class="form-card">
+          <div class="form-hdr"><div class="form-hdr-title">Stage Timeline</div></div>
+          <div style="padding:14px 16px;">
+            <div class="timeline">
+              <div class="tl-item"><div class="tl-dot-wrap"><div class="tl-dot tl-done">✓</div></div><div class="tl-body"><div class="tl-title">RSM — Created</div><div class="tl-sub">26 Jun 2026 · 09:14 · P. Mehta</div><div class="tl-detail">Qty: 8 · Business Critical</div></div></div>
+              <div class="tl-item"><div class="tl-dot-wrap"><div class="tl-dot tl-active">2</div></div><div class="tl-body"><div class="tl-title">VH — Review</div><div class="tl-sub">Pending · A. Reddy</div></div></div>
+              <div class="tl-item"><div class="tl-dot-wrap"><div class="tl-dot tl-pend">3</div></div><div class="tl-body"><div class="tl-title">ISO — Release</div><div class="tl-sub">Not yet reached</div></div></div>
+              <div class="tl-item"><div class="tl-dot-wrap"><div class="tl-dot tl-pend">4</div></div><div class="tl-body"><div class="tl-title">PPC — Commit EDD</div><div class="tl-sub">Not yet reached · SLA: 4 hrs</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VH/ISO Decision form — Change #6: ISO is view/pass-through only -->
+    <div class="form-card">
+      <div class="form-hdr"><div class="form-hdr-title" id="vh-form-title">VH Decision</div></div>
+      <div class="form-body" id="vh-form-body">
+        <div class="field"><label>RSM Requested Qty</label><div class="ro-val mono" style="font-size:16px;font-weight:600;color:var(--blue)">8</div></div>
+        <div class="field">
+          <label>VH Qty * <span style="font-size:9px;color:var(--grey)">(defaults to RSM qty)</span></label>
+          <input type="number" value="8" min="1" id="vh-qty" style="font-size:16px;font-weight:600">
+        </div>
+        <div class="field">
+          <label>Modified Delivery Date</label>
+          <input type="date" value="2026-07-15">
+        </div>
+        <div class="field">
+          <label>VH Notes (optional)</label>
+          <textarea style="height:60px" placeholder="Notes for ISO…"></textarea>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-success" onclick="vhApprove()">✓ Approve → Alert sent to ISO</button>
+          <button class="btn btn-danger" onclick="vhReject()">✗ Reject → Alert sent to RSM</button>
+          <span style="font-size:10px;color:var(--grey);margin-left:auto">Approval forwards to ISO with your qty.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ PPC SCREEN — Changes #7, #8 ════════ -->
+<div class="screen" id="screen-ppc">
+  <div class="page-hdr">
+    <div><div class="page-title">PPC — Commit EDD</div><div class="page-sub">ISO has released this rush order. Commit production feasibility and EDD within 4 business hours.</div></div>
+    <div class="hdr-right"><button class="btn btn-secondary" onclick="showTab('dashboard')">← Dashboard</button></div>
+  </div>
+  <div class="content">
+    <div class="notice warn">SLA: You must acknowledge and commit EDD within 4 business hours of ISO release. This order was released at 11:30 · 26 Jun 2026.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+      <div class="form-card">
+        <div class="form-hdr"><div class="form-hdr-title">Approved Order Summary</div></div>
+        <div class="form-body">
+          <div class="field"><label>FERT</label><div class="ro-val"><span class="fert-code">95158891</span> · 2070 E Srl Scl Ac BSVI Faps</div></div>
+          <div class="field"><label>Segment</label><div class="ro-val"><span class="seg seg-D">Stranger</span></div></div>
+          <div class="field"><label>Vertical / Sub-V</label><div class="ro-val">Bus · LMD Bus · PRIVATE</div></div>
+          <div class="field"><label>Customer / Dealer</label><div class="ro-val">RO Customer · Henry Thomas S</div></div>
+          <div class="field"><label>Requested Delivery</label><div class="ro-val" style="font-weight:600;color:#E65100">3 Jun 2026</div></div>
+          <div class="field"><label>Reason</label><div class="ro-val" style="font-weight:600">Business Critical</div></div>
+        </div>
+      </div>
+      <div class="form-card">
+        <div class="form-hdr"><div class="form-hdr-title">Qty Approved Through Chain</div></div>
+        <div style="padding:14px 16px;">
+          <table class="qty-review">
+            <tr><th>Stage</th><th>Qty Approved</th><th>Status</th></tr>
+            <tr><td style="font-weight:600;color:var(--blue)">RSM (Field)</td><td class="qty-field">1</td><td><span class="status s-open"><span class="s-dot"></span>Submitted</span></td></tr>
+            <tr><td style="font-weight:600;color:#0D47A1">VH</td><td class="qty-vh">1</td><td><span class="status s-vh"><span class="s-dot"></span>Approved</span></td></tr>
+            <tr><td style="font-weight:600;color:var(--teal)">ISO</td><td class="qty-iso">1</td><td><span class="status s-iso"><span class="s-dot"></span>Released</span></td></tr>
+            <tr style="background:var(--green-lt)"><td style="font-weight:700">PPC Commit</td><td><input type="number" value="1" min="1" style="width:60px;padding:3px 6px;border:1.5px solid var(--green);border-radius:4px;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--green)"></td><td><span class="status s-pend" style="background:#FFF3E0;color:#E65100;border-color:#FFCC80"><span class="s-dot"></span>Pending</span></td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Change #7: Multi-date EDD tracking — same FERT on different dates get separate EDDs -->
+    <div class="form-card" style="margin-bottom:14px">
+      <div class="form-hdr"><div class="form-hdr-title">Multi-Date Requests — Same FERT</div><span style="font-size:10px;color:var(--grey)">Each request date tracked separately with its own EDD</span></div>
+      <div style="padding:14px 16px;">
+        <table class="edd-multi">
+          <tr><th>RO ID</th><th>Request Date</th><th>Req. Delivery</th><th style="text-align:right">Qty</th><th>EDD</th><th>Status</th></tr>
+          <tr>
+            <td style="font-family:var(--mono);font-size:9px;color:var(--blue)">RO_PRIVATE_95158891_1_…_3-Jun-26</td>
+            <td>3 Jun 2026</td><td style="color:#E65100;font-weight:500">3 Jun 2026</td>
+            <td style="text-align:right;font-family:var(--mono);font-weight:600">1</td>
+            <td><input type="date" value="2026-06-30" style="padding:3px 6px;border:1.5px solid var(--teal);border-radius:4px;font-family:var(--mono);font-size:11px"></td>
+            <td><span class="status s-pend" style="background:#FFF3E0;color:#E65100;border-color:#FFCC80"><span class="s-dot"></span>EDD Pending</span></td>
+          </tr>
+          <tr style="background:var(--s2)">
+            <td style="font-family:var(--mono);font-size:9px;color:var(--blue)">RO_PRIVATE_95158891_2_…_10-Jun-26</td>
+            <td>10 Jun 2026</td><td style="color:#E65100;font-weight:500">18 Jun 2026</td>
+            <td style="text-align:right;font-family:var(--mono);font-weight:600">2</td>
+            <td><input type="date" value="2026-07-05" style="padding:3px 6px;border:1.5px solid var(--teal);border-radius:4px;font-family:var(--mono);font-size:11px"></td>
+            <td><span class="status s-pend" style="background:#FFF3E0;color:#E65100;border-color:#FFCC80"><span class="s-dot"></span>EDD Pending</span></td>
+          </tr>
+          <tr>
+            <td style="font-family:var(--mono);font-size:9px;color:var(--blue)">RO_PRIVATE_95158891_1_…_15-Jun-26</td>
+            <td>15 Jun 2026</td><td style="color:#E65100;font-weight:500">25 Jun 2026</td>
+            <td style="text-align:right;font-family:var(--mono);font-weight:600">1</td>
+            <td><input type="date" value="2026-07-10" style="padding:3px 6px;border:1.5px solid var(--teal);border-radius:4px;font-family:var(--mono);font-size:11px"></td>
+            <td><span class="status s-pend" style="background:#FFF3E0;color:#E65100;border-color:#FFCC80"><span class="s-dot"></span>EDD Pending</span></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-hdr"><div class="form-hdr-title">Commit EDD</div></div>
+      <div class="form-body three">
+        <div class="field"><label>Estimated Delivery Date (EDD) *</label><input type="date" value="2026-06-30"><span class="hint">Phase 1: pulled from SAP PP automatically</span></div>
+        <div class="field"><label>Production Feasibility</label><select><option>Feasible — within plan</option><option>Feasible — requires plan adjustment</option><option>Partially feasible</option><option>Not feasible — escalate</option></select></div>
+        <div class="field"><label>PPC Notes (optional)</label><input type="text" placeholder="Any production notes…"></div>
+        <div class="form-actions">
+          <!-- Change #8: PPC commit triggers notification to VH + ISO -->
+          <button class="btn btn-success" onclick="ppcCommit()">✓ Commit EDD → Notify VH + ISO</button>
+          <button class="btn btn-secondary">Save draft</button>
+          <span style="font-size:10px;color:var(--grey);margin-left:auto">Committing EDD closes this rush order and notifies VH and ISO automatically.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PERSONAS = {
+  rsm:{name:"P. Mehta",role:"RSM · North Region",av:"PM",avBg:"#6A1B9A",tabs:['dashboard','create'],wf:1},
+  vh: {name:"A. Reddy",role:"VH · LMD Vertical",av:"AR",avBg:"#1B5E20",tabs:['dashboard','review'],wf:2},
+  iso:{name:"S. Mehta",role:"ISO · Central Planning",av:"SM",avBg:"#0277BD",tabs:['dashboard','review'],wf:3},
+  ppc:{name:"R. Kumar",role:"PPC · Production Planning",av:"RK",avBg:"#7C2D12",tabs:['dashboard','ppc'],wf:4},
+};
+
+const RO_DATA = [
+  {id:"RO_PRIVATE_92009092_8_BusinessCritical_26-Jun-26__RO_8040",vert:"LMD",sv:"5–16T",code:"92009092",desc:"Pro2095XP PG DSD BS6 CNGNGB",seg:"R",cust:"Manishkumar V. Harinkhede",dealer:"APCO-NAROL",loc:"Ahmedabad",by:"P. Mehta",reqDate:"26 Jun",reqDel:"15 Jul 2026",status:"open",qF:8,qV:null,qI:null,qP:null,edd:null,reason:"Business Critical"},
+  {id:"RO_PRIVATE_95158891_1_BusinessCritical_3-Jun-26__RO_RO",vert:"Bus",sv:"LMD Bus",code:"95158891",desc:"2070 E Srl Scl Ac BSVI Faps",seg:"D",cust:"RO Customer",dealer:"RO Dealer",loc:"Mumbai",by:"Henry Thomas S",reqDate:"3 Jun",reqDel:"3 Jun 2026",status:"iso",qF:1,qV:1,qI:1,qP:null,edd:null,reason:"Business Critical"},
+  {id:"RO_PRIVATE_95206794_1_BusinessCritical_3-Jun-26__RO_RO",vert:"Bus",sv:"LMD Bus",code:"95206794",desc:"2090 L SKL CWC BSVI ESC",seg:"D",cust:"RO Customer",dealer:"RO Dealer",loc:"Delhi",by:"Henry Thomas S",reqDate:"3 Jun",reqDel:"3 Jun 2026",status:"ppc",qF:5,qV:5,qI:5,qP:5,edd:"30 Jun 2026",reason:"Business Critical"},
+  {id:"RO_PRIVATE_99400142_1_BusinessCritical_3-Jun-26__RO_4790",vert:"LMD",sv:"5–16T",code:"99400142",desc:"Pro2110XP P H20 CBC BSVI NGB 7S",seg:"S",cust:"VVC-TELANGANA",dealer:"VVC-TELANGANA",loc:"Hyderabad",by:"Subramony K",reqDate:"3 Jun",reqDel:"3 Jun 2026",status:"ppc",qF:5,qV:3,qI:3,qP:null,edd:null,reason:"Competitor threat"},
+];
+
+// Segment labels — Runner / Repeater / Stranger (aligned with VECV terminology)
+const SEG_LABEL={R:"Runner",S:"Repeater",D:"Stranger"};
+const STATUS_CFG = {
+  open:{label:"Open — awaiting VH",cls:"s-open"},
+  vh:{label:"VH Approved",cls:"s-vh"},
+  iso:{label:"ISO Released",cls:"s-iso"},
+  ppc:{label:"PPC Committed",cls:"s-ppc"},
+  rej:{label:"Rejected",cls:"s-rej"},
+};
+
+let persona = 'rsm';
+
+function setPersona(p){
+  persona = p;
+  const pd = PERSONAS[p];
+  document.getElementById('av').textContent = pd.av;
+  document.getElementById('av').style.background = pd.avBg;
+  document.getElementById('uname').textContent = pd.name;
+  document.getElementById('urole').textContent = pd.role;
+  document.querySelectorAll('.psw-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('psw-'+p).classList.add('active');
+  [1,2,3,4].forEach(n=>{
+    const el=document.getElementById('wf'+n);
+    el.className='wf-node '+(n<pd.wf?'wf-done':n===pd.wf?'wf-active':'wf-pend');
+  });
+  document.getElementById('tab-create').style.display = p==='rsm'?'':'none';
+  document.getElementById('create-btn').style.display = p==='rsm'?'':'none';
+  document.getElementById('tab-review').style.display = ['vh','iso'].includes(p)?'':'none';
+  document.getElementById('tab-ppc').style.display = p==='ppc'?'':'none';
+
+  // Change #6: ISO screen — view/pass-through only (all read-only except optional override)
+  if(p==='iso'){
+    document.getElementById('review-title').textContent='Rush Order Review — ISO';
+    document.getElementById('review-sub').textContent='View and release to PPC, or reject back to RSM. All fields read-only except optional override.';
+    document.getElementById('review-notice').textContent='This request was approved by VH. ISO acts as a checkpoint — review and release to PPC, or reject. No editing of qty/date (override field available if needed).';
+    document.getElementById('review-notice').className='notice info';
+    document.getElementById('vh-form-title').textContent='ISO Decision — View & Release';
+    document.getElementById('vh-form-body').innerHTML=`
+      <div class="field"><label>RSM Requested Qty</label><div class="ro-val mono" style="font-size:14px;font-weight:600;color:var(--blue)">8</div></div>
+      <div class="field"><label>VH Approved Qty</label><div class="ro-val mono" style="font-size:14px;font-weight:600;color:#0D47A1">8</div></div>
+      <div class="field"><label>Stock Flag</label><select><option>✓ Stock available at VECV</option><option>⚠ Partial stock — schedule balance</option><option>✗ No stock — PPC to produce</option></select></div>
+      <div class="field"><label>ISO Override Qty <span style="font-size:9px;color:var(--grey)">(optional — leave blank to pass through VH qty)</span></label>
+        <input type="number" placeholder="Leave blank to accept VH qty" min="1" style="font-size:14px;font-weight:600;border-color:var(--amber)"></div>
+      <div class="field form-full"><label>ISO Notes (optional)</label><textarea style="height:50px" placeholder="Notes for PPC…"></textarea></div>
+      <div class="form-actions">
+        <button class="btn btn-success" onclick="isoRelease()">✓ Release → Alert sent to PPC</button>
+        <button class="btn btn-danger" onclick="isoReject()">✗ Reject → Alert sent to RSM</button>
+        <span style="font-size:10px;color:var(--grey);margin-left:auto">ISO is a checkpoint. Override only if stock position requires adjustment.</span>
+      </div>`;
+  } else {
+    document.getElementById('review-title').textContent='Rush Order Review — VH';
+    document.getElementById('review-sub').textContent='Review and approve or reject the RSM request';
+    document.getElementById('review-notice').textContent='Awaiting your review. RSM submitted this request. You can modify qty or date before approving.';
+    document.getElementById('review-notice').className='notice warn';
+    document.getElementById('vh-form-title').textContent='VH Decision';
+    document.getElementById('vh-form-body').innerHTML=`
+      <div class="field"><label>RSM Requested Qty</label><div class="ro-val mono" style="font-size:16px;font-weight:600;color:var(--blue)">8</div></div>
+      <div class="field"><label>VH Qty * <span style="font-size:9px;color:var(--grey)">(defaults to RSM qty)</span></label>
+        <input type="number" value="8" min="1" id="vh-qty" style="font-size:16px;font-weight:600"></div>
+      <div class="field"><label>Modified Delivery Date</label><input type="date" value="2026-07-15"></div>
+      <div class="field"><label>VH Notes (optional)</label><textarea style="height:60px" placeholder="Notes for ISO…"></textarea></div>
+      <div class="form-actions">
+        <button class="btn btn-success" onclick="vhApprove()">✓ Approve → Alert sent to ISO</button>
+        <button class="btn btn-danger" onclick="vhReject()">✗ Reject → Alert sent to RSM</button>
+        <span style="font-size:10px;color:var(--grey);margin-left:auto">Approval forwards to ISO with your qty.</span>
+      </div>`;
+  }
+
+  document.getElementById('dash-title').textContent = `Rush Orders — ${pd.role.split('·')[0].trim()} Dashboard`;
+  showTab('dashboard');
+  renderTable();
+}
+
+// Change #3: RSM dashboard shows moderation visibility — qty changes visible per RO
+function renderTable(){
+  const tbody=document.getElementById('ro-tbody');
+  const rows=RO_DATA.map((r,i)=>{
+    const sc=STATUS_CFG[r.status]||STATUS_CFG.open;
+    const vhQty=r.qV!==null?r.qV:'—';
+    const isoQty=r.qI!==null?r.qI:'—';
+    const ppcQty=r.qP!==null?r.qP:'—';
+    const eddVal=r.edd?`<span class="edd-val">${r.edd}</span>`:`<span class="edd-pend">Pending</span>`;
+    // Moderation column — shows if VH changed the qty from RSM's original
+    let modCell='<span style="font-size:9px;color:var(--grey)">—</span>';
+    if(r.qV!==null && r.qV!==r.qF){
+      modCell=`<div class="mod-row"><span class="mod-chip mod-original">${r.qF}</span><span class="mod-arrow">→</span><span class="mod-chip mod-changed">${r.qV}</span></div><div style="font-size:8px;color:var(--grey)">VH modified</div>`;
+    } else if(r.qV!==null && r.qV===r.qF){
+      modCell=`<span style="font-size:9px;color:var(--teal)">✓ No change</span>`;
+    }
+    let action='<span style="font-size:9px;color:var(--grey)">—</span>';
+    if(persona==='rsm') action=`<button class="btn btn-secondary btn-sm" onclick="alert('Viewing RO detail…')">View</button>`;
+    if(persona==='vh'&&r.status==='open') action=`<button class="btn btn-primary btn-sm" onclick="showTab('review')">Review ›</button>`;
+    if(persona==='iso'&&(r.status==='vh'||r.status==='iso')) action=`<button class="btn btn-primary btn-sm" onclick="showTab('review')">Review ›</button>`;
+    if(persona==='ppc'&&r.status==='iso') action=`<button class="btn btn-success btn-sm" onclick="showTab('ppc')">Commit EDD ›</button>`;
+    return `<tr>
+      <td><div class="ro-id" title="${r.id}">${r.id}</div></td>
+      <td><div style="font-size:10px;font-weight:600">${r.vert}</div><div style="font-size:9px;color:var(--grey)">${r.sv}</div></td>
+      <td><span class="fert-code">${r.code}</span><div style="font-size:9px;color:var(--grey);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.desc}</div></td>
+      <td><span class="seg seg-${r.seg}">${SEG_LABEL[r.seg]||r.seg}</span></td>
+      <td><div style="font-size:10px;font-weight:500">${r.cust}</div><div style="font-size:9px;color:var(--grey)">${r.dealer}</div></td>
+      <td style="font-size:10px;color:var(--grey)">${r.loc}</td>
+      <td style="font-size:10px">${r.by}</td>
+      <td style="font-size:10px;font-weight:500;color:#E65100">${r.reqDel}</td>
+      <td><span class="status ${sc.cls}"><span class="s-dot"></span>${sc.label}</span></td>
+      <td class="qty-field">${r.qF}</td>
+      <td class="${r.qV!==null?'qty-vh':'qty-na'}">${vhQty}</td>
+      <td class="${r.qI!==null?'qty-iso':'qty-na'}">${isoQty}</td>
+      <td class="${r.qP!==null?'qty-ppc':'qty-na'}">${ppcQty}</td>
+      <td>${eddVal}</td>
+      <td>${modCell}</td>
+      <td>${action}</td></tr>`;
+  });
+  tbody.innerHTML=rows.join('');
+}
+
+function showTab(t){
+  ['dashboard','create','review','ppc'].forEach(s=>{
+    document.getElementById('screen-'+s).classList.toggle('active',s===t);
+    const tab=document.getElementById('tab-'+s);
+    if(tab)tab.classList.toggle('active',s===t);
+  });
+}
+
+function selReason(el){document.querySelectorAll('.reason-opt').forEach(r=>r.classList.remove('selected'));el.classList.add('selected');}
+
+// Change #1: Auto-fill on FERT selection
+function onFertSelect(code){
+  // In production, this would query the FERT master API. In the prototype, we simulate auto-fill.
+  const ferts={
+    '92009092':{desc:'Pro2095XP PG DSD BS6 CNGNGB 18 2C 5SAC',seg:'R',vert:'LMD · 5–16T · PRIVATE',pipe:{conf:12,fa:8,fc:6,hi:8}},
+    '95158891':{desc:'2070 E Srl Scl Ac BSVI Faps',seg:'D',vert:'Bus · LMD Bus · PRIVATE',pipe:{conf:0,fa:0,fc:1,hi:2}},
+    '99400142':{desc:'Pro2110XP P H20 CBC BSVI NGB 7S',seg:'S',vert:'LMD · 5–16T · PRIVATE',pipe:{conf:3,fa:2,fc:1,hi:4}},
+  };
+  const f=ferts[code];
+  if(!f)return;
+  document.getElementById('create-desc').textContent=f.desc;
+  document.getElementById('create-seg').innerHTML=`<span class="seg seg-${f.seg}">${SEG_LABEL[f.seg]}</span> — auto from FERT master`;
+  document.getElementById('create-vert').textContent=f.vert;
+  checkStrangerValidation();
+}
+
+// Change #2: Pipeline-confirmation validation gate for Stranger FERTs
+function checkStrangerValidation(){
+  const seg=document.getElementById('create-seg')?.textContent||'';
+  const qty=parseInt(document.getElementById('create-qty')?.value)||0;
+  const gate=document.getElementById('stranger-gate');
+  const btn=document.getElementById('submit-ro-btn');
+  // Check if segment is Stranger
+  if(seg.includes('Stranger')){
+    // In production, confirmed pipeline qty would come from the pipeline API
+    const confirmedPipeline=0; // Stranger parts typically have low/no confirmed pipeline
+    if(qty>confirmedPipeline){
+      gate.style.display='block';
+      document.getElementById('sg-qty').textContent=qty;
+      document.getElementById('sg-pipe').textContent=confirmedPipeline;
+      btn.disabled=true;
+      btn.textContent='⚠ Blocked — Stranger FERT exceeds confirmed pipeline';
+      return;
+    }
+  }
+  gate.style.display='none';
+  btn.disabled=false;
+  btn.textContent='Submit Rush Order → Alert sent to VH';
+}
+
+function submitRO(){alert('Rush Order submitted!\n\nAuto-ID: RO_PRIVATE_92009092_8_BusinessCritical_30-Jun-26__RO_8040\n\nAlert sent to VH · A. Reddy\nStatus: Open — awaiting VH');showTab('dashboard');}
+function vhApprove(){alert('Approved!\n\nQty approved: 8\nAlert sent to ISO · S. Mehta\nStatus updated: VH Approved');showTab('dashboard');}
+function vhReject(){const r=prompt('Reason for rejection:','Stock not available in this configuration');if(r){alert('Rejected. Alert sent to RSM · P. Mehta.\nReason: '+r);showTab('dashboard');}}
+function isoRelease(){alert('Released to PPC!\n\nAlert sent to PPC · R. Kumar\nStatus: ISO Released\nPPC SLA: 4 business hours from now');showTab('dashboard');}
+function isoReject(){const r=prompt('Reason for rejection:','Cannot fulfil given production constraints this month');if(r){alert('Rejected. Alert sent to RSM.\nReason: '+r);showTab('dashboard');}}
+// Change #8: PPC commit triggers notification to both VH and ISO
+function ppcCommit(){alert('EDD Committed!\n\nEDD: 30 Jun 2026\nStatus: PPC Committed\n\nNotifications sent to:\n  → VH · A. Reddy\n  → ISO · S. Mehta\n  → RSM · P. Mehta\n\nRush order closed.');showTab('dashboard');}
+function applyFilters(){}
+
+// Phase 1 placeholder: Stranger-part equivalent suggestion (requires clean MDM)
+// When a Stranger FERT is selected, the system would query MDM for equivalent/alternate
+// FERTs already in stock and suggest them before allowing the rush order to proceed.
+// This requires the T5 MDM / FERT Governance track to be complete.
+
+// Phase 2 placeholder: System-to-system production integration
+// Once PPC commits, the confirmation would push directly to SAP PP / production
+// scheduling system via API, replacing the current twice-daily manual Excel/email process.
+
+setPersona('rsm');
+</script>
+</body>
+</html>

@@ -1,0 +1,2085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VECVplan ASM Cluster Moderation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   Visual system (P-17) — identical tokens and components to the Dealer
+   Prototype v4.5. Nothing below is a new palette; new classes only
+   cover ASM-specific affordances (override cells, reason capture,
+   exception cards) built from the same tokens. */
+:root{
+  --canvas:#F4F6F8; --surface:#FFFFFF; --surface-2:#F8FAFB; --bar:#10202D; --bar-ink:#C7D6E2;
+  --ink:#16222C; --ink-2:#42576A; --muted:#6B7C8A; --rule:#DCE3E9; --rule-soft:#EAEFF3;
+  --accent:#0E6BA8; --accent-2:#0A5686; --accent-soft:#E6F1F8; --accent-line:#B9D7EA;
+  --ok:#1F7A45; --ok-soft:#E7F2EB; --warn:#A65D00; --warn-soft:#FBEFE0; --crit:#B3261E; --crit-soft:#FBE9E7;
+  --add:#6B3FA0; --add-soft:#F0EAF8;
+  --ui:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  --shadow:0 1px 2px rgba(16,32,45,.06),0 2px 8px rgba(16,32,45,.06);
+  --shadow-lg:0 12px 40px rgba(16,32,45,.22);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --canvas:#0C1319; --surface:#141D25; --surface-2:#19242D; --bar:#080F14; --bar-ink:#9FB4C4;
+  --ink:#E2EAF0; --ink-2:#AEC0CE; --muted:#8296A6; --rule:#26343F; --rule-soft:#1D2831;
+  --accent:#4FA3D6; --accent-2:#79BCE5; --accent-soft:#122A3A; --accent-line:#20455C;
+  --ok:#5FBA84; --ok-soft:#132720; --warn:#D9A05B; --warn-soft:#2A2015; --crit:#E08A84; --crit-soft:#2C1917;
+  --add:#A487D0; --add-soft:#211B2E;
+  --shadow:0 1px 2px rgba(0,0,0,.4); --shadow-lg:0 12px 40px rgba(0,0,0,.55);
+}}
+:root[data-theme="dark"]{
+  --canvas:#0C1319; --surface:#141D25; --surface-2:#19242D; --bar:#080F14; --bar-ink:#9FB4C4;
+  --ink:#E2EAF0; --ink-2:#AEC0CE; --muted:#8296A6; --rule:#26343F; --rule-soft:#1D2831;
+  --accent:#4FA3D6; --accent-2:#79BCE5; --accent-soft:#122A3A; --accent-line:#20455C;
+  --ok:#5FBA84; --ok-soft:#132720; --warn:#D9A05B; --warn-soft:#2A2015; --crit:#E08A84; --crit-soft:#2C1917;
+  --add:#A487D0; --add-soft:#211B2E;
+  --shadow:0 1px 2px rgba(0,0,0,.4); --shadow-lg:0 12px 40px rgba(0,0,0,.55);
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--canvas);color:var(--ink);font-family:var(--ui);font-size:13.5px;
+  line-height:1.45;height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased;}
+button{font-family:inherit;cursor:pointer;}
+input,select,textarea{font-family:inherit;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
+
+.btn{height:32px;padding:0 14px;border-radius:5px;font-size:13px;font-weight:500;border:1px solid transparent;
+  display:inline-flex;align-items:center;gap:7px;white-space:nowrap;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:var(--accent-2);}
+.btn-primary:disabled{background:var(--muted);}
+.btn-ghost{background:var(--surface);color:var(--ink-2);border-color:var(--rule);}
+.btn-ghost:hover{background:var(--surface-2);border-color:var(--muted);}
+.btn-quiet{background:transparent;color:var(--ink-2);border-color:transparent;}
+.btn-quiet:hover{background:var(--surface-2);}
+.btn-add{background:var(--surface);color:var(--add);border-color:var(--add);}
+.btn-add:hover{background:var(--add-soft);}
+.btn-sm{height:27px;padding:0 10px;font-size:12px;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.link{background:none;border:none;padding:0;color:var(--accent);font-size:13px;font-weight:500;
+  text-decoration:underline;text-underline-offset:2px;}
+
+/* ══ LOGIN (P-01 — identical shape to every persona) ══ */
+#login{height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;overflow-y:auto;
+  background:linear-gradient(150deg,#0B1822 0%,#12293A 55%,#0E3A4A 100%);}
+.lg-shell{width:100%;max-width:400px;display:flex;flex-direction:column;gap:18px;}
+.lg-logo{font-size:23px;font-weight:700;color:#fff;letter-spacing:-.4px;}
+.lg-logo span{color:#5FB0DE;}
+.lg-cycle{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.09);
+  border:1px solid rgba(255,255,255,.14);border-radius:5px;padding:5px 11px;font-size:11.5px;color:#B7CDDD;margin-top:6px;}
+.lg-cycle b{color:#fff;font-weight:600;}
+.lg-card{background:var(--surface);border-radius:9px;padding:26px;box-shadow:var(--shadow-lg);
+  display:flex;flex-direction:column;gap:15px;}
+.lg-card h1{margin:0;font-size:19px;font-weight:600;}
+.lg-card .sub{font-size:13px;color:var(--muted);margin-top:-9px;}
+.fld{display:flex;flex-direction:column;gap:5px;}
+.fld label{font-size:12px;font-weight:600;color:var(--ink-2);display:flex;align-items:baseline;}
+.fld label .hint{margin-left:auto;font-weight:400;}
+.fld input{height:38px;padding:0 11px;border:1px solid var(--rule);border-radius:5px;font-size:14px;
+  background:var(--surface);color:var(--ink);}
+.fld input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+.fld .err{font-size:12px;color:var(--crit);display:none;}
+.fld.invalid input{border-color:var(--crit);}
+.fld.invalid .err{display:block;}
+.lg-or{display:flex;align-items:center;gap:11px;color:var(--muted);font-size:11.5px;}
+.lg-or::before,.lg-or::after{content:'';flex:1;height:1px;background:var(--rule);}
+.lg-foot{font-size:11.5px;color:var(--muted);text-align:center;}
+.lg-note{font-size:11px;color:rgba(183,205,221,.75);text-align:center;}
+
+/* ══ SHELL (P-03) ══ */
+#app{display:none;height:100vh;flex-direction:column;overflow:hidden;}
+#app.on{display:flex;}
+.topbar{height:48px;flex-shrink:0;background:var(--bar);display:flex;align-items:center;gap:4px;padding:0 8px 0 16px;}
+.tb-logo{font-size:14.5px;font-weight:700;color:#fff;margin-right:14px;white-space:nowrap;}
+.tb-logo span{color:#5FB0DE;}
+.tb-nav{display:flex;gap:2px;}
+.tb-nav button{height:30px;padding:0 12px;border:none;border-radius:5px;background:transparent;
+  color:var(--bar-ink);font-size:13px;font-weight:500;}
+.tb-nav button:hover{background:rgba(255,255,255,.08);color:#fff;}
+.tb-nav button.on{background:rgba(255,255,255,.14);color:#fff;}
+.tb-nav button:disabled{opacity:.35;cursor:not-allowed;}
+.tb-status{margin-left:16px;display:flex;align-items:center;overflow:hidden;}
+.tb-status .seg{font-size:12px;color:var(--bar-ink);white-space:nowrap;padding:0 12px;
+  border-left:1px solid rgba(255,255,255,.13);}
+.tb-status .seg:first-child{border-left:none;}
+.tb-status b{color:#fff;font-weight:600;}
+.warnv{color:#F0B770;font-weight:600;} .okv{color:#7DD3A0;font-weight:600;}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:8px;padding-left:10px;}
+.tb-user{display:flex;align-items:center;gap:8px;padding:3px 10px 3px 4px;border-radius:16px;background:rgba(255,255,255,.09);}
+.tb-av{width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:10px;
+  font-weight:700;display:flex;align-items:center;justify-content:center;}
+.tb-user .nm{font-size:11.5px;color:#fff;line-height:1.15;}
+.tb-user .rl{font-size:10px;color:#8FADC4;line-height:1.15;}
+.tb-icon{width:30px;height:30px;border:none;border-radius:5px;background:transparent;color:var(--bar-ink);
+  font-size:14px;display:flex;align-items:center;justify-content:center;}
+.tb-icon:hover{background:rgba(255,255,255,.1);color:#fff;}
+.page{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+.view{display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;}
+.view.on{display:flex;}
+
+/* ══ HOME (P-04) ══ */
+.home-scroll{flex:1;overflow-y:auto;}
+.home-inner{max-width:1440px;margin:0 auto;padding:20px 32px 56px;display:flex;flex-direction:column;gap:18px;}
+.proto-strip{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);
+  border:1px dashed var(--accent-line);border-radius:7px;padding:9px 14px;}
+.proto-strip .pl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--accent);background:var(--accent-soft);padding:3px 7px;border-radius:3px;}
+.proto-strip label{font-size:12.5px;font-weight:600;color:var(--ink-2);}
+.proto-strip select{height:32px;padding:0 9px;border:1px solid var(--rule);border-radius:5px;
+  background:var(--surface);color:var(--ink);font-size:13px;font-weight:500;min-width:228px;}
+.proto-strip .np{font-size:11.5px;color:var(--muted);margin-left:auto;}
+.home-head{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;}
+.home-head h1{margin:0;font-size:24px;font-weight:600;letter-spacing:-.4px;}
+.home-head .sub{font-size:13.5px;color:var(--muted);}
+.home-head .right{margin-left:auto;display:flex;gap:8px;}
+.zone{display:flex;align-items:center;gap:12px;margin-top:10px;}
+.zone .zl{font-size:11px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);white-space:nowrap;}
+.zone .zr{flex:1;height:1px;background:var(--rule);}
+.zone .zn{font-size:11.5px;color:var(--muted);white-space:nowrap;}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(262px,1fr));gap:14px;}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:16px 17px 15px;
+  display:flex;flex-direction:column;gap:11px;box-shadow:var(--shadow);}
+.card.lead{grid-column:span 2;}
+.card.full{grid-column:1/-1;}
+.card.attn{border-color:var(--warn);}
+@media (max-width:760px){.card.lead,.card.full{grid-column:span 1;}}
+.card h3{margin:0;font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);}
+.big{font-family:var(--mono);font-size:27px;font-weight:600;letter-spacing:-.5px;line-height:1;font-variant-numeric:tabular-nums;}
+.big.sm{font-size:21px;}
+.cap{font-size:12.5px;color:var(--ink-2);}
+.card .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:4px;}
+.meter{height:6px;border-radius:3px;background:var(--rule-soft);overflow:hidden;}
+.meter i{display:block;height:100%;background:var(--accent);border-radius:3px;}
+.kv-row{display:flex;align-items:center;gap:10px;font-size:13px;padding:7px 0;border-bottom:1px solid var(--rule-soft);}
+.kv-row:last-child{border-bottom:none;}
+.kv-row .nm{color:var(--ink);font-weight:500;}
+.kv-row .vl{margin-left:auto;font-family:var(--mono);font-size:12.5px;color:var(--ink-2);font-variant-numeric:tabular-nums;}
+.pill{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:3px;white-space:nowrap;}
+.p-ok{background:var(--ok-soft);color:var(--ok);}
+.p-warn{background:var(--warn-soft);color:var(--warn);}
+.p-crit{background:var(--crit-soft);color:var(--crit);}
+.p-add{background:var(--add-soft);color:var(--add);}
+.attn-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule-soft);font-size:13px;}
+.attn-row:last-child{border-bottom:none;}
+.attn-row .n{font-family:var(--mono);font-size:16px;font-weight:600;min-width:26px;}
+.attn-row .t{color:var(--ink-2);}
+.attn-row button{margin-left:auto;}
+.sbar{display:flex;height:9px;border-radius:5px;overflow:hidden;background:var(--rule-soft);}
+.sbar i{height:100%;}
+.slgd{display:flex;gap:12px;flex-wrap:wrap;margin-top:7px;}
+.slgd span{font-size:11.5px;color:var(--ink-2);display:flex;align-items:center;gap:5px;}
+.slgd i{width:8px;height:8px;border-radius:2px;display:inline-block;}
+.spark{display:flex;align-items:flex-end;gap:5px;height:40px;}
+.spark i{flex:1;border-radius:2px 2px 0 0;background:var(--accent);opacity:.35;}
+.spark i:last-child{opacity:1;}
+.sumtbl{width:100%;border-collapse:collapse;font-size:13px;}
+.sumtbl th{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+  text-align:right;padding:8px 10px;border-bottom:1px solid var(--rule);}
+.sumtbl th.l{text-align:left;}
+.sumtbl td{padding:9px 10px;border-bottom:1px solid var(--rule-soft);text-align:right;
+  font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--ink-2);}
+.sumtbl td.l{text-align:left;font-family:var(--ui);color:var(--ink);font-weight:500;}
+.sumtbl tr.tot td{background:var(--surface-2);font-weight:700;color:var(--ink);border-bottom:none;}
+.sumtbl tr.sub td{background:var(--surface-2);color:var(--muted);font-size:12px;}
+.sumtbl tr.sub td.l{padding-left:26px;font-weight:400;color:var(--ink-2);}
+.sumtbl thead tr.bands th{height:24px;padding:0 8px;text-align:left;text-transform:uppercase;
+  letter-spacing:.08em;font-size:10px;font-weight:700;border-bottom:1px solid var(--rule-soft);}
+.sumtbl thead tr.bands th.b-ref{background:var(--surface-2);color:var(--muted);}
+.sumtbl thead tr.bands th.b-edit{background:var(--accent-soft);color:var(--accent);}
+.exp{background:none;border:none;padding:0 6px 0 0;color:var(--accent);font-size:10px;}
+.acell{display:flex;flex-direction:column;align-items:flex-end;gap:1px;line-height:1.15;}
+.acell .ai{font-size:12px;}
+.acell .ao{font-size:10.5px;color:var(--muted);}
+.abar{display:inline-block;width:44px;height:5px;border-radius:3px;background:var(--rule-soft);overflow:hidden;vertical-align:middle;}
+.abar i{display:block;height:100%;}
+.accwrap{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:14px 16px 10px;
+  box-shadow:var(--shadow);display:flex;flex-direction:column;gap:11px;}
+.acchead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.acchead h4{margin:0;font-size:13.5px;font-weight:600;}
+.seg-ctl{display:flex;border:1px solid var(--rule);border-radius:5px;overflow:hidden;flex-shrink:0;}
+.seg-ctl button{height:30px;padding:0 10px;border:none;background:var(--surface);color:var(--muted);font-size:12px;font-weight:500;}
+.seg-ctl button.on{background:var(--accent-soft);color:var(--accent);font-weight:600;}
+.seg-ctl button+button{border-left:1px solid var(--rule);}
+.seg-ctl.sm button{height:24px;padding:0 7px;font-size:11px;}
+
+/* ══ EXCEPTION LIST (Home Section 1 — flagged lines needing an ASM decision) ══ */
+.exc-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--rule-soft);font-size:12.5px;}
+.exc-row:last-child{border-bottom:none;}
+.exc-main{flex:1;min-width:0;}
+.exc-main .d1{font-weight:600;color:var(--ink);}
+.exc-main .d2{color:var(--muted);font-size:11.5px;}
+.exc-dev{font-family:var(--mono);font-size:12px;font-weight:600;white-space:nowrap;}
+.exc-dev.over{color:var(--crit);} .exc-dev.under{color:var(--warn);}
+.exc-acts{display:flex;gap:6px;flex-shrink:0;}
+
+/* ══ WORKBOOK ══ */
+.wb{flex:1;display:flex;overflow:hidden;min-height:0;}
+.rail{width:262px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--rule);
+  display:flex;flex-direction:column;overflow:hidden;transition:width .16s ease;}
+.rail.collapsed{width:46px;}
+.rail-head{height:44px;flex-shrink:0;display:flex;align-items:center;gap:8px;padding:0 8px 0 14px;border-bottom:1px solid var(--rule);}
+.rail-head .t{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);flex:1;white-space:nowrap;}
+.rail-head .cnt{font-family:var(--mono);font-size:10.5px;font-weight:600;background:var(--accent-soft);
+  color:var(--accent);padding:2px 6px;border-radius:9px;}
+.rail-toggle{width:26px;height:26px;flex-shrink:0;border:none;border-radius:5px;background:transparent;
+  color:var(--muted);font-size:14px;display:flex;align-items:center;justify-content:center;}
+.rail-toggle:hover{background:var(--surface-2);color:var(--ink);}
+.rail.collapsed .rail-head{padding:0 10px;}
+.rail.collapsed .rail-head .t,.rail.collapsed .rail-head .cnt,.rail.collapsed .rail-body,.rail.collapsed .rail-foot{display:none;}
+.rail-stub{display:none;flex-direction:column;align-items:center;gap:10px;padding:12px 0;}
+.rail.collapsed .rail-stub{display:flex;}
+.rail-stub .sb{writing-mode:vertical-rl;font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.rail-stub .sc{font-family:var(--mono);font-size:10.5px;font-weight:600;background:var(--accent-soft);
+  color:var(--accent);padding:2px 5px;border-radius:8px;}
+.rail-body{flex:1;overflow-y:auto;padding:12px 14px 20px;display:flex;flex-direction:column;gap:13px;}
+.rail-body::-webkit-scrollbar{width:7px;}
+.rail-body::-webkit-scrollbar-thumb{background:var(--rule);border-radius:4px;}
+.frow{display:flex;flex-direction:column;gap:5px;}
+.frow .fl{font-size:11.5px;font-weight:600;color:var(--ink-2);display:flex;align-items:baseline;gap:6px;}
+.frow .fl .clr{margin-left:auto;font-size:10.5px;color:var(--accent);background:none;border:none;padding:0;text-decoration:underline;}
+.ms{position:relative;}
+.ms-btn{width:100%;height:32px;padding:0 9px;border:1px solid var(--rule);border-radius:5px;
+  background:var(--surface);color:var(--ink);font-size:12.5px;display:flex;align-items:center;gap:6px;text-align:left;}
+.ms-btn:hover{border-color:var(--muted);}
+.ms-btn.act{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:500;}
+.ms-btn .lbl{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ms-btn .lbl.dim{color:var(--muted);}
+.ms-btn .ca{font-size:9px;opacity:.7;}
+.ms-pop{display:none;position:absolute;top:35px;left:0;right:0;z-index:40;background:var(--surface);
+  border:1px solid var(--rule);border-radius:6px;box-shadow:var(--shadow-lg);max-height:300px;overflow:hidden;flex-direction:column;}
+.ms.open .ms-pop{display:flex;}
+.ms-search{padding:8px;border-bottom:1px solid var(--rule-soft);}
+.ms-search input{width:100%;height:30px;padding:0 9px;border:1px solid var(--rule);border-radius:4px;
+  font-size:12.5px;background:var(--surface);color:var(--ink);}
+.ms-search input:focus{outline:none;border-color:var(--accent);}
+.ms-search .ph{font-size:10.5px;color:var(--muted);margin-top:5px;line-height:1.35;}
+.ms-list{overflow-y:auto;padding:4px 0;}
+.ms-list::-webkit-scrollbar{width:7px;}
+.ms-list::-webkit-scrollbar-thumb{background:var(--rule);border-radius:4px;}
+.ms-opt{display:flex;align-items:flex-start;gap:8px;padding:6px 11px;font-size:12.5px;width:100%;
+  background:none;border:none;text-align:left;color:var(--ink);}
+.ms-opt:hover{background:var(--surface-2);}
+.ms-opt .bx{width:14px;height:14px;flex-shrink:0;margin-top:2px;border:1.5px solid var(--rule);border-radius:3px;
+  display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;}
+.ms-opt.on .bx{background:var(--accent);border-color:var(--accent);}
+.ms-opt .tx{flex:1;min-width:0;}
+.ms-opt .t1{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ms-opt .t2{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ms-opt .n{font-family:var(--mono);font-size:10.5px;color:var(--muted);flex-shrink:0;margin-top:1px;}
+.ms-foot{padding:7px 9px;border-top:1px solid var(--rule-soft);display:flex;gap:8px;align-items:center;}
+.ms-foot .c{font-size:11px;color:var(--muted);margin-left:auto;}
+.ms-empty{padding:16px 12px;text-align:center;font-size:12px;color:var(--muted);}
+.rail-foot{padding:10px 14px;border-top:1px solid var(--rule);display:flex;gap:8px;}
+
+.wb-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+.strip{height:48px;flex-shrink:0;display:flex;align-items:center;gap:9px;padding:0 14px;
+  background:var(--surface);border-bottom:1px solid var(--rule);overflow-x:auto;}
+.strip::-webkit-scrollbar{height:0;}
+.vsel{height:32px;padding:0 8px;border:1px solid var(--rule);border-radius:5px;background:var(--surface);
+  color:var(--ink);font-size:12.5px;font-weight:600;flex-shrink:0;}
+.srch{position:relative;flex-shrink:0;}
+.srch input{width:246px;height:32px;padding:0 10px 0 30px;border:1px solid var(--rule);border-radius:5px;
+  font-size:12.5px;background:var(--surface);color:var(--ink);}
+.srch input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+.srch .ic{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px;pointer-events:none;}
+.aft{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;}
+.ftok{display:inline-flex;align-items:center;gap:6px;background:var(--accent-soft);color:var(--accent);
+  border:1px solid var(--accent-line);border-radius:13px;padding:3px 8px 3px 10px;font-size:11.5px;font-weight:500;white-space:nowrap;}
+.ftok.srt{background:var(--surface-2);color:var(--ink-2);border-color:var(--rule);}
+.ftok button{background:none;border:none;color:inherit;font-size:13px;line-height:1;padding:0;opacity:.6;}
+.ftok button:hover{opacity:1;}
+.strip .sep{width:1px;height:24px;background:var(--rule);flex-shrink:0;}
+.strip .right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.rescount{font-size:12px;color:var(--muted);white-space:nowrap;}
+.rescount b{color:var(--ink);font-family:var(--mono);font-weight:600;}
+
+.grid-wrap{flex:1;overflow:auto;min-height:0;background:var(--canvas);}
+.grid-wrap::-webkit-scrollbar{width:10px;height:10px;}
+.grid-wrap::-webkit-scrollbar-thumb{background:#BCC8D2;border-radius:5px;}
+table.grid{border-collapse:separate;border-spacing:0;width:100%;min-width:1020px;background:var(--surface);}
+table.grid thead th{position:sticky;top:26px;z-index:6;background:var(--surface-2);border-bottom:1px solid var(--rule);
+  font-size:11px;font-weight:600;color:var(--muted);padding:0;height:38px;white-space:nowrap;}
+table.grid thead tr.bands th{height:26px;top:0;z-index:7;font-size:10px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;text-align:left;border-bottom:1px solid var(--rule-soft);padding:0 8px;}
+table.grid thead tr.bands th.b-ref{background:var(--surface-2);color:var(--muted);}
+table.grid thead tr.bands th.b-edit{background:var(--accent-soft);color:var(--accent);}
+.sortbtn{width:100%;height:38px;padding:0 8px;background:none;border:none;color:inherit;font:inherit;
+  display:flex;align-items:center;justify-content:flex-end;gap:4px;}
+.sortbtn.l{justify-content:flex-start;}
+.sortbtn:hover{background:var(--rule-soft);color:var(--ink);}
+.sortbtn .ar{font-size:9px;opacity:0;}
+.sortbtn:hover .ar{opacity:.45;}
+.sortbtn.on{color:var(--accent);font-weight:700;}
+.sortbtn.on .ar{opacity:1;}
+th.idc,td.idc{position:sticky;left:0;z-index:5;background:var(--surface);border-right:1px solid var(--rule);
+  text-align:left;min-width:276px;max-width:276px;}
+thead th.idc{z-index:8;background:var(--surface-2);}
+table.grid tbody td{padding:0 8px;border-bottom:1px solid var(--rule-soft);height:40px;vertical-align:middle;
+  text-align:right;font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--ink-2);}
+table.grid tbody tr:hover td{background:#F6FAFD;}
+table.grid tbody tr:hover td.idc{background:#F0F7FC;}
+table.grid tbody tr.exc td.idc{box-shadow:inset 3px 0 0 var(--warn);}
+table.grid tbody tr.isadd td.idc{box-shadow:inset 3px 0 0 var(--add);}
+table.grid tbody tr.dealer-row td{background:var(--surface-2);}
+table.grid tbody tr.dealer-row:hover td{background:#EEF3F7;}
+table.grid tbody tr.grp-row td{background:var(--accent-soft);font-weight:700;color:var(--ink);border-bottom:1px solid var(--accent-line);}
+table.grid tbody tr.grp-row td.idc{background:var(--accent-soft);}
+table.grid tbody tr.grp-row .exp-tg{color:var(--accent-2);}
+table.grid.compact tbody td{height:31px;}
+table.grid.compact .id-meta{display:none;}
+.id-cell{display:flex;align-items:center;gap:9px;padding:5px 0;}
+.id-txt{min-width:0;flex:1;}
+.id-desc{font-family:var(--ui);font-size:12.5px;font-weight:500;color:var(--ink);line-height:1.25;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.id-meta{display:flex;align-items:center;gap:7px;margin-top:1px;}
+.id-code{font-family:var(--mono);font-size:10.5px;color:var(--accent);font-weight:500;}
+.id-sm{font-size:10.5px;color:var(--muted);}
+.seg-dot{font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px;font-family:var(--ui);}
+.sg-R{background:var(--ok-soft);color:var(--ok);}
+.sg-S{background:var(--warn-soft);color:var(--warn);}
+.sg-D{background:var(--crit-soft);color:var(--crit);}
+.addtag{font-size:9.5px;font-weight:700;padding:1px 5px;border-radius:3px;background:var(--add-soft);color:var(--add);}
+.id-btn{width:22px;height:22px;flex-shrink:0;border:1px solid var(--rule);border-radius:4px;background:var(--surface);
+  color:var(--muted);font-size:11px;display:flex;align-items:center;justify-content:center;}
+.id-btn:hover{border-color:var(--accent);color:var(--accent);}
+.exp-tg{width:20px;height:20px;flex-shrink:0;border:none;background:transparent;color:var(--accent);
+  font-size:10px;display:flex;align-items:center;justify-content:center;}
+td.ref .aged{color:var(--warn);font-weight:600;}
+td.ref .aged.hot{color:var(--crit);}
+td.ref.txt{font-family:var(--ui);font-size:11.5px;text-align:left;color:var(--ink-2);white-space:nowrap;}
+td.sepL{border-left:1px solid var(--rule);}
+th.bsep,td.bsep{border-left:1px solid var(--rule);}
+.bandbtn{width:100%;height:26px;padding:0 8px;background:none;border:none;color:inherit;font:inherit;
+  display:flex;align-items:center;gap:5px;text-align:left;}
+.bandbtn:hover{background:rgba(0,0,0,.05);}
+.bandbtn .bm{font-size:8px;opacity:.6;}
+.id-meta .diff{color:var(--warn);font-weight:700;}
+.colpop{position:absolute;top:34px;right:0;z-index:45;width:318px;background:var(--surface);
+  border:1px solid var(--rule);border-radius:7px;box-shadow:var(--shadow-lg);overflow:hidden;}
+.cp-sec{padding:11px 13px;border-bottom:1px solid var(--rule-soft);}
+.cp-lbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.cp-presets{display:flex;flex-wrap:wrap;gap:5px;}
+.chipx{padding:4px 10px;border-radius:13px;font-size:11.5px;font-weight:500;border:1px solid var(--rule);
+  background:var(--surface);color:var(--ink-2);}
+.chipx:hover{border-color:var(--accent);color:var(--accent);}
+.chipx.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+.cp-row{display:flex;align-items:center;gap:10px;padding:5px 0;}
+.cp-row.dis{opacity:.55;}
+.cp-n{font-size:12.5px;color:var(--ink);flex:1;min-width:0;}
+.cp-c{font-size:10.5px;color:var(--muted);margin-left:6px;font-family:var(--mono);}
+.cp-note{font-size:10.5px;color:var(--muted);text-align:right;max-width:130px;line-height:1.3;}
+.cp-foot{padding:9px 13px;font-size:11px;color:var(--muted);background:var(--surface-2);}
+.cellin{width:52px;height:26px;padding:0 6px;border:1px solid var(--rule);border-radius:4px;text-align:right;
+  font-family:var(--mono);font-size:12.5px;background:var(--surface);color:var(--ink);font-variant-numeric:tabular-nums;}
+.cellin:hover{border-color:var(--muted);}
+.cellin:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+.cellin:disabled{background:var(--surface-2);color:var(--muted);border-color:var(--rule-soft);}
+.cellin.ovr{border-color:var(--warn);background:var(--warn-soft);}
+.carry{display:block;font-family:var(--mono);font-size:9.5px;color:var(--muted);text-align:right;margin-top:1px;line-height:1;}
+td.tot{font-weight:600;color:var(--ink);background:var(--surface-2);}
+td.gtot{font-weight:700;color:var(--accent);background:var(--accent-soft);}
+.empty-state{padding:56px 24px;text-align:center;color:var(--muted);}
+.empty-state .t{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:5px;}
+.reason-inl{display:flex;align-items:center;gap:5px;margin-top:2px;}
+.reason-inl input{width:100%;height:22px;padding:0 6px;border:1px solid var(--warn);border-radius:3px;
+  font-size:10.5px;background:var(--surface);color:var(--ink);}
+.reason-flag{font-size:9px;font-weight:700;color:var(--warn);white-space:nowrap;}
+
+.commit{height:52px;flex-shrink:0;background:var(--surface);border-top:1px solid var(--rule);
+  display:flex;align-items:center;gap:16px;padding:0 16px;box-shadow:0 -2px 8px rgba(16,32,45,.05);overflow-x:auto;}
+.commit .stat{display:flex;align-items:baseline;gap:7px;white-space:nowrap;}
+.commit .stat .v{font-family:var(--mono);font-size:16px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;}
+.commit .stat .k{font-size:11.5px;color:var(--muted);}
+.commit .div{width:1px;height:24px;background:var(--rule);flex-shrink:0;}
+.commit .right{margin-left:auto;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.commit .saved{font-size:11.5px;color:var(--muted);white-space:nowrap;}
+
+.scrim{display:none;position:fixed;inset:0;background:rgba(16,32,45,.42);z-index:60;}
+.scrim.on{display:block;}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:396px;max-width:92vw;background:var(--surface);
+  z-index:61;box-shadow:var(--shadow-lg);display:none;flex-direction:column;}
+.drawer.on{display:flex;}
+.dr-head{padding:16px 18px 14px;border-bottom:1px solid var(--rule);display:flex;gap:12px;align-items:flex-start;}
+.dr-head h3{margin:0;font-size:15.5px;font-weight:600;line-height:1.3;}
+.dr-head .cd{font-family:var(--mono);font-size:11.5px;color:var(--accent);margin-top:3px;}
+.dr-close{width:28px;height:28px;flex-shrink:0;margin-left:auto;border:none;border-radius:5px;
+  background:transparent;color:var(--muted);font-size:16px;}
+.dr-close:hover{background:var(--surface-2);color:var(--ink);}
+.dr-body{flex:1;overflow-y:auto;padding:4px 18px 24px;}
+.dr-sec{padding:15px 0;border-bottom:1px solid var(--rule-soft);}
+.dr-sec:last-child{border-bottom:none;}
+.dr-sec h4{margin:0 0 9px;font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);}
+.dr-i{display:flex;align-items:baseline;gap:8px;font-size:12.5px;padding:4px 0;border-bottom:1px solid var(--rule-soft);}
+.dr-i .k{color:var(--muted);}
+.dr-i .v{margin-left:auto;font-family:var(--mono);font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;}
+.dr-i .v.w{color:var(--warn);} .dr-i .v.c{color:var(--crit);}
+.dr-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;}
+.dr-src{font-size:11px;color:var(--muted);margin-top:8px;}
+
+.modal{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;padding:20px;
+  background:rgba(16,32,45,.48);}
+.modal.on{display:flex;}
+.mbox{background:var(--surface);border-radius:10px;width:100%;max-width:480px;max-height:86vh;
+  display:flex;flex-direction:column;box-shadow:var(--shadow-lg);overflow:hidden;}
+.mbox.wide{max-width:620px;}
+.mhead{padding:18px 20px 14px;border-bottom:1px solid var(--rule);}
+.mhead h3{margin:0;font-size:17px;font-weight:600;}
+.mhead .s{font-size:12.5px;color:var(--muted);margin-top:3px;}
+.mbody{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:14px;}
+.mrow{display:flex;align-items:baseline;gap:10px;font-size:13.5px;padding:7px 0;border-bottom:1px solid var(--rule-soft);}
+.mrow .k{color:var(--ink-2);}
+.mrow .v{margin-left:auto;font-family:var(--mono);font-weight:600;font-size:14.5px;color:var(--ink);font-variant-numeric:tabular-nums;}
+.notice{border-radius:6px;padding:11px 13px;font-size:12.5px;display:flex;gap:9px;align-items:flex-start;line-height:1.5;}
+.n-warn{background:var(--warn-soft);color:var(--warn);}
+.n-acc{background:var(--accent-soft);color:var(--accent-2);}
+.n-add{background:var(--add-soft);color:var(--add);}
+.mfoot{padding:14px 20px;border-top:1px solid var(--rule);display:flex;gap:10px;justify-content:flex-end;align-items:center;}
+.mfoot .l{margin-right:auto;font-size:12px;color:var(--muted);}
+.toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(10px);z-index:80;
+  background:var(--bar);color:#fff;padding:10px 16px;border-radius:6px;font-size:13px;
+  box-shadow:var(--shadow-lg);opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;}}
+@media (max-width:900px){
+  .rail{position:absolute;left:0;top:0;bottom:52px;z-index:30;box-shadow:var(--shadow-lg);}
+  .rail.collapsed{width:46px;}
+  .tb-status .seg:nth-child(n+2){display:none;}
+  .srch input{width:160px;}
+}
+</style>
+</head>
+<body>
+<!-- ══ LOGIN (P-01) ══ -->
+<div id="login">
+  <div class="lg-shell">
+    <div>
+      <div class="lg-logo">VECV<span>plan</span></div>
+      <div class="lg-cycle"><span>S&amp;OP-1A</span><b>Jul 2026</b><span>· Cluster review closes</span><b>16 Jul, 23:59 IST</b></div>
+    </div>
+    <form class="lg-card" onsubmit="doLogin(event)">
+      <h1>Sign in</h1>
+      <p class="sub">ASM code or work email.</p>
+      <div class="fld" id="fId">
+        <label for="lgId">ASM code or email</label>
+        <input id="lgId" type="text" value="ASM-NORTH" autocomplete="username" oninput="clearErr()">
+        <span class="err">⚠ We don't recognise that ASM code.</span>
+      </div>
+      <div class="fld" id="fPw">
+        <label for="lgPw">Password <button type="button" class="link hint" onclick="toast('A reset link would go to the address on file')">Forgot password?</button></label>
+        <input id="lgPw" type="password" value="demo-password" autocomplete="current-password" oninput="clearErr()">
+        <span class="err">⚠ Incorrect password. 4 attempts left before the account locks.</span>
+      </div>
+      <button type="submit" class="btn btn-primary" style="height:38px;justify-content:center;font-size:14px;">Sign in</button>
+      <div class="lg-or">or</div>
+      <button type="button" class="btn btn-ghost" style="height:38px;justify-content:center;font-size:13.5px;" onclick="doLogin(event)">Sign in with VECVNet SSO</button>
+      <p class="lg-foot">Trouble signing in? Contact Sales Planning support</p>
+    </form>
+    <p class="lg-note">Prototype · your role and cluster come from your account · P-01, same login screen as every persona</p>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+  <div class="topbar">
+    <div class="tb-logo">VECV<span>plan</span></div>
+    <nav class="tb-nav">
+      <button id="nvHome" class="on" onclick="go('home')">Home</button>
+      <button id="nvWb" onclick="go('wb')">Indent workbook</button>
+    </nav>
+    <div class="tb-status">
+      <span class="seg">S&amp;OP-1A · <b>Jul 2026</b></span>
+      <span class="seg">Closes in <span class="warnv" id="tbClock">—</span></span>
+      <span class="seg" id="tbState">Status: <b>2 of 2 dealers submitted</b></span>
+    </div>
+    <div class="tb-right">
+      <button class="tb-icon" onclick="toggleTheme()" title="Light / dark">◐</button>
+      <div class="tb-user">
+        <div class="tb-av">RK</div>
+        <div><div class="nm">R. Khanna</div><div class="rl">ASM · North Cluster</div></div>
+      </div>
+      <button class="tb-icon" onclick="signOut()" title="Sign out">⎋</button>
+    </div>
+  </div>
+
+  <div class="page">
+    <!-- HOME + SUMMARY -->
+    <div class="view on" id="vHome">
+      <div class="wb"><div id="homeRailMount"></div><div class="home-scroll"><div class="home-inner">
+        <div class="proto-strip">
+          <span class="pl">Prototype control</span>
+          <label for="personaSel">Viewing as</label>
+          <select id="personaSel" onchange="setPersona(this.value)"><option value="dealer">Dealer — Sharma Motors</option><option value="asm" selected>ASM — North Cluster</option><option value="rsm">RSM — North Region</option><option value="vh">Vertical Head — LMD</option><option value="iso">ISO — Central Planning</option></select>
+          <span class="np">Persona switching lives here, not in the product chrome — P-02</span>
+        </div>
+
+        <div class="home-head">
+          <div><h1>Good afternoon, R. Khanna</h1>
+            <div class="sub">July 2026 · North Cluster · LMD and HD · 2 dealer groups, 4 outlets</div></div>
+          <div class="right">
+            <button class="btn btn-ghost" onclick="openExport()">Export</button>
+            <button class="btn btn-primary" onclick="go('wb')">Continue to indent workbook →</button>
+          </div>
+        </div>
+
+        <div class="zone"><span class="zl">Indent progress</span><span class="zr"></span>
+          <span class="zn" id="zProg"></span></div>
+        <div class="cards">
+          <div class="card lead">
+            <h3 id="hcTitle">Cluster indent — LMD</h3>
+            <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;">
+              <div><div class="big" id="hcEntered">—</div><div class="cap">of — dealers submitted</div></div>
+              <div><div class="big" id="hcUnits">—</div><div class="cap">units for July, cluster total</div></div>
+              <div style="margin-left:auto"><span class="pill" id="hcStatus">In progress</span></div>
+            </div>
+            <div class="meter"><i id="hcMeter" style="width:0%"></i></div>
+            <div class="cap">Cluster indent auto-submits to <b>P. Mehta, RSM North Region</b> at <b>16 Jul, 23:59 IST</b>. Whatever is unresolved then goes up as-is.</div>
+            <div class="acts">
+              <button class="btn btn-primary btn-sm" onclick="go('wb')">Open indent workbook</button>
+              <button class="btn btn-ghost btn-sm" onclick="saveAsm()">Save</button>
+            </div>
+          </div>
+          <div class="card attn" style="cursor:pointer" onclick="toggleAttn()">
+            <h3>Dealers needing attention</h3>
+            <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap">
+              <div><div class="big" id="hcAttnCount" style="color:var(--warn)">—</div><div class="cap">line<span id="hcAttnCountCap"></span> flagged, cluster-wide</div></div>
+            </div>
+            <div class="cap" id="hcAttnCap" style="color:var(--muted)"></div>
+            <div class="acts"><button class="btn btn-ghost btn-sm" id="attnBtn" onclick="event.stopPropagation();toggleAttn()">▸ Review flagged lines</button></div>
+          </div>
+          <div class="card">
+            <h3>Your dealers</h3>
+            <div id="hcDealers"></div>
+          </div>
+        </div>
+
+        <div id="attnPanel" style="display:none"></div>
+
+        <div class="zone"><span class="zl">Summary</span><span class="zr"></span>
+          <span class="zn">Reflects the filters you set in the indent workbook · carried over from the CSM summary (D-07 resolved)</span></div>
+        <div class="cards">
+          <div class="card">
+            <h3>Cluster indent vs last cycle</h3>
+            <div style="display:flex;align-items:flex-end;gap:16px;">
+              <div><div class="big sm" id="kIndent">—</div><div class="cap">July cluster indent</div></div>
+              <div><div class="big sm" id="kPrev">—</div><div class="cap">planned last cycle</div></div>
+            </div>
+            <div class="cap"><span class="pill" id="kPrevPill">—</span> vs last cycle's plan for July</div>
+          </div>
+          <div class="card">
+            <h3>M1 indent vs ABP target</h3>
+            <div style="display:flex;align-items:flex-end;gap:16px;">
+              <div><div class="big sm" id="kAbpPct">—</div><div class="cap" id="kAbpCap">of ABP target</div></div>
+            </div>
+            <div class="meter" style="margin-top:2px"><i id="kAbpMeter" style="width:0%"></i></div>
+            <div class="cap" style="color:var(--muted)">ABP target split across FERTs by offtake share · same ABP integration as the dealer screen (#24-lite).</div>
+          </div>
+          <div class="card" style="cursor:pointer" onclick="toggleAcc()">
+            <h3>Indent accuracy</h3>
+            <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;">
+              <div><div class="big sm" id="kAcc">—</div><div class="cap">cluster avg · 4-cycle</div></div>
+              <div><div class="big sm" id="kBias">—</div><div class="cap" id="kBiasCap">bias</div></div>
+              <div style="margin-left:auto"><span class="pill" id="kAccPill">—</span></div>
+            </div>
+            <div style="max-width:260px"><div class="spark" id="kSpark"></div></div>
+            <div class="cap" style="color:var(--muted)">Tolerance ±10% — same figure that gates an override reason in the grid.</div>
+            <div class="acts"><button class="btn btn-ghost btn-sm" id="accBtn" onclick="event.stopPropagation();toggleAcc()">▸ View report card</button></div>
+          </div>
+        </div>
+
+        <div class="zone"><span class="zl">Inventory &amp; mix</span><span class="zr"></span><span class="zn">Stock ageing and Eicher segment mix for the current workbook scope</span></div>
+        <div class="cards">
+          <div class="card"><h3>Stock &lt;60D</h3><div class="big sm" id="invStock60">—</div><div class="cap" id="invStock60Cap">of total stock</div></div>
+          <div class="card"><h3>Aged stock</h3><div class="big sm" style="color:var(--warn)" id="invAged">—</div><div class="cap" id="invAgedCap">60+ days</div></div>
+          <div class="card"><h3>Demand mix — Runner / Repeater / Stranger</h3><div class="big sm" id="invMix">—</div><div class="cap" id="invMixCap">FERTs in your July indent</div><div style="height:12px;background:var(--surface-2);border-radius:8px;overflow:hidden;display:flex;margin:12px 0"><i id="invRunnerBar" style="display:block;background:var(--ok);width:0%"></i><i id="invRepeaterBar" style="display:block;background:var(--warn);width:0%"></i><i id="invStrangerBar" style="display:block;background:var(--crit);width:0%"></i></div><div class="cap" id="invRunnerDetail" style="margin:7px 0"></div><div class="cap" id="invRepeaterDetail" style="margin:7px 0"></div><div class="cap" id="invStrangerDetail" style="margin:7px 0"></div><div class="cap" id="invMixNote" style="margin-top:12px"></div></div>
+        </div>
+        <div id="accPanel" style="display:none"></div>
+
+        <div class="zone"><span class="zl">Rollup</span><span class="zr"></span></div>
+        <div class="card" style="padding:12px 14px 10px;gap:10px">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <span style="font-size:11.5px;font-weight:600;color:var(--ink-2)">Group by</span>
+            <div class="seg-ctl" id="rollGb"></div>
+            <span style="margin-left:auto;font-size:11.5px;color:var(--muted)" id="rollNote"></span>
+          </div>
+          <div style="overflow-x:auto"><table class="sumtbl" id="rollTbl"></table></div>
+        </div>
+      </div></div></div>
+    </div>
+
+    <!-- WORKBOOK -->
+    <div class="view" id="vWb">
+      <div class="wb">
+        <aside class="rail" id="rail">
+          <div class="rail-head">
+            <span class="t">Filters</span><span class="cnt" id="railCnt" style="display:none">0</span>
+            <button class="rail-toggle" onclick="toggleRail()" id="railBtn" title="Collapse">‹</button>
+          </div>
+          <div class="rail-stub" onclick="toggleRail()"><span class="sc" id="stubCnt" style="display:none">0</span><span class="sb">Filters</span></div>
+          <div class="rail-body" id="railBody"></div>
+          <div class="rail-foot">
+            <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" onclick="clearAll()">Clear all</button>
+            <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" onclick="saveView()">Save view</button>
+          </div>
+        </aside>
+
+        <div class="wb-main">
+          <div class="strip">
+            <select class="vsel" id="vertSel" onchange="setVert(this.value)">
+              <option value="lmd">LMD</option><option value="hd">HD</option>
+            </select>
+            <div class="srch"><span class="ic">⌕</span>
+              <input id="qBox" type="text" placeholder="Search code or description" oninput="setQ(this.value)"></div>
+            <div class="aft" id="aft"></div>
+            <div class="right">
+              <span style="font-size:11px;color:var(--muted)">Group by</span>
+              <div class="seg-ctl" id="gbCtl"></div>
+              <span class="sep"></span>
+              <span class="rescount" id="resCount"></span>
+              <span class="sep"></span>
+              <div class="seg-ctl">
+                <button id="dnComf" class="on" onclick="setDensity(0)">Comfortable</button>
+                <button id="dnComp" onclick="setDensity(1)">Compact</button>
+              </div>
+              <div style="position:relative">
+                <button class="btn btn-ghost btn-sm" id="colBtn" onclick="toggleColPop(event)">☷ Columns</button>
+                <div class="colpop" id="colPop" style="display:none" onclick="event.stopPropagation()"></div>
+              </div>
+              <button class="btn btn-ghost btn-sm" onclick="openExport()">Export</button>
+            </div>
+          </div>
+          <div class="grid-wrap" id="gridWrap">
+            <table class="grid" id="grid"><thead id="gHead"></thead><tbody id="gBody"></tbody></table>
+            <div class="empty-state" id="gEmpty" style="display:none">
+              <div class="t">No lines match these filters</div>
+              <div>Clear a filter to bring lines back — nothing in the cluster is touched.</div>
+              <div style="margin-top:12px"><button class="btn btn-ghost btn-sm" onclick="clearAll()">Clear all filters</button></div>
+            </div>
+          </div>
+          <div class="commit" id="commit"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="scrim" id="scrim" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer" aria-label="Line detail"></aside>
+
+<div class="modal" id="review"><div class="mbox">
+  <div class="mhead"><h3>Review &amp; submit</h3><div class="s" id="revSub"></div></div>
+  <div class="mbody" id="reviewBody"></div>
+  <div class="mfoot"><button class="btn btn-ghost" onclick="closeM('review')">Cancel</button>
+    <button class="btn btn-primary" id="revSubmitBtn" onclick="saveAsm()">Save</button></div>
+</div></div>
+
+<div class="modal" id="expM"><div class="mbox wide">
+  <div class="mhead"><h3>Export</h3><div class="s" id="expSub"></div></div>
+  <div class="mbody">
+    <div class="notice n-acc"><span>ⓘ</span><div>In the live product this downloads a file. Here it's on screen so you can check the shape — select all and copy.</div></div>
+    <textarea class="csvbox" id="csvBox" readonly onclick="this.select()" style="width:100%;height:170px;border:1px solid var(--rule);border-radius:6px;padding:9px;font-family:var(--mono);font-size:11px;background:var(--surface-2);color:var(--ink-2);resize:none;white-space:pre"></textarea>
+  </div>
+  <div class="mfoot"><button class="btn btn-ghost" onclick="closeM('expM')">Close</button>
+    <button class="btn btn-primary" onclick="copyCsv()">Copy to clipboard</button></div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   VECVplan — ASM (cluster moderation), first build.
+   Reuses the LMD/HD FERT catalogue and numbers from the Dealer
+   Prototype v4.5 verbatim — Sharma Motors' figures here are the same
+   dealer group that prototype represents, so the two files agree with
+   each other. Capital Trucks (the cluster's second dealer group) is
+   new: its per-FERT figures are Sharma Motors' figures scaled by
+   CAPITAL_FACTOR, the same ratio (38 / 120) as the two groups' real
+   ABP targets from the old CSM reference data — a stated, consistent
+   derivation, not invented from nothing.
+
+   Confirmed with the client before this build (2026-09-12):
+   · Reference layers (P-08 bands): dealer indent, last cycle, dealer's
+     own 3-month average, plus ABP target.
+   · Deviation band gating an override reason: ±10%, reused from the
+     tolerance already confirmed elsewhere in the product.
+   · Reason capture: free text (matches the one existing precedent on
+     the ISO screen) — no fixed list.
+   · Home: two sections like the dealer's (P-04) — Section 1 leads with
+     cluster indent progress AND folds in the lines needing a decision;
+     Section 2 Summary is carried over from the old CSM Summary screen
+     (Total Indent / ABP / Accuracy report card / stock & mix bars /
+     rollup), not reinvented.
+
+   Scope note: "Add FERT" (P-11) is not carried into this screen. It is
+   how a dealer originates a new code, not something an ASM does — the
+   pattern doc does not list P-11 as one of the patterns ASM carries
+   over. Flagging this here rather than silently dropping it (P-19).
+   Pipeline columns (FA/FC/Hot Inquiry) stay disabled, same as Dealer —
+   D-06 excludes them pending a real source. */
+
+const TOL=10; // ACCURACY_TOLERANCE_PCT, confirmed — reused as the override-reason gate too
+const CAPITAL_FACTOR=38/120; // Capital Trucks' ABP (38) vs Sharma Motors' combined ABP (40+45+35=120)
+
+/* tuple: 0 code 1 desc 2 mpg 3 ton 4 fuel 5 ac 6 seg 7 subV
+   8 st<60 9 st60-90 10 st90-180 11 st>180 12 openFg 13 openPO 14 offtakeL3 15 prevPlan 16-19 w1-w4 20 aug 21 sep
+   — identical to VECVplan-Dealer-Prototype-v4_5.html so the two files agree. */
+const LMD_RAW=[
+["V4130CAF","Pro 2110 H HSD 20FT BSVI NGB AC","Pro 2110","21T","Diesel","AC","R","5–16T",4,2,1,1,4,1,84,95,24,23,23,22,88,82],
+["V4030DZL","Pro 2110 L CBC 22FT BSVI NGB AC","Pro 2110","21T","Diesel","AC","R","5–16T",17,0,0,0,17,0,71,75,19,18,18,18,70,65],
+["V4131SLP","Pro 2110 M SLP 24FT BSVI NGB","Pro 2110","21T","Diesel","NonAC","S","5–16T",3,1,0,0,3,2,38,40,10,10,9,9,36,34],
+["V5530TKR","Pro 2059XP Plus F HSD EW 14FT BSVI AC","Pro 2059XP","14T","Diesel","AC","R","5–16T",1,0,1,0,1,0,42,38,9,8,8,8,35,32],
+["V5531CBC","Pro 2059XP E CBC 14FT BSVI AC POR","Pro 2059XP","14T","Diesel","AC","R","5–16T",2,1,0,0,2,1,36,34,9,8,8,7,32,30],
+["V5532SLP","Pro 2059XP M SLP CBC BSVI SRSS WTL","Pro 2059XP","14T","Diesel","NonAC","S","5–16T",0,2,1,0,3,0,18,20,5,4,4,4,17,16],
+["V4025EXP","Pro 2095XPT D FBT BSVI LY PRM","Pro 2095XPT","16T","Diesel","NonAC","S","5–16T",3,1,1,0,5,2,30,26,8,8,7,7,28,26],
+["V3515SUB","Pro 2095XP F HSD 16FT BSVI AC NGB","Pro 2095XP","16T","Diesel","AC","R","5–16T",6,1,1,0,8,1,36,42,10,10,9,9,38,35],
+["V3516WTK","Pro 2095 F 16FT WTANK BSVI AC NGB 5S","Pro 2095XP","16T","Diesel","AC","S","5–16T",1,0,0,0,1,0,14,16,4,4,3,3,13,12],
+["V3517MSC","Pro 2095XP G MSC BSVI AC 5S POR PRM","Pro 2095XP","16T","Diesel","AC","D","5–16T",0,1,1,1,3,0,6,9,2,1,1,1,6,5],
+["V3518CNG","Pro 2095XP F CNG 16FT BSVI AC NGB","Pro 2095XP","16T","CNG","AC","S","5–16T",2,0,0,0,2,3,22,18,6,5,5,5,21,20],
+["V2875CBC","Pro 2075 D CBC 12FT AB BSVI AC DW 5S","Pro 2075","18T","Diesel","AC","R","5–16T",5,2,0,0,7,1,48,52,13,12,12,12,46,44],
+["V2680LHD","Pro 2080 G DSD 18FT BSVI DW BASE","Pro 2080","20T","Diesel","NonAC","R","5–16T",4,1,0,0,5,2,40,38,10,10,10,9,38,36],
+["V2490CBC","Pro 2049 D BSVI 14FT CBC DW PRM","Pro 2049","12T","Diesel","NonAC","R","5–16T",3,1,0,0,4,1,44,46,12,11,11,11,42,40],
+["V3015MSL","Pro 3015 M SLP CBC BSVI TY PRM","Pro 3015","15T","Diesel","NonAC","R","5–16T",5,0,0,0,5,2,34,32,9,8,8,8,31,30],
+["V1095XPC","Pro 1095XP H CBC BSVI AB PS TY 4.7","Pro 1095XP","9T","Diesel","AC","S","Sub-5T",3,1,0,0,4,1,26,24,7,6,6,6,24,22],
+["V1075HCB","Pro 1075 H CBC RHD BSVI AB PRM TY","Pro 1075","7.5T","Diesel","NonAC","R","Sub-5T",2,1,0,0,3,0,28,26,7,7,6,6,25,24],
+["V1055C1C","Pro 1055 C1 CBC BSVI 4.7 HB TY PRM","Pro 1055","5.5T","Diesel","NonAC","R","Sub-5T",6,1,0,0,7,2,36,34,10,9,9,8,33,31],
+];
+const HD_RAW=[
+["H6028XPG","Pro 6028XPT G BSVI DW PRM 11X20 16BB","Pro 6028","28T","Diesel","AC","R","HD 4x2",2,1,0,0,3,1,22,24,0,0,0,0,0,0],
+["H6019XPF","Pro 6019XPT F BSVI DW 11X20 8.5B UTEB","Pro 6019","19T","Diesel","NonAC","R","HD 4x2",3,1,0,0,4,0,26,28,0,0,0,0,0,0],
+["H8028TIP","Pro 8028 6x4 Tipper BSVI","Pro 8028","28T","Diesel","NonAC","S","Tipper",0,1,0,1,2,0,9,11,0,0,0,0,0,0],
+["H6040MAV","Pro 6040 E BSVI CBC MAV 10x2","Pro 6040","40T","Diesel","AC","R","MAV",3,0,0,0,3,2,20,22,0,0,0,0,0,0],
+["H5516TTR","Pro 5516 Tractor Trailer BSVI 4x2","Pro 5516","16T","Diesel","AC","R","Tractor Trailer",2,1,0,0,3,1,16,17,0,0,0,0,0,0],
+];
+const SEGNAME={R:'Runner',S:'Repeater',D:'Stranger'};
+const SEGCOL={R:'var(--ok)',S:'var(--warn)',D:'var(--crit)'};
+
+/* dealer roster — the cluster's 2 dealer groups. Sharma Motors is exactly the group represented in
+   the Dealer Prototype; Capital Trucks is scaled from it (see CAPITAL_FACTOR note above). */
+/* abpTarget is set close to each dealer's own accHistory average on purpose: the old CSM reference
+   file's abpTarget values (120 / 38) were captured on a different mock dataset at a different scale
+   to this file's LMD/HD catalogue (borrowed verbatim from the Dealer Prototype) and are not
+   comparable to it — using them as-is made the ABP check flag literally every line. Anchoring ABP to
+   each dealer's own recent run-rate keeps the comparison meaningful (on-target by default, with
+   genuine per-FERT variation producing a believable minority of flags) rather than silently
+   inheriting a mismatched number. */
+const DEALER_GROUPS=[
+  {code:'GRP-1002',name:'Sharma Motors',loc:'Delhi NCR · 3 outlets',factor:1,abpTarget:300,
+   accHistory:[{m:'Mar',ind:286,off:268},{m:'Apr',ind:292,off:279},{m:'May',ind:288,off:265},{m:'Jun',ind:296,off:271}]},
+  {code:'DLR-1014',name:'Capital Trucks',loc:'Gurugram · 1 outlet',factor:CAPITAL_FACTOR,abpTarget:95,
+   accHistory:[{m:'Mar',ind:90,off:79},{m:'Apr',ind:93,off:83},{m:'May',ind:91,off:76},{m:'Jun',ind:94,off:80}]},
+];
+
+let uid=0;
+function mk(r,vertKey){
+  const o3=r[14]!==undefined?r[14]:0;
+  const base={i:uid++, code:r[0], desc:r[1], mpg:r[2], ton:r[3], fuel:r[4], ac:r[5], seg:r[6], eseg:r[6], sv:r[7], vert:vertKey,
+    s60:r[8]||0,s90:r[9]||0,s180:r[10]||0,sOver:r[11]||0,openFg:r[12]||0,openPO:r[13]||0,
+    o3, o6:Math.round(o3*2.05), o12:Math.round(o3*4.1), oly:Math.round(o3*3.6),
+    r3:Math.round(o3*0.42), r6:Math.round(o3*0.86), r12:Math.round(o3*1.7), rly:Math.round(o3*1.5),
+    prev:r[15]||0,
+    dealerV:[r[16]||0,r[17]||0,r[18]||0,r[19]||0,r[20]||0,r[21]||0],
+    /* the ASM's override lives HERE — at the consolidated FERT level, one number per line for the
+       whole cluster — not per dealer. ovr starts empty (nothing touched yet). */
+    ovr:[null,null,null,null,null,null], reason:''};
+  /* per-dealer breakdown: Sharma = the raw figures above (this cycle's dealer-submitted quantities and
+     last cycle's plan); Capital Trucks = the same figures scaled by CAPITAL_FACTOR. This is read-only
+     reference for the ASM — what each dealer actually submitted, never edited directly; it's the
+     consolidated FERT total above that the ASM moderates. */
+  base.dealers=DEALER_GROUPS.map(g=>({
+    code:g.code, name:g.name,
+    submitted:g.factor===1?base.dealerV.slice():base.dealerV.map(v=>Math.round(v*g.factor)),
+    prevSubmitted:g.factor===1?base.prev:Math.round(base.prev*g.factor)
+  }));
+  return base;
+}
+const SETS={lmd:LMD_RAW.map(r=>mk(r,'lmd')), hd:HD_RAW.map(r=>mk(r,'hd'))};
+const VERTNAME={lmd:'LMD',hd:'HD'};
+let vert='lmd';
+let D=SETS[vert];
+
+/* the fixed total a dealer actually submitted for a column — never changes once the cycle opened;
+   the ASM's override (f.ovr) never touches this, it only overrides the CONSOLIDATED total below. */
+function dealerSubmittedTotal(dl){ return dl.submitted.reduce((a,b)=>a+b,0); }
+function dealerSubmittedJul(dl){ return dl.submitted[0]+dl.submitted[1]+dl.submitted[2]+dl.submitted[3]; }
+/* CONSOLIDATED FERT total = what all dealers submitted for that column, summed — this is the default
+   the ASM sees and moderates. clusterV is the CURRENT figure: the ASM's override if one exists at the
+   FERT level, else the consolidated submitted default. There is no per-dealer override any more. */
+function clusterSubmitted(f,c){ return f.dealers.reduce((a,dl)=>a+dl.submitted[c],0); }
+function clusterV(f,c){ return f.ovr[c]!==null?f.ovr[c]:clusterSubmitted(f,c); }
+function jul(f){ return clusterV(f,0)+clusterV(f,1)+clusterV(f,2)+clusterV(f,3); }
+function gTot(f){ return jul(f)+clusterV(f,4)+clusterV(f,5); }
+function clusterPrev(f){ return f.dealers.reduce((a,dl)=>a+dl.prevSubmitted,0); }
+function dlOf(f,code){ return f.dealers.find(d=>d.code===code); }
+const stockTot=d=>d.s60+d.s90+d.s180+d.sOver;
+const hasEntry=f=>f.dealers.some(dl=>dl.submitted.some(v=>v>0))||f.ovr.some(v=>v!==null);
+/* a FERT line's consolidated total is "in exception" if the ASM's override strays outside ±TOL% of
+   what the cluster's dealers actually submitted for it, and no reason has been recorded yet */
+function fertSubmittedTotal(f){ return f.dealers.reduce((a,dl)=>a+dealerSubmittedTotal(dl),0); }
+function fertCurrentTotal(f){ return [0,1,2,3,4,5].reduce((a,c)=>a+clusterV(f,c),0); }
+function fertDeviationPct(f){
+  const base=fertSubmittedTotal(f); if(!base)return 0;
+  return Math.round((fertCurrentTotal(f)-base)/base*100);
+}
+function fertNeedsReason(f){ return Math.abs(fertDeviationPct(f))>TOL && !f.reason; }
+/* which of the two dealer groups a dealer is, as a share of the cluster — used only to split
+   cluster-level reference figures back down to an illustrative per-dealer share for review views
+   (the rollup's "by dealer" grouping, and the workbook's read-only dealer breakdown); it plays no
+   part in flagging or overriding, which now happen at the consolidated FERT level only. */
+function dealerShareFactor(dl){ return dl.code==='GRP-1002' ? 1/(1+CAPITAL_FACTOR) : CAPITAL_FACTOR/(1+CAPITAL_FACTOR); }
+function dealerExpected3mo(f,dl){ return Math.round(threeMoAvg(f)*dealerShareFactor(dl)); }
+function dealerExpectedAbp(f,dl){ return Math.round(abpForFert(f)*dealerShareFactor(dl)); }
+/* the flag that puts a line in the ASM's "needs a decision" list: what the cluster's dealers actually
+   submitted for this FERT (before any ASM override) deviates more than ±TOL% from either the 3-month
+   average or the ABP target — same two comparisons, same ±10%, as the old CSM screen's Flagged
+   Dealers panel, now evaluated once per consolidated line rather than once per dealer. */
+function fertFlag(f){
+  const actual=clusterSubmittedJul(f); // July only — same monthly scale as the 3-month average and ABP bands below
+  const exp3=threeMoAvg(f), expAbp=abpForFert(f);
+  const dev3=exp3?Math.round((actual-exp3)/exp3*100):0;
+  const devAbp=expAbp?Math.round((actual-expAbp)/expAbp*100):0;
+  const mainDev=Math.abs(dev3)>=Math.abs(devAbp)?dev3:devAbp;
+  return {flagged:Math.abs(dev3)>TOL||Math.abs(devAbp)>TOL, dev3, devAbp, mainDev};
+}
+/* a line is "open" — needing ASM review — if it was flagged on submission and hasn't been overridden
+   yet; or if an override was made that itself strays outside ±TOL% of what the cluster actually
+   submitted, with no reason recorded for that. There is no separate "accept as submitted" action any
+   more — the only way to close a flagged-at-submission line is to actually override it; the only way
+   to close a line whose override itself deviates is to give a reason. */
+function fertOpen(f){
+  const untouched=f.ovr.every(v=>v===null);
+  if(untouched&&fertFlag(f).flagged)return true;
+  if(!untouched&&fertNeedsReason(f))return true;
+  return false;
+}
+function fertHasException(f){ return fertOpen(f); }
+/* a clear, unambiguous sentence for why a line needs review — direction spelled out (above/below),
+   not just an arrow and a bare percentage. Used in the line-detail drawer and the attention panel;
+   returns null when the line isn't currently flagged. */
+function fertFlagExplain(f){
+  const untouched=f.ovr.every(v=>v===null);
+  if(untouched){
+    const flag=fertFlag(f);
+    if(!flag.flagged)return null;
+    const useAbp=Math.abs(flag.devAbp)>Math.abs(flag.dev3);
+    const pct=useAbp?flag.devAbp:flag.dev3;
+    return `${Math.abs(pct)}% ${pct>0?'above':'below'} the ${useAbp?'ABP target':'3-month average'} — what the dealers submitted for this line, before any override`;
+  }
+  const pct=fertDeviationPct(f);
+  if(Math.abs(pct)<=TOL)return null;
+  return `Your override is ${Math.abs(pct)}% ${pct>0?'above':'below'} what the cluster's dealers submitted`;
+}
+
+/* per-FERT indent-vs-offtake history, derived deterministically from the line's own offtake — kept
+   only to drive the "By vehicle" view of the accuracy report card (a cosmetic trend line), no longer
+   used for the 3-month-average reference band below (see that function's own note on why). */
+function fertHist(f){
+  if(f._h)return f._h;
+  const seed=[...f.code].reduce((a,c)=>a+c.charCodeAt(0),0);
+  const clusterO3=f.o3*(1+CAPITAL_FACTOR);
+  const base=Math.max(1,Math.round(clusterO3/3));
+  f._h=['Mar','Apr','May','Jun'].map((m,i)=>{
+    const ind=Math.max(1,base+((seed+i*7)%5)-2);
+    const off=Math.max(0,ind+((seed*(i+3))%5)-2);
+    return {m,ind,off};
+  });
+  return f._h;
+}
+/* the fixed, never-changing cluster total each dealer actually submitted this cycle (unaffected by
+   any later ASM override) — the anchor every reference band below is built from. */
+function clusterSubmittedJul(f){
+  if(f._csj!==undefined)return f._csj;
+  f._csj=f.dealers.reduce((a,dl)=>a+dealerSubmittedJul(dl),0);
+  return f._csj;
+}
+/* 3-month average — deterministic, seeded variance around what was actually submitted this cycle.
+   Earlier drafts derived this from the line's offtake trend (fertHist/o3), but offtake and indent
+   turned out to sit at unrelated scales in this data set (one month's indent regularly exceeded three
+   months' offtake), which flagged every single line. A believable "history" would show most lines
+   close to what a dealer just submitted and a minority genuinely adrift — that's what this produces:
+   a small, fixed jitter for most FERTs and a deliberately larger one for a few, keyed off each line's
+   position in its own catalogue so it's stable across renders, not random per reload. */
+function threeMoAvg(f){
+  const idx=SETS[f.vert].indexOf(f);
+  const base=clusterSubmittedJul(f);
+  const isOutlier=idx%7===2;
+  const jitterPct=isOutlier?(idx%2===0?27:-24):(((idx*13)%9)-4); // outliers: ±24-27%; everyone else: -4%..+4%
+  return Math.max(1,Math.round(base*(1+jitterPct/100)));
+}
+
+/* ABP target per FERT — same reasoning as the 3-month average above: the dealer groups' abpTarget is
+   a monthly cluster aggregate, split across FERTs by seeded variance around the actual submitted
+   total rather than by offtake share, so the two reference bands don't happen to flag the same lines
+   for the same reason (a different, independent modulus/salt below) while both stay at the right
+   scale and sum back close to the cluster ABP total. */
+function abpForFert(f){
+  const idx=SETS[f.vert].indexOf(f);
+  const base=clusterSubmittedJul(f);
+  const isOutlier=idx%5===3;
+  const jitterPct=isOutlier?(idx%2===0?-29:23):(((idx*7)%9)-4);
+  return Math.max(1,Math.round(base*(1+jitterPct/100)));
+}
+
+/* ════════ FILTER MODEL — every filter is the same control (P-05) ════════ */
+const FKEYS=['vert','sv','hist','fert','dealer','seg','mpg','ton','fuel','ac','flag'];
+let F={}; FKEYS.forEach(k=>F[k]=new Set());
+let q='', compact=false, railOpen=true, submitted={lmd:false,hd:false}, savedViews=[];
+let sortKey=null, sortDir=-1;
+const FLAGS=[['noentry','No entry yet'],['exception','Needs your decision'],['aged60','Stock over 60 days'],['aged180','Stock over 180 days'],
+             ['aged90','Stock over 90 days']];
+
+const swings=f=>{const p=clusterPrev(f); return p?Math.abs(jul(f)-p)/p>0.2:false;};
+function matchFlag(f,fl){
+  if(fl==='noentry')return !hasEntry(f);
+  if(fl==='exception')return fertHasException(f);
+  if(fl==='aged60')return f.s90+f.s180+f.sOver>0;
+  if(fl==='aged180')return f.sOver>0;
+  if(fl==='aged90')return f.s180+f.sOver>0;
+  return true;
+}
+/* dealer filter matches on the group code, checked at pass()-time separately since it isn't a plain
+   per-FERT scalar field like the others */
+const VALOF={fert:'code',sv:'sv',seg:'seg',mpg:'mpg',ton:'ton',fuel:'fuel',ac:'ac',vert:'vert'};
+function pass(f,skip){
+  for(const k of FKEYS){
+    if(k===skip)continue;
+    if(!F[k].size)continue;
+    if(k==='flag'||k==='hist')continue; // handled separately; history controls the displayed reference period
+    if(k==='dealer'){ if(![...F.dealer].every(dc=>f.dealers.some(dl=>dl.code===dc&&dl.submitted.some(v=>v>0)))) return false; continue; }
+    if(!F[k].has(f[VALOF[k]]))return false;
+  }
+  if(!skip||skip!=='flag'){ if(F.flag.size&&![...F.flag].every(fl=>matchFlag(f,fl)))return false; }
+  if(q){const s=q.toLowerCase(); if(!(f.code.toLowerCase().includes(s)||f.desc.toLowerCase().includes(s)))return false;}
+  return true;
+}
+function optCount(key,val){
+  return D.filter(f=>{ if(!pass(f,key))return false;
+    if(key==='flag')return matchFlag(f,val);
+    if(key==='dealer')return f.dealers.some(dl=>dl.code===val&&dl.submitted.some(v=>v>0));
+    return f[VALOF[key]]===val; }).length;
+}
+const activeCount=()=>FKEYS.reduce((a,k)=>a+F[k].size,0);
+const SORTV={desc:f=>f.desc,code:f=>f.code,sv:f=>f.sv,mpg:f=>f.mpg,fuel:f=>f.fuel,ac:f=>f.ac,ton:f=>f.ton,
+  stock:stockTot,s60:f=>f.s60,s90:f=>f.s90,s180:f=>f.s180,sOver:f=>f.sOver,
+  openFg:f=>f.openFg,openPO:f=>f.openPO,
+  o3:f=>f.o3,o6:f=>f.o6,o12:f=>f.o12,oly:f=>f.oly, r3:f=>f.r3,r6:f=>f.r6,r12:f=>f.r12,rly:f=>f.rly,
+  dind:fertSubmittedTotal,
+  dW1:f=>clusterSubmitted(f,0),dW2:f=>clusterSubmitted(f,1),dW3:f=>clusterSubmitted(f,2),dW4:f=>clusterSubmitted(f,3),
+  dJul:f=>clusterSubmitted(f,0)+clusterSubmitted(f,1)+clusterSubmitted(f,2)+clusterSubmitted(f,3),
+  dAug:f=>clusterSubmitted(f,4),dSep:f=>clusterSubmitted(f,5),dTot:fertSubmittedTotal,
+  prev:clusterPrev, avg3:threeMoAvg, abp:abpForFert,
+  w0:f=>clusterV(f,0),w1:f=>clusterV(f,1),w2:f=>clusterV(f,2),w3:f=>clusterV(f,3),
+  jul:jul,aug:f=>clusterV(f,4),sep:f=>clusterV(f,5),tot:gTot};
+const SORTLBL={desc:'Vehicle',code:'FERT code',sv:'Sub-vertical',mpg:'MPG',fuel:'Fuel',ac:'Cabin',ton:'Tonnage',
+  stock:'Stock total',s60:'Stock <60D',s90:'Stock 60–90D',s180:'Stock 90–180D',sOver:'Stock >180D',
+  openFg:'Opening stock',openPO:'Live POs',
+  o3:'Offtake L3',o6:'Offtake L6',o12:'Offtake L12',oly:'Offtake LYSM',
+  r3:'Retail L3',r6:'Retail L6',r12:'Retail L12',rly:'Retail LYSM',
+  dind:'Dealer indent (as submitted)',dW1:'W1 (submitted)',dW2:'W2 (submitted)',dW3:'W3 (submitted)',dW4:'W4 (submitted)',
+  dJul:'Jul (submitted)',dAug:'Aug (submitted)',dSep:'Sep (submitted)',dTot:'Total (submitted)',
+  prev:'Last cycle',avg3:'3-month average',abp:'ABP target',
+  w0:'W1',w1:'W2',w2:'W3',w3:'W4',jul:'July',aug:'August',sep:'September',tot:'Total'};
+
+/* ════════ COLUMN BANDS (P-08) ════════
+   Reference layers confirmed for ASM: dealer indent, last cycle, 3-month average, ABP target —
+   each its own band, collapsed to one figure by default, same mechanism as every other band here.
+   Vehicle attributes / Stock / Trend bands carry over from the dealer grid for column parity (P-19).
+   Pipeline is shown by default so the ASM can review FA, FC and Hot Inquiry alongside the dealer submission. */
+const seg=(v)=>`<span class="seg-dot sg-${v}">${SEGNAME[v]}</span>`;
+const num=(v)=>v||v===0?v:'–';
+/* every column carries a plain-value extractor alongside its display `get`:
+   `raw` is the cluster-wide value (used by group-header aggregation); `rawD` is a dealer-scoped
+   version, only defined where a per-dealer split is meaningful (the fields it reads — submitted
+   qty, prior-cycle qty, 3-month average, ABP target — exist per dealer or can be apportioned to
+   one; stock/opening-PO/offtake/retail/attributes are cluster-level facts with no dealer split in
+   the data model, so those columns have no rawD and group headers show the cluster figure for them
+   regardless of how the grid is grouped). */
+const BANDS=[
+  {k:'attr',label:'Vehicle attributes',summary:{k:'mpg',label:'MPG',get:f=>f.mpg,txt:true,raw:f=>f.mpg},cols:[
+    {k:'eseg',label:'Eicher segment',get:f=>seg(f.eseg),txt:true,raw:f=>f.eseg},
+    {k:'sv',label:'Sub-vertical',get:f=>f.sv,txt:true,raw:f=>f.sv},
+    {k:'mpg',label:'MPG',get:f=>f.mpg,txt:true,raw:f=>f.mpg},
+    {k:'ton',label:'Tonnage',get:f=>f.ton,txt:true,raw:f=>f.ton},
+    {k:'fuel',label:'Fuel',get:f=>f.fuel,txt:true,raw:f=>f.fuel},
+    {k:'ac',label:'AC / Non-AC',get:f=>f.ac==='AC'?'AC':'Non-AC',txt:true,raw:f=>f.ac==='AC'?'AC':'Non-AC'}]},
+  {k:'stock',label:'Cluster stock on hand',summary:{k:'stock',label:'Stock',
+    get:f=>`<span class="${f.sOver>0?'aged hot':(f.s180>0?'aged':'')}">${num(stockTot(f))}</span>`,raw:f=>stockTot(f)},cols:[
+    {k:'s60',label:'&lt;60D',get:f=>num(f.s60),raw:f=>f.s60},
+    {k:'s90',label:'60–90D',get:f=>f.s90?`<span class="aged">${f.s90}</span>`:'–',raw:f=>f.s90},
+    {k:'s180',label:'90–180D',get:f=>f.s180?`<span class="aged">${f.s180}</span>`:'–',raw:f=>f.s180},
+    {k:'sOver',label:'&gt;180D',get:f=>f.sOver?`<span class="aged hot">${f.sOver}</span>`:'–',raw:f=>f.sOver},
+    {k:'stock',label:'Total',get:f=>`<b>${num(stockTot(f))}</b>`,raw:f=>stockTot(f)}]},
+  {k:'open',label:'Opening &amp; live POs',summary:{k:'openPO',label:'Live POs',get:f=>num(f.openPO),raw:f=>f.openPO},cols:[
+    {k:'openFg',label:'Mth opening stk',get:f=>num(f.openFg),raw:f=>f.openFg},
+    {k:'openPO',label:'Live POs',get:f=>num(f.openPO),raw:f=>f.openPO}]},
+  {k:'pipe',label:'Pipeline',summary:{k:'fa',label:'FA',get:f=>num(Math.round(f.o3*.30)),raw:f=>Math.round(f.o3*.30)},cols:[
+    {k:'fa',label:'FA',get:f=>num(Math.round(f.o3*.30)),raw:f=>Math.round(f.o3*.30)},
+    {k:'fc',label:'FC',get:f=>num(Math.round(f.o3*.20)),raw:f=>Math.round(f.o3*.20)},
+    {k:'hot',label:'Hot Inq',get:f=>num(Math.round(f.o6*.15)),raw:f=>Math.round(f.o6*.15)}]},
+  {k:'off',label:'Trend — offtake',summary:{k:'o3',label:'Offtake L3',get:f=>num(f.o3),raw:f=>f.o3},cols:[
+    {k:'o3',label:'L3',get:f=>num(f.o3),raw:f=>f.o3},{k:'o6',label:'L6',get:f=>num(f.o6),raw:f=>f.o6},
+    {k:'o12',label:'L12',get:f=>num(f.o12),raw:f=>f.o12},{k:'oly',label:'LYSM',get:f=>num(f.oly),raw:f=>f.oly}]},
+  {k:'ret',label:'Trend — retail',summary:{k:'r3',label:'Retail L3',get:f=>num(f.r3),raw:f=>f.r3},cols:[
+    {k:'r3',label:'L3',get:f=>num(f.r3),raw:f=>f.r3},{k:'r6',label:'L6',get:f=>num(f.r6),raw:f=>f.r6},
+    {k:'r12',label:'L12',get:f=>num(f.r12),raw:f=>f.r12},{k:'rly',label:'LYSM',get:f=>num(f.rly),raw:f=>f.rly}]},
+  /* what the cluster's dealers actually submitted — a fixed, read-only baseline (clusterSubmitted),
+     never the ASM's current/overridden figure (that's the entry columns to the right). Same weekly
+     cadence as the entry row so the two line up when compared. */
+  {k:'dind',label:'Dealer indent — as submitted',summary:{k:'dind',label:'Dealer indent',get:f=>`<b>${num(clusterSubmitted(f,0)+clusterSubmitted(f,1)+clusterSubmitted(f,2)+clusterSubmitted(f,3))}</b>`,
+    raw:f=>clusterSubmitted(f,0)+clusterSubmitted(f,1)+clusterSubmitted(f,2)+clusterSubmitted(f,3),rawD:(f,code)=>{const dl=dlOf(f,code);return dl.submitted[0]+dl.submitted[1]+dl.submitted[2]+dl.submitted[3];}},cols:[
+    {k:'dW1',label:'W1',get:f=>num(clusterSubmitted(f,0)),raw:f=>clusterSubmitted(f,0),rawD:(f,code)=>dlOf(f,code).submitted[0]},
+    {k:'dW2',label:'W2',get:f=>num(clusterSubmitted(f,1)),raw:f=>clusterSubmitted(f,1),rawD:(f,code)=>dlOf(f,code).submitted[1]},
+    {k:'dW3',label:'W3',get:f=>num(clusterSubmitted(f,2)),raw:f=>clusterSubmitted(f,2),rawD:(f,code)=>dlOf(f,code).submitted[2]},
+    {k:'dW4',label:'W4',get:f=>num(clusterSubmitted(f,3)),raw:f=>clusterSubmitted(f,3),rawD:(f,code)=>dlOf(f,code).submitted[3]},
+    {k:'dJul',label:'Jul',get:f=>num(clusterSubmitted(f,0)+clusterSubmitted(f,1)+clusterSubmitted(f,2)+clusterSubmitted(f,3)),raw:f=>clusterSubmitted(f,0)+clusterSubmitted(f,1)+clusterSubmitted(f,2)+clusterSubmitted(f,3),rawD:(f,code)=>{const dl=dlOf(f,code);return dl.submitted[0]+dl.submitted[1]+dl.submitted[2]+dl.submitted[3];}},
+    {k:'dAug',label:'Aug',get:f=>num(clusterSubmitted(f,4)),raw:f=>clusterSubmitted(f,4),rawD:(f,code)=>dlOf(f,code).submitted[4]},
+    {k:'dSep',label:'Sep',get:f=>num(clusterSubmitted(f,5)),raw:f=>clusterSubmitted(f,5),rawD:(f,code)=>dlOf(f,code).submitted[5]},
+    {k:'dTot',label:'Total',get:f=>`<b>${num(clusterSubmitted(f,0)+clusterSubmitted(f,1)+clusterSubmitted(f,2)+clusterSubmitted(f,3))}</b>`,raw:f=>clusterSubmitted(f,0)+clusterSubmitted(f,1)+clusterSubmitted(f,2)+clusterSubmitted(f,3),rawD:(f,code)=>{const dl=dlOf(f,code);return dl.submitted[0]+dl.submitted[1]+dl.submitted[2]+dl.submitted[3];}}]},  {k:'last',label:'Last cycle',cols:[{k:'prev',label:'Last mth plan',get:f=>num(clusterPrev(f)),
+    raw:f=>clusterPrev(f),rawD:(f,code)=>dlOf(f,code).prevSubmitted}]},
+  {k:'avg3',label:'3-month average',cols:[{k:'avg3',label:'Avg (L3M)',get:f=>num(threeMoAvg(f)),
+    raw:f=>threeMoAvg(f),rawD:(f,code)=>dealerExpected3mo(f,dlOf(f,code))}]},
+  {k:'abp',label:'ABP target',cols:[{k:'abp',label:'ABP',get:f=>num(abpForFert(f)),
+    raw:f=>abpForFert(f),rawD:(f,code)=>dealerExpectedAbp(f,dlOf(f,code))}]},
+];
+const PRESETS={
+  essentials:{attr:'summary',stock:'summary',open:'summary',pipe:'full',off:'summary',ret:'summary',dind:'full',last:'off',avg3:'off',abp:'off'},
+  moderating:{attr:'off',stock:'off',open:'off',pipe:'full',off:'off',ret:'off',dind:'full',last:'full',avg3:'full',abp:'full'},
+  all:{attr:'full',stock:'full',open:'full',pipe:'full',off:'full',ret:'full',dind:'full',last:'full',avg3:'full',abp:'full'},
+};
+const PRESET_LBL={essentials:'Essentials',moderating:'Moderating focus',all:'Everything'};
+let bandMode=Object.assign({},PRESETS.essentials);
+let activePreset='essentials';
+function activeCols(){
+  const out=[];
+  BANDS.forEach(b=>{
+    if(b.disabled)return;
+    const m=bandMode[b.k]||'off';
+    if(m==='off')return;
+    if(m==='summary'&&b.summary)out.push({...b.summary,band:b,first:true});
+    else b.cols.forEach((c,i)=>out.push({...c,band:b,first:i===0}));
+  });
+  return out;
+}
+function bandSpan(){
+  const cols=activeCols(),out=[];
+  cols.forEach(c=>{
+    const last=out[out.length-1];
+    if(last&&last.b===c.band)last.n++;
+    else out.push({b:c.band,n:1,mode:bandMode[c.band.k]});
+  });
+  return out;
+}
+/* aggregate one reference-band column across a set of FERTs, for a group-header row. Numeric
+   columns sum their `raw` (or dealer-scoped `rawD`, when a dealer code is given and the column
+   defines one — dind/last/avg3/abp). Text/attribute columns show the shared value if every FERT
+   in the group agrees, otherwise a dash: there's no single "the" MPG for a mixed group. */
+function groupRefCell(col,fs,dealerCode){
+  if(!fs.length)return '–';
+  if(col.txt){
+    const vals=new Set(fs.map(f=>col.raw?col.raw(f):null));
+    return vals.size===1?([...vals][0]||'–'):'–';
+  }
+  const fn=(dealerCode&&col.rawD)?(f=>col.rawD(f,dealerCode)):col.raw;
+  if(!fn)return '–';
+  return num(fs.reduce((a,f)=>a+(fn(f)||0),0));
+}
+function groupRefCells(fs,dealerCode){
+  const cols=activeCols();
+  return cols.length
+    ? cols.map(c=>`<td class="ref${c.first?' bsep':''}${c.txt?' txt':''}">${groupRefCell(c,fs,dealerCode)}</td>`).join('')
+    : '<td class="ref"></td>';
+}
+function rows(){
+  let r=D.filter(f=>pass(f));
+  if(sortKey){
+    const fn=SORTV[sortKey];
+    r=[...r].sort((a,b)=>{const x=fn(a),y=fn(b);
+      return (typeof x==='string'?x.localeCompare(y):x-y)*sortDir;});
+  }
+  return r;
+}
+
+/* ════════ LOGIN / SHELL ════════ */
+function clearErr(){['fId','fPw'].forEach(i=>document.getElementById(i).classList.remove('invalid'));}
+function doLogin(e){
+  if(e&&e.preventDefault)e.preventDefault();
+  if(!document.getElementById('lgId').value.trim()){document.getElementById('fId').classList.add('invalid');return;}
+  if(!document.getElementById('lgPw').value){document.getElementById('fPw').classList.add('invalid');return;}
+  document.getElementById('login').style.display='none';
+  document.getElementById('app').classList.add('on');
+  buildRail(); render(); tick();
+}
+function signOut(){document.getElementById('app').classList.remove('on');document.getElementById('login').style.display='flex';}
+function setPersona(v){
+  if(v==='dealer'){toast('Opens the Dealer prototype — this file only builds the ASM screen');document.getElementById('personaSel').value='asm';return;}
+  if(v!=='asm'){toast('Only the ASM cluster experience is built in this iteration');document.getElementById('personaSel').value='asm';}
+}
+function toggleTheme(){
+  const r=document.documentElement;
+  const dark=r.getAttribute('data-theme')==='dark'||(!r.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme:dark)').matches);
+  r.setAttribute('data-theme',dark?'light':'dark');
+}
+function go(v){
+  const rail=document.getElementById('rail'), homeMount=document.getElementById('homeRailMount'), wbMount=document.querySelector('#vWb .wb');
+  if(rail){if(v==='home'&&homeMount&&rail.parentElement!==homeMount)homeMount.appendChild(rail);if(v==='wb'&&wbMount&&rail.parentElement!==wbMount)wbMount.prepend(rail);}
+  document.getElementById('vHome').classList.toggle('on',v==='home');
+  document.getElementById('vWb').classList.toggle('on',v==='wb');
+  document.getElementById('nvHome').classList.toggle('on',v==='home');
+  document.getElementById('nvWb').classList.toggle('on',v==='wb');
+  render();
+}
+function setVert(v){
+  vert=v; D=SETS[v]; FKEYS.forEach(k=>F[k].clear()); q=''; sortKey=null;
+  document.getElementById('qBox').value=''; document.getElementById('vertSel').value=v;
+  buildRail(); render();
+}
+function copyDealerIndent(){
+  D.forEach(f=>{[0,1,2,3,4,5].forEach(c=>f.ovr[c]=clusterSubmitted(f,c));});
+  render(); toast('Dealer indent copied into ASM moderation values.');
+}
+function jumpFilter(flag,dealerCode){
+  F.flag.clear(); F.flag.add(flag);
+  if(dealerCode){F.dealer.clear();F.dealer.add(dealerCode);}
+  go('wb'); buildRail(); render();
+  toast('Filtered to: '+(FLAGS.find(f=>f[0]===flag)||['','that filter'])[1]);
+}
+function tick(){
+  const now=new Date(); const t=new Date(now); t.setDate(16); t.setHours(23,59,0,0);
+  if(t<now)t.setMonth(t.getMonth()+1);
+  const ms=t-now, d=Math.floor(ms/864e5), h=Math.floor(ms%864e5/36e5), m=Math.floor(ms%36e5/6e4);
+  document.getElementById('tbClock').textContent=d>0?`${d}d ${h}h`:`${h}h ${m}m`;
+  setTimeout(tick,60000);
+}
+
+/* ════════ FILTER RAIL — one control type for everything (P-05) ════════ */
+let msOpen=null; const msQ={};
+function optsFor(key){
+  if(key==='vert')return Object.keys(SETS).map(v=>({v,t1:VERTNAME[v]||v.toUpperCase()}));
+  if(key==='hist')return [
+    {v:'3m',t1:'Last 3 months'},
+    {v:'6m',t1:'Last 6 months'},
+    {v:'12m',t1:'Last 12 months'}
+  ];
+  if(key==='fert')return D.map(f=>({v:f.code,t1:f.code,t2:f.desc}));
+  if(key==='dealer')return DEALER_GROUPS.map(g=>({v:g.code,t1:g.name,t2:g.loc}));
+  if(key==='seg')return ['R','S','D'].map(v=>({v,t1:SEGNAME[v]}));
+  if(key==='ac')return ['AC','NonAC'].map(v=>({v,t1:v==='NonAC'?'Non-AC':'AC'}));
+  if(key==='flag')return FLAGS.map(([v,t1])=>({v,t1}));
+  const f=VALOF[key];
+  let vals=[...new Set(D.map(x=>x[f]))];
+  if(key==='ton')vals.sort((a,b)=>parseFloat(a)-parseFloat(b)); else vals.sort();
+  return vals.map(v=>({v,t1:v}));
+}
+const FLABEL={vert:'Vertical',hist:'FERT History period',fert:'FERT',dealer:'Dealer',sv:'Sub-vertical',seg:'FERT segment',mpg:'MPG model',ton:'Tonnage',
+  fuel:'Fuel',ac:'Cabin',flag:'Status'};
+function msOptions(key){
+  const s=(msQ[key]||'').toLowerCase();
+  const out=optsFor(key).filter(o=>{
+    if(!s)return true;
+    return s.split(/[,\n]/).map(t=>t.trim()).filter(Boolean)
+      .some(t=>String(o.t1).toLowerCase().includes(t)||String(o.t2||'').toLowerCase().includes(t));
+  }).map(o=>{
+    const n=key==='dealer'?undefined:optCount(key,o.v), on=F[key].has(o.v);
+    if(n===0&&!on)return '';
+    return `<button class="ms-opt${on?' on':''}" onclick="tog('${key}','${o.v}')">
+      <span class="bx">${on?'✓':''}</span>
+      <span class="tx"><span class="t1">${o.t1}</span>${o.t2?`<span class="t2">${o.t2}</span>`:''}</span>
+      ${n!==undefined?`<span class="n">${n}</span>`:''}</button>`;
+  }).join('');
+  return out||'<div class="ms-empty">No match</div>';
+}
+function msBlock(key){
+  const total=optsFor(key).length, sel=F[key].size;
+  const lbl=sel===0?'All':(sel===1?(optsFor(key).find(o=>F[key].has(o.v))||{t1:'1 selected'}).t1:sel+' selected');
+  return `<div class="frow">
+    <div class="fl">${FLABEL[key]}${sel?`<button class="clr" onclick="F['${key}'].clear();buildRail();render()">clear</button>`:''}</div>
+    <div class="ms${msOpen===key?' open':''}">
+      <button class="ms-btn${sel?' act':''}" onclick="event.stopPropagation();toggleMs('${key}')">
+        <span class="lbl${sel?'':' dim'}">${lbl}</span><span class="ca">▾</span></button>
+      <div class="ms-pop" onclick="event.stopPropagation()">
+        <div class="ms-search">
+          <input type="text" id="msq-${key}" placeholder="Search ${FLABEL[key].toLowerCase()}…" value="${msQ[key]||''}"
+            oninput="msFilter('${key}',this.value)">
+        </div>
+        <div class="ms-list" id="msl-${key}">${msOptions(key)}</div>
+        <div class="ms-foot">
+          <button class="btn btn-quiet btn-sm" onclick="F['${key}'].clear();buildRail();render()">Clear</button>
+          <span class="c">${sel} of ${total}</span></div>
+      </div></div></div>`;
+}
+function toggleMs(key){
+  msOpen=msOpen===key?null:key; buildRail();
+  if(msOpen){const el=document.getElementById('msq-'+key); if(el)el.focus();}
+}
+function msFilter(key,v){ msQ[key]=v; document.getElementById('msl-'+key).innerHTML=msOptions(key); }
+document.addEventListener('click',()=>{ if(msOpen){msOpen=null;buildRail();} });
+function tog(key,val){ const s=F[key]; s.has(val)?s.delete(val):s.add(val); buildRail(); render(); }
+function buildRail(){
+  let h='';
+  if(savedViews.length){
+    h+=`<div class="frow"><div class="fl">Saved views</div>
+      <select class="ms-btn" style="height:32px" onchange="applyView(this.value)">
+        <option value="">Choose a saved view…</option>
+        ${savedViews.map((v,i)=>`<option value="${i}">${v.name}</option>`).join('')}</select></div>`;
+  }
+  FKEYS.forEach(k=>{ h+=msBlock(k); });
+  document.getElementById('railBody').innerHTML=h;
+  const n=activeCount();
+  ['railCnt','stubCnt'].forEach(id=>{const el=document.getElementById(id);el.style.display=n?'':'none';el.textContent=n;});
+}
+function clearAll(){ FKEYS.forEach(k=>F[k].clear()); q=''; sortKey=null; document.getElementById('qBox').value=''; buildRail(); render(); }
+function setQ(v){ q=v; render(); }
+function saveView(){
+  if(!activeCount()){toast('Nothing to save — no filters applied');return;}
+  const bits=[];
+  FKEYS.forEach(k=>{ if(F[k].size){ const o=optsFor(k).find(o=>F[k].has(o.v)); bits.push(F[k].size>1?F[k].size+' '+FLABEL[k]:(o?o.t1:FLABEL[k])); } });
+  savedViews.push({name:bits.slice(0,2).join(' · '),F:Object.fromEntries(FKEYS.map(k=>[k,[...F[k]]]))});
+  buildRail(); toast('View saved');
+}
+function applyView(i){ if(i==='')return; const v=savedViews[i]; FKEYS.forEach(k=>F[k]=new Set(v.F[k]||[])); buildRail(); render(); toast('Applied "'+v.name+'"'); }
+function toggleRail(){ railOpen=!railOpen;
+  document.getElementById('rail').classList.toggle('collapsed',!railOpen);
+  document.getElementById('railBtn').textContent=railOpen?'‹':'›'; }
+
+/* ════════ GRID (P-08: identity / reference / entry) ════════
+   Identity = one FERT row, collapsed by default. Reference bands include the four confirmed ASM
+   layers (dealer indent, last cycle, 3-month average, ABP) alongside the carried-over vehicle/
+   stock/trend bands. Entry ("ASM Indent") shows the cluster total, computed and read-only at the
+   FERT row; expanding a row (▶) reveals one sub-row per dealer where the actual editable override
+   fields live — this is the "adjusting someone else's number" capability the pattern doc flagged as
+   new territory, sharing its incoming/override/delta shape with ISO's own override pattern. */
+let expanded=new Set();
+function toggleExpand(i){ expanded.has(i)?expanded.delete(i):expanded.add(i); render(); }
+function setDensity(c){ compact=!!c;
+  document.getElementById('dnComf').classList.toggle('on',!c);
+  document.getElementById('dnComp').classList.toggle('on',!!c);
+  document.getElementById('grid').classList.toggle('compact',!!c); }
+function setSort(k){ if(sortKey===k){ if(sortDir===-1)sortDir=1; else {sortKey=null;} } else {sortKey=k;sortDir=-1;} render(); }
+function th(k,label,left,sep){
+  const on=sortKey===k;
+  return `<th class="${sep?'bsep':''}"><button class="sortbtn${left?' l':''}" onclick="setSort('${k}')" title="Sort by ${SORTLBL[k]||label}">
+    ${label}<span class="ar">${on?(sortDir===-1?'▼':'▲'):'▼'}</span></button></th>`;
+}
+function head(){
+  const cols=activeCols(), spans=bandSpan();
+  const bandRow=spans.map(s=>{
+    const short=s.mode==='summary'&&s.b.summary;
+
+    return `<th class="b-ref bsep" colspan="${s.n}">
+      <button class="bandbtn" onclick="cycleBand('${s.b.k}')"
+        title="${s.b.label} · ${s.mode==='summary'?'Expand this group':'Collapse this group'}">${short?s.b.summary.label:s.b.label}
+        <span class="bm">${s.mode==='summary'?'▸':'▾'}</span></button></th>`;
+  }).join('');
+  const colRow=cols.map(c=>th(c.k,c.label,false,c.first)).join('');
+  return `<tr class="bands">
+      <th class="idc b-ref">Vehicle</th><th class="b-ref">FERT code</th>
+      ${bandRow||'<th class="b-ref">&nbsp;</th>'}
+      <th class="b-edit bsep" colspan="8">ASM Indent · July 2026</th></tr>
+    <tr><th class="idc"><button class="sortbtn l${sortKey==='desc'?' on':''}" onclick="setSort('desc')">Vehicle<span class="ar">${sortKey==='desc'?(sortDir===-1?'▼':'▲'):'▼'}</span></button></th>
+      ${th('code','FERT code')}${colRow||'<th>&nbsp;</th>'}
+      ${th('w0','W1',false,true)}${th('w1','W2')}${th('w2','W3')}${th('w3','W4')}
+      ${th('jul','Jul')}${th('aug','Aug')}${th('sep','Sep')}${th('tot','Total')}</tr>`;
+}
+function cycleBand(k){
+  const b=BANDS.find(x=>x.k===k);
+  const m=bandMode[k];
+  bandMode[k]= b.summary ? (m==='summary'?'full':'summary') : (m==='full'?'off':'full');
+  activePreset=null; render(); renderColPop();
+}
+function setBand(k,m){ bandMode[k]=m; activePreset=null; render(); renderColPop(); }
+function setPreset(p){ bandMode=Object.assign({},PRESETS[p]); activePreset=p; render(); renderColPop(); }
+let colPopOpen=false;
+function toggleColPop(e){ if(e)e.stopPropagation(); colPopOpen=!colPopOpen; renderColPop(); }
+function renderColPop(){
+  const el=document.getElementById('colPop');
+  el.style.display=colPopOpen?'':'none';
+  document.getElementById('colBtn').classList.toggle('on',colPopOpen);
+  if(!colPopOpen)return;
+  el.innerHTML=`
+    <div class="cp-sec"><div class="cp-lbl">Presets</div>
+      <div class="cp-presets">${Object.keys(PRESETS).map(p=>
+        `<button class="chipx${activePreset===p?' on':''}" onclick="setPreset('${p}')">${PRESET_LBL[p]}</button>`).join('')}</div></div>
+    <div class="cp-sec"><div class="cp-lbl">Column groups</div>
+      ${BANDS.map(b=>{
+        if(b.disabled)return `<div class="cp-row dis"><span class="cp-n">${b.label}</span>
+          <span class="cp-note">${b.disabled}</span></div>`;
+        const m=bandMode[b.k]||'off';
+        return `<div class="cp-row"><span class="cp-n">${b.label}<span class="cp-c">${b.cols.length} col${b.cols.length===1?'':'s'}</span></span>
+          <div class="seg-ctl sm">
+            <button class="${m==='off'?'on':''}" onclick="setBand('${b.k}','off')">Hide</button>
+            ${b.summary?`<button class="${m==='summary'?'on':''}" onclick="setBand('${b.k}','summary')">Summary</button>`:''}
+            <button class="${m==='full'?'on':''}" onclick="setBand('${b.k}','full')">Full</button>
+          </div></div>`;}).join('')}
+    </div>
+    <div class="cp-foot">Click any group header in the grid to expand or collapse it.</div>`;
+}
+document.addEventListener('click',()=>{ if(colPopOpen){colPopOpen=false;renderColPop();} });
+
+/* ── FERT-row entry cell: the ASM's override field for the CONSOLIDATED cluster total (not any one
+   dealer's line). Focus shows the default — what the cluster's dealers actually submitted — as
+   "was X"; overriding beyond ±TOL% of that default requires a reason (P-08's incoming/override/delta,
+   shared with ISO's override pattern) before it stops counting as an exception. ── */
+function dcell(fi,c,cls){
+  const f=D.find(x=>x.i===fi);
+  const cur=clusterV(f,c), def=clusterSubmitted(f,c);
+  const isOvr=f.ovr[c]!==null;
+  return `<td class="${cls||''}"><input class="cellin${isOvr?' ovr':''}" type="number" min="0" inputmode="numeric"
+      data-fi="${fi}" data-c="${c}" value="${cur}"
+      onfocus="this.select()" oninput="editFert(${fi},${c},this.value)" onkeydown="gridKey(event)" onpaste="gridPaste(event,${fi})" onblur="render()">
+    ${def!==cur?`<span class="carry">was ${def}</span>`:''}</td>`;
+}
+/* the FERT row's own banner — moderation happens once per line, at the consolidated level, not once
+   per dealer. There's no "accept as submitted" action here any more: a flagged-at-submission line
+   just carries the NEEDS REVIEW badge (click it, or the ⓘ button, for the detail in the drawer); the
+   only banner still shown inline is the one that requires an action — giving a reason once the ASM's
+   own override strays outside tolerance. */
+function totalGridCols(){ return 2+Math.max(activeCols().length,1)+8; }
+function fertBannerRow(f){
+  const untouched=f.ovr.every(v=>v===null);
+  const needsReason=fertNeedsReason(f);
+  let inner='';
+  if(needsReason){
+    const ex=fertFlagExplain(f);
+    inner=`<span class="reason-flag">${ex} — reason needed:</span>
+        <input type="text" placeholder="Why this override…" value="${f.reason}" oninput="setReason(${f.i},this.value)" onblur="render()">`;
+  } else if(f.reason){
+    inner=`<span style="font-size:10px;color:var(--muted)">Reason: ${f.reason}</span>`;
+  } else return '';
+  return `<tr><td class="idc" style="padding-left:30px" colspan="${totalGridCols()}"><div class="reason-inl" style="margin-top:0">${inner}</div></td></tr>`;
+}
+/* read-only dealer breakdown — what each dealer actually submitted for this line, in the same
+   W1–W4 / Jul / Aug / Sep / Total shape as the editable row above it, never itself editable. The
+   ASM moderates the consolidated row; this is reference only. */
+function dealerRefRow(f,di){
+  const dl=f.dealers[di];
+  const dJul=dl.submitted[0]+dl.submitted[1]+dl.submitted[2]+dl.submitted[3];
+  const dTot=dl.submitted.reduce((a,b)=>a+b,0);
+  return `<tr class="dealer-row">
+    <td class="idc" style="padding-left:30px">
+      <div style="font-size:11.5px;font-weight:600">↳ ${dl.name} – ${dl.code}</div>
+      <div style="font-size:10px;color:var(--muted);font-family:var(--mono)">Submitted · read-only</div></td><td class="ref txt"><span class="id-code">${f.code}</span></td>
+    ${groupRefCells([f],dl.code)}
+    <td class="sepL" style="color:var(--muted)">${dl.submitted[0]}</td><td style="color:var(--muted)">${dl.submitted[1]}</td><td style="color:var(--muted)">${dl.submitted[2]}</td><td style="color:var(--muted)">${dl.submitted[3]}</td>
+    <td class="tot" style="color:var(--ink-2)">${dJul}</td><td style="color:var(--muted)">${dl.submitted[4]}</td><td style="color:var(--muted)">${dl.submitted[5]}</td><td class="gtot" style="color:var(--ink-2);background:var(--surface-2)">${dTot}</td></tr>`;
+}
+function vehicleDescription(f){
+  let text=f.desc;
+  // Attributes remain available in their dedicated columns.
+  if(f.mpg && text.toLowerCase().startsWith(f.mpg.toLowerCase()))text=text.slice(f.mpg.length);
+  for(const value of [f.ton,f.sv,f.fuel]){
+    if(!value)continue;
+    const escaped=value.replace(/[.*+?^${}()|[\]\\]/g,'\\function row(f){');
+    text=text.replace(new RegExp('(^|\\s)'+escaped+'(?=\\s|$)','gi'),' ');
+  }
+  return text.replace(/\b(?:non[ -]?ac|ac)\b/gi,'').replace(/\s+/g,' ').trim();
+}
+function row(f){
+  const cols=activeCols();
+  const ref=cols.map(c=>`<td class="ref${c.first?' bsep':''}${c.txt?' txt':''}">${c.get(f)}</td>`).join('')
+    ||'<td class="ref">&nbsp;</td>';
+  const isOpen=expanded.has(f.i);
+  const exc=fertHasException(f);
+  const main=`<tr class="${exc?'exc':(hasEntry(f)?'':'noentry')}">
+    <td class="idc"><div class="id-cell">
+      <button class="exp-tg" onclick="toggleExpand(${f.i})" title="${isOpen?'Collapse':'Expand to dealer breakdown'}">${isOpen?'▼':'▶'}</button>
+      <div class="id-txt">
+      <div class="id-desc" title="${vehicleDescription(f)}">${vehicleDescription(f)}</div>
+      <div class="id-meta">
+</div></div>
+      <button class="id-btn" onclick="openDrawer(${f.i})" title="Line detail">ⓘ</button></div></td>
+    <td class="ref txt"><span class="id-code">${f.code}</span></td>${ref}${dcell(f.i,0,'sepL')}${dcell(f.i,1)}${dcell(f.i,2)}${dcell(f.i,3)}
+    <td class="tot" id="jul-${f.i}">${jul(f)}</td>${dcell(f.i,4)}${dcell(f.i,5)}<td class="gtot" id="gtot-${f.i}">${gTot(f)}</td></tr>`;
+  const banner=fertBannerRow(f);
+  const subRows=isOpen?f.dealers.map((dl,di)=>dealerRefRow(f,di)).join(''):'';
+  return main+banner+subRows;
+}
+/* ── grid grouping (Group by: FERT / Dealer / MPG / Tonnage) ──
+   Editing always stays anchored at the FERT×cluster level (row() above); grouping only changes how
+   the ASM reviews the grid. MPG and Tonnage partition FERTs 1:1, so their group rows nest the same
+   editable FERT rows underneath a read-only aggregate header. A FERT doesn't belong to one dealer —
+   both dealers submit against every FERT — so "Dealer" instead nests a read-only per-dealer,
+   per-FERT breakdown (edit that line from the FERT view). */
+const GB_OPTS=[['fert','FERT'],['dealer','Dealer'],['mpg','MPG'],['ton','Tonnage']];
+let gridGroupBy='fert', gridGroupOpen=new Set();
+function setGridGroupBy(k){ gridGroupBy=k; gridGroupOpen=new Set(); render(); }
+function toggleGrpRow(k){ gridGroupOpen.has(k)?gridGroupOpen.delete(k):gridGroupOpen.add(k); render(); }
+function renderGbCtl(){
+  document.getElementById('gbCtl').innerHTML=GB_OPTS.map(([k,l])=>
+    `<button class="${gridGroupBy===k?'on':''}" onclick="setGridGroupBy('${k}')">${l}</button>`).join('');
+}
+function grpAgg(fs){
+  const w=[0,1,2,3].map(c=>fs.reduce((a,f)=>a+clusterV(f,c),0));
+  const julV=w.reduce((a,b)=>a+b,0), aug=fs.reduce((a,f)=>a+clusterV(f,4),0), sep=fs.reduce((a,f)=>a+clusterV(f,5),0);
+  return {w,jul:julV,aug,sep,tot:julV+aug+sep};
+}
+function grpHeaderRow(key,label,sub,fs,open){
+  const v=grpAgg(fs);
+  return `<tr class="grp-row">
+    <td class="idc"><button class="exp-tg" onclick="toggleGrpRow('${key}')" title="${open?'Collapse':'Expand'}">${open?'▼':'▶'}</button>
+      <span>${label}</span> <span style="font-weight:400;color:var(--muted);font-size:11px">${sub?sub+' · ':''}${fs.length} line${fs.length===1?'':'s'}</span></td><td class="ref txt">–</td>
+    ${groupRefCells(fs,null)}
+    <td class="sepL tot">${v.w[0]}</td><td class="tot">${v.w[1]}</td><td class="tot">${v.w[2]}</td><td class="tot">${v.w[3]}</td>
+    <td class="tot">${v.jul}</td><td class="tot">${v.aug}</td><td class="tot">${v.sep}</td><td class="gtot">${v.tot}</td></tr>`;
+}
+function dealerGrpAgg(g,fs){
+  const w=[0,1,2,3].map(c=>fs.reduce((a,f)=>a+f.dealers.find(d=>d.code===g.code).submitted[c],0));
+  const julV=w.reduce((a,b)=>a+b,0);
+  const aug=fs.reduce((a,f)=>a+f.dealers.find(d=>d.code===g.code).submitted[4],0);
+  const sep=fs.reduce((a,f)=>a+f.dealers.find(d=>d.code===g.code).submitted[5],0);
+  return {w,jul:julV,aug,sep,tot:julV+aug+sep};
+}
+function dealerGrpHeaderRow(g,fs,open){
+  const v=dealerGrpAgg(g,fs);
+  return `<tr class="grp-row">
+    <td class="idc"><button class="exp-tg" onclick="toggleGrpRow('${g.code}')" title="${open?'Collapse':'Expand'}">${open?'▼':'▶'}</button>
+      <span>${g.name}</span> <span style="font-weight:400;color:var(--muted);font-size:11px">${g.loc} · as submitted, read-only · ${fs.length} line${fs.length===1?'':'s'}</span></td><td class="ref txt">–</td>
+    ${groupRefCells(fs,g.code)}
+    <td class="sepL tot">${v.w[0]}</td><td class="tot">${v.w[1]}</td><td class="tot">${v.w[2]}</td><td class="tot">${v.w[3]}</td>
+    <td class="tot">${v.jul}</td><td class="tot">${v.aug}</td><td class="tot">${v.sep}</td><td class="gtot">${v.tot}</td></tr>`;
+}
+function dealerGrpFertRow(f,g){
+  const dl=f.dealers.find(d=>d.code===g.code);
+  const dJul=dl.submitted[0]+dl.submitted[1]+dl.submitted[2]+dl.submitted[3];
+  const dTot=dl.submitted.reduce((a,b)=>a+b,0);
+  return `<tr class="dealer-row">
+    <td class="idc" style="padding-left:30px">
+      <div style="font-size:11.5px;font-weight:500">${vehicleDescription(f)}</div></td><td class="ref txt"><span class="id-code">${f.code}</span></td>
+    ${groupRefCells([f],g.code)}
+    <td class="sepL" style="color:var(--muted)">${dl.submitted[0]}</td><td style="color:var(--muted)">${dl.submitted[1]}</td><td style="color:var(--muted)">${dl.submitted[2]}</td><td style="color:var(--muted)">${dl.submitted[3]}</td>
+    <td class="tot" style="color:var(--ink-2)">${dJul}</td><td style="color:var(--muted)">${dl.submitted[4]}</td><td style="color:var(--muted)">${dl.submitted[5]}</td><td class="gtot" style="color:var(--ink-2);background:var(--surface-2)">${dTot}</td></tr>`;
+}
+function gridRowsHtml(rs){
+  if(gridGroupBy==='fert')return rs.map(row).join('');
+  if(gridGroupBy==='mpg'||gridGroupBy==='ton'){
+    const key=gridGroupBy==='mpg'?'mpg':'ton';
+    let keys=[...new Set(rs.map(f=>f[key]))];
+    if(gridGroupBy==='ton')keys.sort((a,b)=>parseFloat(a)-parseFloat(b)); else keys.sort();
+    return keys.map(kv=>{
+      const fs=rs.filter(f=>f[key]===kv), open=gridGroupOpen.has(kv);
+      return grpHeaderRow(kv,kv,'',fs,open)+(open?fs.map(row).join(''):'');
+    }).join('');
+  }
+  // dealer — read-only per-dealer breakdown, every FERT currently in view under each dealer group
+  return DEALER_GROUPS.map(g=>{
+    const open=gridGroupOpen.has(g.code);
+    return dealerGrpHeaderRow(g,rs,open)+(open?rs.map(f=>dealerGrpFertRow(f,g)).join(''):'');
+  }).join('');
+}
+function render(){
+  const homeMount=document.getElementById('homeRailMount'), rail=document.getElementById('rail');
+  if(homeMount&&rail&&document.getElementById('vHome').classList.contains('on')&&rail.parentElement!==homeMount)homeMount.appendChild(rail);
+  const rs=rows();
+  document.getElementById('gHead').innerHTML=head();
+  document.getElementById('gBody').innerHTML=gridRowsHtml(rs);
+  document.getElementById('gEmpty').style.display=rs.length?'none':'';
+  document.getElementById('grid').style.display=rs.length?'':'none';
+  document.getElementById('resCount').innerHTML=`<b>${rs.length}</b> of ${D.length} lines`;
+  renderGbCtl();
+  renderTokens(); renderCommit(); renderHome();
+}
+function renderTokens(){
+  const t=[];
+  const add=(lbl,fn,cls)=>t.push(`<span class="ftok ${cls||''}">${lbl}<button onclick="${fn}" aria-label="Remove">×</button></span>`);
+  FKEYS.forEach(k=>{
+    if(!F[k].size)return;
+    if(k==='fert'){ add(F.fert.size+' FERT'+(F.fert.size>1?'s':''),`F.fert.clear();buildRail();render()`); return; }
+    F[k].forEach(v=>{ const o=optsFor(k).find(o=>o.v===v); add(o?o.t1:v,`tog('${k}','${v}')`); });
+  });
+  if(q)add('"'+q+'"',`document.getElementById('qBox').value='';setQ('')`);
+  if(sortKey)add('Sorted: '+SORTLBL[sortKey]+' '+(sortDir===-1?'high→low':'low→high'),`setSort('${sortKey}');setSort('${sortKey}')`,'srt');
+  document.getElementById('aft').innerHTML=t.length
+    ? `<span class="sep"></span>`+t.join('')+`<button class="btn btn-quiet btn-sm" onclick="clearAll()">Clear all</button>` : '';
+}
+/* live keystroke path: update the model and patch just this row's own totals/styling in place —
+   never a full render() here, so focus and the in-progress keystroke are never dropped. The banner,
+   exception badge, commit bar and Home stay as they were until the cell is committed (blur, Enter, or
+   arrow-key navigation), which is when the real render() runs and catches everything up. */
+function editFert(fi,c,val){
+  const f=D.find(x=>x.i===fi); if(!f)return;
+  const v=Math.max(0,parseInt(val)||0);
+  f.ovr[c]=(v===clusterSubmitted(f,c))?null:v;
+  [0,1,2,3,4,5].forEach(cc=>{
+    const input=document.querySelector(`.cellin[data-fi="${fi}"][data-c="${cc}"]`);
+    if(!input)return;
+    input.classList.toggle('ovr', f.ovr[cc]!==null);
+    let carry=input.parentElement.querySelector('.carry');
+    const def=clusterSubmitted(f,cc), cur=clusterV(f,cc);
+    if(def!==cur){
+      if(!carry){ carry=document.createElement('span'); carry.className='carry'; input.insertAdjacentElement('afterend',carry); }
+      carry.textContent='was '+def;
+    } else if(carry){ carry.remove(); }
+  });
+  const julEl=document.getElementById('jul-'+fi); if(julEl)julEl.textContent=jul(f);
+  const gtotEl=document.getElementById('gtot-'+fi); if(gtotEl)gtotEl.textContent=gTot(f);
+}
+function setReason(fi,val){
+  const f=D.find(x=>x.i===fi); if(!f)return;
+  f.reason=val; renderCommit(); renderHome();
+}
+/* navigation always commits first (a real render(), to catch the banner/exception state up) and
+   only then re-queries the target cell by its (fi,c) coordinates — never a stale element reference,
+   since render() just replaced the DOM these came from. */
+function commitAndFocus(fi,c){
+  render();
+  const el=document.querySelector(`.cellin[data-fi="${fi}"][data-c="${c}"]`);
+  if(el){ el.focus(); el.select(); }
+}
+function gridKey(e){
+  const t=e.target,c=+t.dataset.c;
+  const all=[...document.querySelectorAll('.cellin')],idx=all.indexOf(t);
+  const coordsAt=n=>{const el=all[n]; return el?{fi:+el.dataset.fi,c:+el.dataset.c}:null;};
+  if(e.key==='ArrowDown'||e.key==='Enter'){
+    const el=all.find(el=>+el.dataset.c===c&&all.indexOf(el)>idx);
+    if(el){e.preventDefault(); const tc=coordsAt(all.indexOf(el)); commitAndFocus(tc.fi,tc.c);}
+  } else if(e.key==='ArrowUp'){
+    const el=all.filter(el=>+el.dataset.c===c&&all.indexOf(el)<idx).pop();
+    if(el){e.preventDefault(); const tc=coordsAt(all.indexOf(el)); commitAndFocus(tc.fi,tc.c);}
+  } else if(e.key==='ArrowLeft'&&t.selectionStart===0){
+    const tc=coordsAt(idx-1); if(tc){e.preventDefault(); commitAndFocus(tc.fi,tc.c);}
+  } else if(e.key==='ArrowRight'&&t.selectionStart===t.value.length){
+    const tc=coordsAt(idx+1); if(tc){e.preventDefault(); commitAndFocus(tc.fi,tc.c);}
+  } else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='d'){
+    e.preventDefault();
+    const p=all.filter(el=>+el.dataset.c===c&&all.indexOf(el)<idx).pop();
+    if(p){t.value=p.value;t.dispatchEvent(new Event('input'));toast('Filled down from the line above');}
+  }
+}
+/* paste spans consecutive FERT rows (in the grid's current sort/filter order) starting at the cell
+   pasted into — same shape as pasting into any other spreadsheet-style grid (P-10) — since editing
+   lives on the FERT row now, not a per-dealer row. */
+function gridPaste(e,fi){
+  const txt=(e.clipboardData||window.clipboardData).getData('text');
+  if(!/[\t\n]/.test(txt))return;
+  e.preventDefault();
+  const t=e.target,startC=+t.dataset.c;
+  const rs=rows(); const startIdx=rs.findIndex(f=>f.i===fi); if(startIdx<0)return;
+  let n=0;
+  txt.replace(/\r/g,'').split('\n').filter(l=>l.length).forEach((ln,li)=>{
+    const f=rs[startIdx+li]; if(!f)return;
+    ln.split('\t').forEach((cv,ci)=>{
+      const c=startC+ci; if(c>5)return;
+      const num=parseInt(cv.replace(/[^\d-]/g,''));
+      if(!isNaN(num)){const v=Math.max(0,num); f.ovr[c]=(v===clusterSubmitted(f,c))?null:v; n++;}
+    });
+  });
+  render();
+  toast(n+' cell'+(n===1?'':'s')+' pasted from your spreadsheet');
+}
+
+/* ════════ COMMIT (P-12 — always the full cluster scope) ════════ */
+function exceptionLines(){ return D.filter(fertHasException); }
+function renderCommit(){
+  const julT=D.reduce((a,f)=>a+jul(f),0), grand=D.reduce((a,f)=>a+gTot(f),0);
+  const missing=D.filter(f=>!hasEntry(f)).length, filtered=activeCount()>0||!!q;
+  const excCount=exceptionLines().length;
+  const el=document.getElementById('commit');
+  if(submitted[vert]){
+    el.innerHTML=`<div class="stat"><span class="v" style="color:var(--ok)">✓</span>
+      <span class="k">${VERTNAME[vert]} cluster indent submitted · ${D.length} lines · ${julT} units for July</span></div>
+      <div class="right"><button class="btn btn-ghost btn-sm" onclick="openExport()">View what was sent</button>
+      <button class="btn btn-ghost btn-sm" onclick="reopen()">Reopen</button></div>`; return;
+  }
+  el.innerHTML=`<div class="stat"><span class="v">${D.length}</span><span class="k">lines</span></div>
+    <div class="stat"><span class="v">${julT}</span><span class="k">units · July</span></div>
+    <div class="stat"><span class="v">${grand}</span><span class="k">Jul–Sep</span></div>
+    ${missing?`<div class="div"></div><div class="stat"><span class="v" style="color:var(--warn)">${missing}</span><span class="k">with no entry</span></div>`:''}
+    ${excCount?`<div class="div"></div><div class="stat"><span class="v" style="color:var(--warn)">${excCount}</span><span class="k">needing a decision</span></div>`:''}
+    <div class="right">
+      ${filtered?`<span class="saved" style="color:var(--warn)">⚠ Totals are for all ${D.length} lines, not the filtered view</span>`:`<span class="saved">Saved just now</span>`}
+      <button class="btn btn-primary btn-sm" onclick="saveAsm()">Save</button></div>`;
+}
+
+/* ════════ HOME (P-04: two sections, Indent progress then Summary) ════════
+   Section 1 follows the dealer's own shape (lead card + supporting cards) but folds the exception
+   list into it, per direction: no separate triage screen, just a "Needs your decision" card next to
+   the lead progress card — same two-section structure, ASM-specific content. */
+function computeDealerAccuracy(g){
+  const h=g.accHistory;
+  const pcts=h.map(x=>Math.round(Math.min(x.ind,x.off)/Math.max(x.ind,x.off,1)*100));
+  const avg=Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length);
+  const ti=h.reduce((a,x)=>a+x.ind,0), to=h.reduce((a,x)=>a+x.off,0);
+  const bias=to?Math.round((ti/to-1)*100):0;
+  const devAbp=g.abpTarget?Math.round((ti/4)/g.abpTarget*100-100):0;
+  return {group:g,pcts,avg,bias,ti,to,devAbp,isFlagged:Math.abs(bias)>TOL||Math.abs(devAbp)>TOL};
+}
+function renderHome(){
+  const entered=D.filter(hasEntry).length;
+  const julT=D.reduce((a,f)=>a+jul(f),0);
+  const vn=VERTNAME[vert];
+  document.getElementById('hcTitle').textContent='Cluster indent — '+vn;
+  document.getElementById('hcEntered').textContent=entered;
+  const el=document.querySelector('#hcEntered').nextElementSibling;
+  if(el)el.textContent='of '+D.length+' lines with an entry';
+  document.getElementById('hcUnits').textContent=julT;
+  document.getElementById('hcMeter').style.width=Math.round(entered/D.length*100)+'%';
+  const excCount=exceptionLines().length;
+  const st=document.getElementById('hcStatus');
+  st.textContent=submitted[vert]?'Submitted':(excCount?excCount+' flagged':'On track');
+  st.className='pill '+(submitted[vert]?'p-ok':(excCount?'p-warn':'p-ok'));
+  document.getElementById('tbState').innerHTML=submitted[vert]
+    ?'Status: <b class="okv">Submitted to RSM</b>':`Status: <b>${DEALER_GROUPS.length} of ${DEALER_GROUPS.length} dealers submitted</b>`;
+
+  /* "Dealers needing attention" — a compact KPI card scoped to the vertical currently open (same
+     scope as the lead card next to it), not pooled across LMD and HD. Clicking it opens a panel below
+     with two views: by FERT (the flagged consolidated lines, each expandable to the read-only dealer
+     breakdown behind it) and by dealer (each dealer, expandable to the same flagged lines with that
+     dealer's own submitted number) — same content the old CSM screen called Flagged Dealers. */
+  const excLines=D.filter(fertHasException);
+  document.getElementById('hcAttnCount').textContent=excLines.length;
+  document.getElementById('hcAttnCountCap').textContent=excLines.length===1?'':'s';
+  if(excLines.length){
+    const bySv={};
+    excLines.forEach(f=>{ bySv[f.sv]=(bySv[f.sv]||0)+1; });
+    document.getElementById('hcAttnCap').textContent=Object.entries(bySv).map(([sv,n])=>`${n} in ${sv}`).join(' · ');
+  } else {
+    document.getElementById('hcAttnCap').textContent='✓ Nothing outside tolerance right now.';
+  }
+  if(attnOpen)renderAttnPanel(excLines);
+
+  /* "Your dealers" — read-only, what each dealer actually submitted; opens the workbook grouped by
+     that dealer (read-only breakdown — override still happens on the consolidated FERT row) */
+  document.getElementById('hcDealers').innerHTML=DEALER_GROUPS.map(g=>{
+    const gJul=D.reduce((a,f)=>{const dl=f.dealers.find(d=>d.code===g.code);return a+dealerSubmittedJul(dl);},0);
+    return `<div class="kv-row"><span class="nm">${g.name}</span>
+      <span class="pill p-ok">Submitted</span>
+      <span class="vl">${gJul} units · Jul · ${g.loc}</span>
+      <button class="btn btn-quiet btn-sm" onclick="gridGroupBy='dealer';gridGroupOpen=new Set(['${g.code}']);go('wb');buildRail();render()">Open →</button></div>`;
+  }).join('');
+  document.getElementById('zProg').textContent=submitted[vert]
+    ? VERTNAME[vert]+' cluster indent submitted' : (excCount?excCount+' lines flagged · closes 16 Jul':entered+' of '+D.length+' lines with an entry · closes 16 Jul');
+
+  /* ── Summary (Section 2) — carried over from the old CSM Summary screen, not reinvented ── */
+  const prevT=D.reduce((a,f)=>a+clusterPrev(f),0);
+  document.getElementById('kIndent').textContent=julT;
+  document.getElementById('kPrev').textContent=prevT;
+  const pPct=prevT?Math.round((julT/prevT-1)*100):0;
+  const pp=document.getElementById('kPrevPill');
+  pp.textContent=(pPct>0?'+':'')+pPct+'%'; pp.className='pill '+(Math.abs(pPct)<=10?'p-ok':'p-warn');
+
+  const abpT=D.reduce((a,f)=>a+abpForFert(f),0);
+  const abpPct=abpT?Math.round(julT/abpT*100):0;
+  document.getElementById('kAbpPct').textContent=abpPct+'%';
+  document.getElementById('kAbpCap').textContent=`${julT} indent vs ${abpT} ABP target`;
+  document.getElementById('kAbpMeter').style.width=Math.min(abpPct,100)+'%';
+
+const invStock60=D.reduce((a,f)=>a+(f.s60||0),0);
+  const invAged=D.reduce((a,f)=>a+(f.s90||0)+(f.s180||0)+(f.sOver||0),0);
+  const invStockTotal=invStock60+invAged;
+  const invRunner=D.filter(f=>(f.eseg||f.seg)==='R').reduce((a,f)=>a+jul(f),0), invRepeater=D.filter(f=>(f.eseg||f.seg)==='S').reduce((a,f)=>a+jul(f),0), invStranger=D.filter(f=>(f.eseg||f.seg)==='D').reduce((a,f)=>a+jul(f),0);
+  document.getElementById('invStock60').textContent=invStock60;
+  document.getElementById('invStock60Cap').textContent=invStock60+' / '+invStockTotal+' units on hand';
+  document.getElementById('invAged').textContent=invAged;
+  document.getElementById('invAgedCap').textContent='60+ days · '+invStockTotal+' total units';
+  const rrs=[['Runner',invRunner,D.filter(f=>(f.eseg||f.seg)==='R').length,'var(--ok)','invRunner'],['Repeater',invRepeater,D.filter(f=>(f.eseg||f.seg)==='S').length,'var(--warn)','invRepeater'],['Stranger',invStranger,D.filter(f=>(f.eseg||f.seg)==='D').length,'var(--crit)','invStranger']];
+  const rrsUnits=invRunner+invRepeater+invStranger, rrsLines=rrs.reduce((a,x)=>a+x[2],0);
+  document.getElementById('invMix').textContent=rrsLines;
+  document.getElementById('invMixCap').textContent='FERTs in your July indent';
+  rrs.forEach(([name,units,lines,color,id])=>{document.getElementById(id+'Bar').style.width=(rrsUnits?units/rrsUnits*100:0)+'%';document.getElementById(id+'Detail').innerHTML=`<span style="color:${color}">■</span> ${name} · <b>${units}</b> units · ${lines} FERTs`;});
+  document.getElementById('invMixNote').textContent=`Vehicles in your July indent · ${rrs[0][2]} runner lines, ${rrs[1][2]} repeater lines, ${rrs[2][2]} stranger lines.`;
+  const accData=DEALER_GROUPS.map(computeDealerAccuracy);
+  const avgAcc=Math.round(accData.reduce((a,r)=>a+r.avg,0)/accData.length);
+  const avgBias=Math.round(accData.reduce((a,r)=>a+r.bias,0)/accData.length);
+  document.getElementById('kAcc').textContent=avgAcc+'%';
+  document.getElementById('kBias').textContent=(avgBias>0?'+':'')+avgBias+'%';
+  document.getElementById('kBias').style.color=Math.abs(avgBias)<=TOL?'var(--ok)':'var(--warn)';
+  document.getElementById('kBiasCap').textContent=avgBias>0?'over-indent':(avgBias<0?'under-indent':'no bias');
+  const ap=document.getElementById('kAccPill');
+  ap.textContent=Math.abs(avgBias)<=TOL?'Within ±10%':(avgBias>0?'Consistently over':'Consistently under');
+  ap.className='pill '+(Math.abs(avgBias)<=TOL?'p-ok':'p-warn');
+  const sparkPcts=[0,1,2,3].map(i=>Math.round(accData.reduce((a,r)=>a+r.pcts[i],0)/accData.length));
+  document.getElementById('kSpark').innerHTML=sparkPcts.map((v,i)=>
+    `<i style="height:${v}%" title="Cycle ${i+1}: ${v}%"></i>`).join('');
+  if(accOpen)renderAccPanel();
+  renderRollup();
+}
+
+/* ── dealer indent accuracy report card (P-15) ── */
+/* ── "Dealers needing attention" panel — two switchable views, not two fixed levels: By FERT (the
+   flagged consolidated lines, each expandable to the read-only dealer breakdown behind it) and By
+   dealer (each dealer, expandable to the same flagged lines showing that dealer's own submitted
+   number). Both are pure review — there's no accept/dismiss action here, just Review → which jumps
+   into the workbook where the actual override happens. */
+let attnOpen=false, attnView='fert', attnExpanded=new Set(), attnExpandedDealer=new Set();
+function toggleAttn(){
+  attnOpen=!attnOpen;
+  document.getElementById('attnBtn').textContent=(attnOpen?'▾':'▸')+' Review flagged lines';
+  document.getElementById('attnPanel').style.display=attnOpen?'':'none';
+  if(attnOpen)renderHome();
+}
+function setAttnView(v){ attnView=v; attnExpanded=new Set(); attnExpandedDealer=new Set(); renderHome(); }
+function toggleAttnLine(fi){ attnExpanded.has(fi)?attnExpanded.delete(fi):attnExpanded.add(fi); renderHome(); }
+function toggleAttnGroup(code){ attnExpandedDealer.has(code)?attnExpandedDealer.delete(code):attnExpandedDealer.add(code); renderHome(); }
+function reviewLine(fi,vertKey){
+  setVert(vertKey); gridGroupBy='fert';
+  const f=SETS[vertKey].find(x=>x.i===fi);
+  F.fert=new Set(f?[f.code]:[]);
+  go('wb'); buildRail(); expanded.add(fi); render();
+}
+function attnLineRow(f){
+  const ex=fertFlagExplain(f);
+  const open=attnExpanded.has(f.i);
+  const rowsHtml=open?f.dealers.map(dl=>{
+    const dJul=dl.submitted[0]+dl.submitted[1]+dl.submitted[2]+dl.submitted[3];
+    return `<tr class="sub"><td class="l" colspan="2">↳ ${dl.name} <span style="font-family:var(--mono);color:var(--muted)">${dl.code}</span></td>
+      <td class="l">submitted</td><td style="font-family:var(--mono)">${dJul} <span style="color:var(--muted)">(Jul)</span></td></tr>`;
+  }).join(''):'';
+  return `<tr><td class="l"><button class="exp" onclick="toggleAttnLine(${f.i})" aria-label="Expand">${open?'▼':'▶'}</button>${f.desc}
+      <span style="font-family:var(--mono);color:var(--muted)">${f.code}</span></td>
+    <td class="l">${f.sv}</td>
+    <td class="l">${ex}</td>
+    <td><button class="btn btn-ghost btn-sm" onclick="reviewLine(${f.i},'${f.vert}')">Review →</button></td></tr>${rowsHtml}`;
+}
+function renderAttnPanel(excLines){
+  const host=document.getElementById('attnPanel');
+  if(!excLines.length){
+    host.innerHTML=`<div class="accwrap"><div class="cap" style="color:var(--ok)">✓ Nothing outside tolerance right now — nothing to review.</div></div>`;
+    return;
+  }
+  const tabs=`<div class="seg-ctl">
+    <button class="${attnView==='fert'?'on':''}" onclick="setAttnView('fert')">By FERT</button>
+    <button class="${attnView==='dealer'?'on':''}" onclick="setAttnView('dealer')">By dealer</button>
+  </div>`;
+  let body;
+  if(attnView==='fert'){
+    body=`<table class="sumtbl">
+      <thead><tr><th class="l">FERT</th><th class="l">Sub-vertical</th><th class="l">Why it's flagged</th><th></th></tr></thead>
+      <tbody>${excLines.map(attnLineRow).join('')}</tbody>
+    </table>`;
+  } else {
+    body=`<table class="sumtbl">
+      <thead><tr><th class="l">Dealer</th><th>Lines flagged</th><th class="l"></th><th></th></tr></thead>
+      <tbody>${DEALER_GROUPS.map(g=>{
+        const open=attnExpandedDealer.has(g.code);
+        const rowsHtml=open?excLines.map(f=>{
+          const dl=f.dealers.find(d=>d.code===g.code);
+          const dJul=dl.submitted[0]+dl.submitted[1]+dl.submitted[2]+dl.submitted[3];
+          return `<tr class="sub"><td class="l" colspan="2">${f.desc} <span style="font-family:var(--mono);color:var(--muted)">${f.code}</span></td>
+            <td class="l" style="font-family:var(--mono)">${dJul} submitted (Jul)</td>
+            <td><button class="btn btn-ghost btn-sm" onclick="reviewLine(${f.i},'${f.vert}')">Review →</button></td></tr>`;
+        }).join(''):'';
+        return `<tr><td class="l"><button class="exp" onclick="toggleAttnGroup('${g.code}')" aria-label="Expand">${open?'▼':'▶'}</button>${g.name}</td>
+          <td>${excLines.length}</td><td class="l">${g.loc}</td><td></td></tr>${rowsHtml}`;
+      }).join('')}</tbody>
+    </table>`;
+  }
+  host.innerHTML=`<div class="accwrap">
+    <div class="acchead">
+      <h4>Lines needing attention</h4>
+      ${tabs}
+      <span style="margin-left:auto;font-size:11.5px;color:var(--muted)">${attnView==='fert'?"Expand a line to see each dealer's submitted number behind it":"Expand a dealer to see their submitted number on each flagged line"}</span>
+    </div>
+    ${body}
+  </div>`;
+}
+
+let accOpen=false, accView='dealer';
+function toggleAcc(){
+  accOpen=!accOpen;
+  document.getElementById('accBtn').textContent=(accOpen?'▾':'▸')+' View report card';
+  document.getElementById('accPanel').style.display=accOpen?'':'none';
+  if(accOpen)renderAccPanel();
+}
+function setAccView(v){ accView=v; renderAccPanel(); }
+function accRow(name,sub,hist,onClick,abp){
+  const pcts=hist.map(h=>Math.round(Math.min(h.ind,h.off)/Math.max(h.ind,h.off,1)*100));
+  const avg=Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length);
+  const ti=hist.reduce((a,h)=>a+h.ind,0), to=hist.reduce((a,h)=>a+h.off,0);
+  const bias=to?Math.round((ti/to-1)*100):0;
+  const col=avg>=90?'var(--ok)':avg>=80?'var(--warn)':'var(--crit)';
+  const pill=Math.abs(bias)<=TOL?['p-ok','Within ±10%']:(bias>0?['p-warn','Over by '+bias+'%']:['p-warn','Under by '+Math.abs(bias)+'%']);
+  return `<tr${onClick?` style="cursor:pointer" onclick="${onClick}"`:''}>
+    <td class="l">${name}${sub?`<div style="font-size:10.5px;color:var(--muted);font-family:var(--mono)">${sub}</div>`:''}</td>
+    ${hist.map(h=>`<td><div class="acell"><span class="ai">${h.ind}</span><span class="ao">took ${h.off}</span></div></td>`).join('')}
+    <td><span style="color:${col};font-weight:700">${avg}%</span>
+      <div class="abar"><i style="width:${avg}%;background:${col}"></i></div></td>
+    ${abp!==undefined?`<td style="text-align:right;font-family:var(--mono)">${abp}%</td>`:''}
+    <td style="text-align:right"><span class="pill ${pill[0]}">${pill[1]}</span></td></tr>`;
+}
+function renderAccPanel(){
+  const months=DEALER_GROUPS[0].accHistory.map(h=>h.m);
+  let body='', abpCol='';
+  if(accView==='dealer'){
+    abpCol='<th style="text-align:right">vs ABP</th>';
+    const clusterHist=months.map((m,i)=>({m,
+      ind:DEALER_GROUPS.reduce((a,g)=>a+g.accHistory[i].ind,0),
+      off:DEALER_GROUPS.reduce((a,g)=>a+g.accHistory[i].off,0)}));
+    body=DEALER_GROUPS.map(g=>{
+      const r=computeDealerAccuracy(g);
+      return accRow(g.name,g.code,g.accHistory,null,100+r.devAbp);
+    }).join('')+accRow('<b>Whole cluster</b>','',clusterHist);
+  }else{
+    const rs=rows().filter(f=>f.o3>0).slice(0,25);
+    body=rs.length?rs.map(f=>accRow(f.desc,f.code,fertHist(f),`closeAccTo(${f.i})`))
+      .join(''):`<tr><td class="l" colspan="7" style="color:var(--muted)">No lines with offtake history in this filter.</td></tr>`;
+  }
+  document.getElementById('accPanel').innerHTML=`
+    <div class="accwrap">
+      <div class="acchead">
+        <h4>Dealer indent accuracy — last four cycles</h4>
+        <div class="seg-ctl">
+          <button class="${accView==='dealer'?'on':''}" onclick="setAccView('dealer')">By dealer</button>
+          <button class="${accView==='fert'?'on':''}" onclick="setAccView('fert')">By FERT</button>
+        </div>
+        <span style="margin-left:auto;font-size:11.5px;color:var(--muted)">
+          Monthly · ${accView==='fert'?'top 25 lines in your current filter · click a row to open it':'each dealer in North Cluster'}</span>
+      </div>
+      <div class="cap" style="color:var(--muted);padding:0 0 2px">Each month below shows what the dealer <b>indented</b> (large number) over what they <b>took</b> — the offtake — underneath it.</div>
+      <div style="overflow-x:auto"><table class="sumtbl">
+        <thead><tr><th class="l">${accView==='dealer'?'Dealer':'FERT'}</th>
+          ${months.map(m=>`<th>${m}<div style="font-size:9px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">indent / offtake</div></th>`).join('')}<th>Accuracy</th>${abpCol}<th style="text-align:right">Bias</th></tr></thead>
+        <tbody>${body}</tbody></table></div>
+      <div class="cap" style="color:var(--muted);padding-bottom:4px">
+        <b>Indent</b> is what the dealer planned for that month. <b>Offtake</b> is what they actually took from stock. Accuracy is the smaller of the two over the larger. Bias is the total indented against the total taken across all four months — positive means consistently asking for more than they lift. Tolerance ±10%, same figure that gates an override reason in the grid.</div>
+    </div>`;
+}
+function closeAccTo(i){ const f=D.find(x=>x.i===i); if(!f)return; gridGroupBy='fert'; F.fert=new Set([f.code]); go('wb'); buildRail(); render(); toast('Opened '+f.code); }
+
+/* ════════ ROLLUP with group-by (P-16) ════════
+   Dimensions offered: dealer, MPG, tonnage, FERT — the same set the old CSM screen offered
+   (dealer/mpg/tonnage/fert), with cluster and state left out because ASM only sees their own
+   cluster ("offer only dimensions that persona is entitled to see", P-16's vary note). */
+const ROLL_GB=[['dealer','Dealer'],['mpg','MPG'],['ton','Tonnage'],['fert','FERT']];
+let rollBy='dealer'; let rollOpen=new Set();
+function setRollBy(k){ rollBy=k; rollOpen=new Set(); renderRollup(); }
+function toggleRollRow(k){ rollOpen.has(k)?rollOpen.delete(k):rollOpen.add(k); renderRollup(); }
+function lineVals(fs,dealerCode){
+  /* dealer-scoped values are always that dealer's own submitted figure — read-only reference, since
+     the ASM's override lives on the consolidated FERT row, not on any one dealer's line. */
+  const val=(f,c)=>dealerCode?f.dealers.find(d=>d.code===dealerCode).submitted[c]:clusterV(f,c);
+  const s60=fs.reduce((a,f)=>a+f.s60,0), s90=fs.reduce((a,f)=>a+f.s90,0),
+    s180=fs.reduce((a,f)=>a+f.s180,0), sOver=fs.reduce((a,f)=>a+f.sOver,0);
+  const o3=fs.reduce((a,f)=>a+f.o3,0), o6=fs.reduce((a,f)=>a+f.o6,0),
+    o12=fs.reduce((a,f)=>a+f.o12,0), oly=fs.reduce((a,f)=>a+f.oly,0);
+  const prev=dealerCode?fs.reduce((a,f)=>a+f.dealers.find(d=>d.code===dealerCode).prevSubmitted,0):fs.reduce((a,f)=>a+clusterPrev(f),0);
+  const w=[0,1,2,3].map(c=>fs.reduce((a,f)=>a+val(f,c),0));
+  const jul=w.reduce((a,b)=>a+b,0), aug=fs.reduce((a,f)=>a+val(f,4),0), sep=fs.reduce((a,f)=>a+val(f,5),0);
+  const abp=fs.reduce((a,f)=>a+(dealerCode?Math.round(abpForFert(f)*dealerShareFactor(f.dealers.find(d=>d.code===dealerCode))):abpForFert(f)),0);
+  const avg3=fs.reduce((a,f)=>a+(dealerCode?dealerExpected3mo(f,f.dealers.find(d=>d.code===dealerCode)):threeMoAvg(f)),0);
+  return {s60,s90,s180,sOver, stock:s60+s90+s180+sOver, o3,o6,o12,oly,
+    prev, delta:jul-prev, w0:w[0],w1:w[1],w2:w[2],w3:w[3], jul,aug,sep, tot:jul+aug+sep, abp, avg3};
+}
+const ROLL_INDENT=[
+  {k:'w0',label:'W1'},{k:'w1',label:'W2'},{k:'w2',label:'W3'},{k:'w3',label:'W4'},
+  {k:'jul',label:'Jul',bold:true},{k:'aug',label:'Aug'},{k:'sep',label:'Sep'},{k:'tot',label:'Total',bold:true}];
+function deltaCell(v){
+  const c=v.delta>0?'var(--ok)':v.delta<0?'var(--crit)':'var(--muted)';
+  return `<span style="color:${c};font-weight:600">${v.delta>0?'+':''}${v.delta||0}</span>`;
+}
+const ROLL_BANDS=[
+  {k:'stock',label:'Cluster stock',summary:{k:'stock',label:'Stock',get:v=>v.stock||'–'},cols:[
+    {k:'s60',label:'&lt;60D',get:v=>v.s60||'–'},{k:'s90',label:'60–90D',get:v=>v.s90||'–'},
+    {k:'s180',label:'90–180D',get:v=>v.s180||'–'},{k:'sOver',label:'&gt;180D',get:v=>v.sOver||'–'},
+    {k:'stock',label:'Total',get:v=>v.stock||'–'}]},
+  {k:'off',label:'Trend — offtake',summary:{k:'o3',label:'Off L3',get:v=>v.o3||'–'},cols:[
+    {k:'o3',label:'L3',get:v=>v.o3||'–'},{k:'o6',label:'L6',get:v=>v.o6||'–'},
+    {k:'o12',label:'L12',get:v=>v.o12||'–'},{k:'oly',label:'LYSM',get:v=>v.oly||'–'}]},
+  {k:'last',label:'Last cycle',summary:{k:'delta',label:'Δ vs last',get:deltaCell},cols:[
+    {k:'prev',label:'Last cycle',get:v=>v.prev||'–'},{k:'delta',label:'Δ vs last',get:deltaCell}]},
+  {k:'avg3',label:'3-month average',cols:[{k:'avg3',label:'Avg (L3M)',get:v=>v.avg3||'–'}]},
+  {k:'abp',label:'ABP target',cols:[{k:'abp',label:'ABP',get:v=>v.abp||'–'}]},
+];
+let rollBandMode={stock:'summary',off:'summary',last:'summary',avg3:'off',abp:'off'};
+function activeRollCols(){
+  const out=[];
+  ROLL_BANDS.forEach(b=>{
+    const m=rollBandMode[b.k]||'off';
+    if(m==='off')return;
+    if(m==='summary'&&b.summary)out.push({...b.summary,band:b});
+    else b.cols.forEach(c=>out.push({...c,band:b}));
+  });
+  return out;
+}
+function rollBandSpan(){
+  const cols=activeRollCols(), out=[];
+  cols.forEach(c=>{
+    const last=out[out.length-1];
+    if(last&&last.b===c.band)last.n++;
+    else out.push({b:c.band,n:1,mode:rollBandMode[c.band.k]});
+  });
+  return out;
+}
+function cycleRollBand(k){
+  const b=ROLL_BANDS.find(x=>x.k===k);
+  const m=rollBandMode[k];
+  rollBandMode[k]= b.summary ? (m==='summary'?'full':'summary') : (m==='full'?'off':'full');
+  renderRollup();
+}
+function rowCells(v){
+  return ROLL_INDENT.map(c=>`<td${c.bold?' style="font-weight:700"':''}>${v[c.k]||'–'}</td>`).join('')
+    +activeRollCols().map(c=>`<td>${c.get(v)}</td>`).join('');
+}
+function renderRollup(){
+  document.getElementById('rollGb').innerHTML=ROLL_GB.map(([k,l])=>
+    `<button class="${rollBy===k?'on':''}" onclick="setRollBy('${k}')">${l}</button>`).join('');
+  const src=rows();
+  document.getElementById('rollNote').textContent=(activeCount()||q)
+    ?`${src.length} of ${D.length} lines — indent workbook filters applied`:`All ${D.length} lines`;
+  const label={dealer:'Dealer',mpg:'MPG',ton:'Tonnage',fert:'FERT'}[rollBy];
+  const spans=rollBandSpan();
+  const bandRow=spans.map(s=>{
+    const short=s.mode==='summary'&&s.b.summary;
+    return `<th class="b-ref" colspan="${s.n}"><button class="bandbtn" onclick="cycleRollBand('${s.b.k}')"
+      title="${s.b.label} · ${s.mode==='summary'?'Expand this group':'Collapse this group'}">${short?s.b.summary.label:s.b.label}
+      <span class="bm">${s.mode==='summary'?'▸':'▾'}</span></button></th>`;}).join('');
+  const colRow=`${ROLL_INDENT.map(c=>`<th>${c.label}</th>`).join('')}${activeRollCols().map(c=>`<th>${c.label}</th>`).join('')}`;
+  let h=`<thead>
+      <tr class="bands"><th class="l" rowspan="2">${label}</th><th rowspan="2">Lines</th>
+        <th class="b-edit" colspan="8">ASM Indent · July 2026</th>${bandRow}</tr>
+      <tr>${colRow}</tr>
+    </thead><tbody>`;
+  if(rollBy==='fert'){
+    src.forEach(f=>{
+      const v=lineVals([f]);
+      h+=`<tr><td class="l">${f.desc}<div style="font-size:10.5px;color:var(--muted);font-family:var(--mono)">${f.code}</div></td>
+        <td>1</td>${rowCells(v)}</tr>`;
+    });
+  } else if(rollBy==='dealer'){
+    DEALER_GROUPS.forEach(g=>{
+      const v=lineVals(src,g.code);
+      const open=rollOpen.has(g.code);
+      h+=`<tr><td class="l"><button class="exp" onclick="toggleRollRow('${g.code}')" aria-label="Expand">${open?'▼':'▶'}</button>${g.name}</td>
+        <td>${src.length}</td>${rowCells(v)}</tr>`;
+      if(open)src.forEach(f=>{
+        const dv2=lineVals([f],g.code);
+        h+=`<tr class="sub"><td class="l">${f.desc} <span style="font-family:var(--mono);color:var(--muted)">${f.code}</span></td>
+          <td>1</td>${rowCells(dv2)}</tr>`;
+      });
+    });
+  } else {
+    const keys=[...new Set(src.map(f=>f[VALOF[rollBy]]))];
+    if(rollBy==='ton')keys.sort((a,b)=>parseFloat(a)-parseFloat(b)); else keys.sort();
+    keys.forEach(k=>{
+      const fs=src.filter(f=>f[VALOF[rollBy]]===k);
+      const v=lineVals(fs);
+      const open=rollOpen.has(k);
+      h+=`<tr><td class="l"><button class="exp" onclick="toggleRollRow('${k}')" aria-label="Expand">${open?'▼':'▶'}</button>${k}</td>
+        <td>${fs.length}</td>${rowCells(v)}</tr>`;
+      if(open)fs.forEach(f=>{
+        const fv=lineVals([f]);
+        h+=`<tr class="sub"><td class="l">${f.desc} <span style="font-family:var(--mono);color:var(--muted)">${f.code}</span></td>
+          <td>1</td>${rowCells(fv)}</tr>`;
+      });
+    });
+  }
+  const tv=lineVals(src);
+  h+=`<tr class="tot"><td class="l">Total</td><td>${src.length}</td>${rowCells(tv)}</tbody>`;
+  document.getElementById('rollTbl').innerHTML=h;
+}
+
+/* ════════ DRAWER (P-10) ════════ */
+function openDrawer(i){
+  const f=D.find(x=>x.i===i); const st=stockTot(f);
+  document.getElementById('drawer').innerHTML=`
+    <div class="dr-head"><div><h3>${f.desc}</h3><div class="cd">${f.code}</div></div>
+      <button class="dr-close" onclick="closeDrawer()" aria-label="Close">×</button></div>
+    <div class="dr-body">
+      <div class="dr-sec"><h4>Vehicle</h4>
+        <div class="dr-i"><span class="k">Eicher segment</span><span class="v"><span class="seg-dot sg-${f.eseg}">${SEGNAME[f.eseg]}</span></span></div>
+        <div class="dr-i"><span class="k">MPG model</span><span class="v">${f.mpg}</span></div>
+        <div class="dr-i"><span class="k">Tonnage</span><span class="v">${f.ton}</span></div>
+        <div class="dr-i"><span class="k">Fuel · cabin</span><span class="v">${f.fuel} · ${f.ac==='AC'?'AC':'Non-AC'}</span></div>
+        <div class="dr-i"><span class="k">Sub-vertical</span><span class="v">${f.sv}</span></div></div>
+      <div class="dr-sec"><h4>Cluster stock on hand — ${st} units</h4>
+        <div class="dr-i"><span class="k">Under 60 days</span><span class="v">${f.s60}</span></div>
+        <div class="dr-i"><span class="k">60–90 days</span><span class="v ${f.s90?'w':''}">${f.s90}</span></div>
+        <div class="dr-i"><span class="k">90–180 days</span><span class="v ${f.s180?'w':''}">${f.s180}</span></div>
+        <div class="dr-i"><span class="k">Over 180 days</span><span class="v ${f.sOver?'c':''}">${f.sOver}</span></div>
+        <div class="dr-i"><span class="k">Opening stock, 1 Jul</span><span class="v">${f.openFg}</span></div>
+        <div class="dr-i"><span class="k">Live purchase orders</span><span class="v">${f.openPO}</span></div>
+        <div class="dr-src">◷ From SAP · refreshed today 06:00 IST</div></div>
+      <div class="dr-sec"><h4>Consolidated — this cycle</h4>
+        <div class="dr-i"><span class="k">July total (all dealers)</span><span class="v">${jul(f)}${f.ovr.some(v=>v!==null)?' <span style="color:var(--warn);font-size:10px">overridden by ASM</span>':''}</span></div>
+        ${fertHasException(f)?`<div class="dr-i" style="display:block"><span class="k">Why this needs review</span><div class="v" style="font-weight:400;color:var(--warn);text-align:left;margin-top:3px">${fertFlagExplain(f)}</div></div>`:''}
+        ${f.reason?`<div class="dr-i"><span class="k">Reason</span><span class="v" style="font-weight:400">${f.reason}</span></div>`:''}
+        <div class="dr-src">◷ The ASM moderates this one consolidated number per FERT, not each dealer's line.</div></div>
+      <div class="dr-sec"><h4>By dealer — as submitted, read-only</h4>
+        ${f.dealers.map(dl=>`<div class="dr-i"><span class="k">${dl.name}</span><span class="v">${dealerSubmittedJul(dl)}</span></div>`).join('')}
+        <div class="dr-src">◷ Dealer submissions · refreshed on their last save</div></div>
+      <div class="dr-sec"><h4>Reference — this FERT</h4>
+        <div class="dr-i"><span class="k">Last cycle (cluster)</span><span class="v">${clusterPrev(f)}</span></div>
+        <div class="dr-i"><span class="k">3-month average (cluster)</span><span class="v">${threeMoAvg(f)}</span></div>
+        <div class="dr-i"><span class="k">ABP target (cluster, split by offtake share)</span><span class="v">${abpForFert(f)}</span></div>
+        <div class="dr-src">◷ ABP is a light integration (#24-lite) — see the Dealer prototype's own note.</div></div>
+    </div>`;
+  document.getElementById('drawer').classList.add('on');
+  document.getElementById('scrim').classList.add('on');
+}
+function closeDrawer(){document.getElementById('drawer').classList.remove('on');document.getElementById('scrim').classList.remove('on');}
+
+/* ════════ EXPORT (P-18: export shows what will be exported) ════════ */
+function openExport(){
+  const rs=rows().length?rows():D;
+  const scope=(activeCount()||q)?`${rs.length} filtered lines`:`all ${D.length} lines`;
+  document.getElementById('expSub').textContent=`${VERTNAME[vert]} · North Cluster · July 2026 · ${scope}`;
+  /* one row per FERT — the consolidated line the ASM actually moderates — with each dealer's
+     submitted July total alongside as read-only reference. */
+  const hdr=['FERT Code','Description','Eicher segment','MPG','Tonnage','Fuel','Cabin',
+    'Last cycle','3-month avg','ABP target','W1','W2','W3','W4','Jul','Aug','Sep','Total','Overridden','Reason',
+    DEALER_GROUPS[0].name+' submitted (Jul)',DEALER_GROUPS[1].name+' submitted (Jul)'];
+  const lines=[hdr.join(',')];
+  rs.forEach(f=>{
+    lines.push([f.code,'"'+f.desc+'"',SEGNAME[f.eseg],f.mpg,f.ton,f.fuel,f.ac,
+      clusterPrev(f),threeMoAvg(f),abpForFert(f),
+      clusterV(f,0),clusterV(f,1),clusterV(f,2),clusterV(f,3),jul(f),clusterV(f,4),clusterV(f,5),gTot(f),
+      f.ovr.some(v=>v!==null)?'Y':'N','"'+(f.reason||'')+'"',
+      dealerSubmittedJul(f.dealers[0]),dealerSubmittedJul(f.dealers[1])].join(','));
+  });
+  document.getElementById('csvBox').value=lines.join('\n');
+  document.getElementById('expM').classList.add('on');
+}
+function copyCsv(){
+  const el=document.getElementById('csvBox'); el.select();
+  try{ navigator.clipboard.writeText(el.value); toast('Copied to clipboard'); }
+  catch(e){ toast('Select the text and copy'); }
+}
+
+/* ════════ REVIEW & SUBMIT (P-13) ════════ */
+function openReview(){
+  const julT=D.reduce((a,f)=>a+jul(f),0), aug=D.reduce((a,f)=>a+clusterV(f,4),0), sep=D.reduce((a,f)=>a+clusterV(f,5),0);
+  const prevT=D.reduce((a,f)=>a+clusterPrev(f),0), missing=D.filter(f=>!hasEntry(f)).length;
+  const excCount=exceptionLines().length;
+  const delta=julT-prevT, pct=prevT?Math.round(delta/prevT*100):0;
+  const filtered=activeCount()>0||!!q;
+  document.getElementById('revSub').textContent=`S&OP-1A · July 2026 · North Cluster (R. Khanna) · ${VERTNAME[vert]}`;
+  document.getElementById('reviewBody').innerHTML=`
+    ${filtered?`<div class="notice n-warn"><span>⚠</span><div><b>You have filters applied.</b> Submitting sends the <b>full</b> ${VERTNAME[vert]} cluster indent — all ${D.length} lines — not just the ${rows().length} on screen.</div></div>`:''}
+    ${missing?`<div class="notice n-warn"><span>⚠</span><div><b>${missing} lines have no entry from any dealer.</b> They go up as zero. <button class="link" onclick="closeM('review');jumpFilter('noentry')">Review them first</button></div></div>`:''}
+    ${excCount?`<div class="notice n-warn"><span>⚠</span><div><b>${excCount} line${excCount>1?'s':''} still flagged</b> — accept as submitted or give a reason before you submit. <button class="link" onclick="closeM('review');jumpFilter('exception')">Review them first</button></div></div>`:''}
+    <div>
+      <div class="mrow"><span class="k">Lines</span><span class="v">${D.length}</span></div>
+      <div class="mrow"><span class="k">July (W1–W4)</span><span class="v">${julT}</span></div>
+      <div class="mrow"><span class="k">August</span><span class="v">${aug}</span></div>
+      <div class="mrow"><span class="k">September</span><span class="v">${sep}</span></div>
+      <div class="mrow"><span class="k">vs last cycle's plan for July</span>
+        <span class="v" style="color:${delta<0?'var(--warn)':'var(--ok)'}">${delta>0?'+':''}${delta} · ${pct>0?'+':''}${pct}%</span></div>
+    </div>
+    <div class="notice n-acc"><span>→</span><div>Goes to <b>P. Mehta, RSM North Region</b>. You can reopen and resubmit until <b>16 Jul, 23:59 IST</b>.</div></div>`;
+  document.getElementById('revSubmitBtn').disabled=excCount>0;
+  document.getElementById('review').classList.add('on');
+}
+function doSubmit(){ submitted[vert]=true; closeM('review'); render(); toast(VERTNAME[vert]+' cluster indent submitted to RSM North Region'); }
+function reopen(){ submitted[vert]=false; render(); toast('Reopened — resubmit before the cut-off'); }
+function closeM(id){ document.getElementById(id).classList.remove('on'); }
+
+let tt;
+function toast(m){ const el=document.getElementById('toast'); el.textContent=m; el.classList.add('on');
+  clearTimeout(tt); tt=setTimeout(()=>el.classList.remove('on'),2600); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){closeDrawer();['review','expM'].forEach(closeM);} });
+buildRail(); render(); renderColPop();
+</script>
+<script>
+const personaFiles={"dealer":"VECVplan-Dealer-Prototype-v4_5-updated.html","asm":"VECVplan-ASM-Prototype-v1_3-updated.html","rsm":"VECVplan-RSM-Prototype-v1_0-corrected.html","vh":"VECVplan-VH-Workbench-v1_1-updated.html","iso":"VECVplan-ISO-Consolidation-Workbench-v2_1-updated.html"};
+setPersona=function(v){if(v==="asm"||!personaFiles[v])return;window.location.href=new URL(personaFiles[v]+'#persona-switch',window.location.href).href;};
+if(window.location.hash==='#persona-switch'){document.getElementById('login').style.display='none';document.getElementById('app').classList.add('on');buildRail();render();tick();}
+</script>
+<script id="asm-save">
+const ASM_SAVE_KEY='vecvplan-asm-saved-v1';
+function saveAsm(){if(document.activeElement instanceof HTMLElement)document.activeElement.blur();try{localStorage.setItem(ASM_SAVE_KEY,JSON.stringify({version:1,sets:SETS,savedAt:new Date().toISOString()}));closeM('review');toast('Saved in this browser. Entries remain editable.');}catch(e){toast('Unable to save. Please try again.');}}
+try{const saved=JSON.parse(localStorage.getItem(ASM_SAVE_KEY)||'null');if(saved?.version===1&&Array.isArray(saved.sets?.lmd)&&Array.isArray(saved.sets?.hd)){for(const k of ['lmd','hd'])SETS[k].splice(0,SETS[k].length,...saved.sets[k]);D=SETS[vert];uid=Math.max(uid,...Object.values(SETS).flat().map(f=>Number(f.i)||0))+1;}}catch(e){}
+doSubmit=saveAsm;
+buildRail();render();
+</script></body>
+</html>

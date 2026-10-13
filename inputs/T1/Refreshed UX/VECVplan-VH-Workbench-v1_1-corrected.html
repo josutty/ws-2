@@ -1,0 +1,2263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VECVplan VH — Vertical Indent Moderation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   Visual system (P-17) — identical tokens/components to the ASM Prototype
+   v1.3, which is itself identical to the Dealer Prototype v4.5. Nothing
+   below is a new palette; the only additions are --coco (the read-only
+   COCO reference band, a VH-only figure carried over from the old
+   Demand Planning Workbench) and a small cycle-toggle control (S&OP-1A
+   / S&OP-1B) that the ASM screen didn't need. */
+:root{
+  --canvas:#F4F6F8; --surface:#FFFFFF; --surface-2:#F8FAFB; --bar:#10202D; --bar-ink:#C7D6E2;
+  --ink:#16222C; --ink-2:#42576A; --muted:#6B7C8A; --rule:#DCE3E9; --rule-soft:#EAEFF3;
+  --accent:#0E6BA8; --accent-2:#0A5686; --accent-soft:#E6F1F8; --accent-line:#B9D7EA;
+  --ok:#1F7A45; --ok-soft:#E7F2EB; --warn:#A65D00; --warn-soft:#FBEFE0; --crit:#B3261E; --crit-soft:#FBE9E7;
+  --add:#6B3FA0; --add-soft:#F0EAF8;
+  --coco:#AD1457; --coco-soft:#FCE4EC; --coco-line:#F0AFC8;
+  --ui:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  --shadow:0 1px 2px rgba(16,32,45,.06),0 2px 8px rgba(16,32,45,.06);
+  --shadow-lg:0 12px 40px rgba(16,32,45,.22);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --canvas:#0C1319; --surface:#141D25; --surface-2:#19242D; --bar:#080F14; --bar-ink:#9FB4C4;
+  --ink:#E2EAF0; --ink-2:#AEC0CE; --muted:#8296A6; --rule:#26343F; --rule-soft:#1D2831;
+  --accent:#4FA3D6; --accent-2:#79BCE5; --accent-soft:#122A3A; --accent-line:#20455C;
+  --ok:#5FBA84; --ok-soft:#132720; --warn:#D9A05B; --warn-soft:#2A2015; --crit:#E08A84; --crit-soft:#2C1917;
+  --add:#A487D0; --add-soft:#211B2E;
+  --coco:#E874A6; --coco-soft:#2A1720; --coco-line:#5C2A3C;
+  --shadow:0 1px 2px rgba(0,0,0,.4); --shadow-lg:0 12px 40px rgba(0,0,0,.55);
+}}
+:root[data-theme="dark"]{
+  --canvas:#0C1319; --surface:#141D25; --surface-2:#19242D; --bar:#080F14; --bar-ink:#9FB4C4;
+  --ink:#E2EAF0; --ink-2:#AEC0CE; --muted:#8296A6; --rule:#26343F; --rule-soft:#1D2831;
+  --accent:#4FA3D6; --accent-2:#79BCE5; --accent-soft:#122A3A; --accent-line:#20455C;
+  --ok:#5FBA84; --ok-soft:#132720; --warn:#D9A05B; --warn-soft:#2A2015; --crit:#E08A84; --crit-soft:#2C1917;
+  --add:#A487D0; --add-soft:#211B2E;
+  --coco:#E874A6; --coco-soft:#2A1720; --coco-line:#5C2A3C;
+  --shadow:0 1px 2px rgba(0,0,0,.4); --shadow-lg:0 12px 40px rgba(0,0,0,.55);
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--canvas);color:var(--ink);font-family:var(--ui);font-size:13.5px;
+  line-height:1.45;height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased;}
+button{font-family:inherit;cursor:pointer;}
+input,select,textarea{font-family:inherit;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
+
+.btn{height:32px;padding:0 14px;border-radius:5px;font-size:13px;font-weight:500;border:1px solid transparent;
+  display:inline-flex;align-items:center;gap:7px;white-space:nowrap;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:var(--accent-2);}
+.btn-primary:disabled{background:var(--muted);}
+.btn-ghost{background:var(--surface);color:var(--ink-2);border-color:var(--rule);}
+.btn-ghost:hover{background:var(--surface-2);border-color:var(--muted);}
+.btn-quiet{background:transparent;color:var(--ink-2);border-color:transparent;}
+.btn-quiet:hover{background:var(--surface-2);}
+.btn-add{background:var(--surface);color:var(--add);border-color:var(--add);}
+.btn-add:hover{background:var(--add-soft);}
+.btn-sm{height:27px;padding:0 10px;font-size:12px;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.link{background:none;border:none;padding:0;color:var(--accent);font-size:13px;font-weight:500;
+  text-decoration:underline;text-underline-offset:2px;}
+
+/* ══ LOGIN (P-01 — identical shape to every persona) ══ */
+#login{height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;overflow-y:auto;
+  background:linear-gradient(150deg,#0B1822 0%,#12293A 55%,#0E3A4A 100%);}
+.lg-shell{width:100%;max-width:400px;display:flex;flex-direction:column;gap:18px;}
+.lg-logo{font-size:23px;font-weight:700;color:#fff;letter-spacing:-.4px;}
+.lg-logo span{color:#5FB0DE;}
+.lg-cycle{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.09);
+  border:1px solid rgba(255,255,255,.14);border-radius:5px;padding:5px 11px;font-size:11.5px;color:#B7CDDD;margin-top:6px;}
+.lg-cycle b{color:#fff;font-weight:600;}
+.lg-card{background:var(--surface);border-radius:9px;padding:26px;box-shadow:var(--shadow-lg);
+  display:flex;flex-direction:column;gap:15px;}
+.lg-card h1{margin:0;font-size:19px;font-weight:600;}
+.lg-card .sub{font-size:13px;color:var(--muted);margin-top:-9px;}
+.fld{display:flex;flex-direction:column;gap:5px;}
+.fld label{font-size:12px;font-weight:600;color:var(--ink-2);display:flex;align-items:baseline;}
+.fld label .hint{margin-left:auto;font-weight:400;}
+.fld input{height:38px;padding:0 11px;border:1px solid var(--rule);border-radius:5px;font-size:14px;
+  background:var(--surface);color:var(--ink);}
+.fld input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+.fld .err{font-size:12px;color:var(--crit);display:none;}
+.fld.invalid input{border-color:var(--crit);}
+.fld.invalid .err{display:block;}
+.lg-or{display:flex;align-items:center;gap:11px;color:var(--muted);font-size:11.5px;}
+.lg-or::before,.lg-or::after{content:'';flex:1;height:1px;background:var(--rule);}
+.lg-foot{font-size:11.5px;color:var(--muted);text-align:center;}
+.lg-note{font-size:11px;color:rgba(183,205,221,.75);text-align:center;}
+
+/* ══ SHELL (P-03) ══ */
+#app{display:none;height:100vh;flex-direction:column;overflow:hidden;}
+#app.on{display:flex;}
+.topbar{height:48px;flex-shrink:0;background:var(--bar);display:flex;align-items:center;gap:4px;padding:0 8px 0 16px;}
+.tb-logo{font-size:14.5px;font-weight:700;color:#fff;margin-right:14px;white-space:nowrap;}
+.tb-logo span{color:#5FB0DE;}
+.tb-nav{display:flex;gap:2px;}
+.tb-nav button{height:30px;padding:0 12px;border:none;border-radius:5px;background:transparent;
+  color:var(--bar-ink);font-size:13px;font-weight:500;}
+.tb-nav button:hover{background:rgba(255,255,255,.08);color:#fff;}
+.tb-nav button.on{background:rgba(255,255,255,.14);color:#fff;}
+.tb-nav button:disabled{opacity:.35;cursor:not-allowed;}
+.tb-status{margin-left:16px;display:flex;align-items:center;overflow:hidden;}
+.tb-status .seg{font-size:12px;color:var(--bar-ink);white-space:nowrap;padding:0 12px;
+  border-left:1px solid rgba(255,255,255,.13);}
+.tb-status .seg:first-child{border-left:none;}
+.tb-status b{color:#fff;font-weight:600;}
+.warnv{color:#F0B770;font-weight:600;} .okv{color:#7DD3A0;font-weight:600;}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:8px;padding-left:10px;}
+.tb-user{display:flex;align-items:center;gap:8px;padding:3px 10px 3px 4px;border-radius:16px;background:rgba(255,255,255,.09);}
+.tb-av{width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:10px;
+  font-weight:700;display:flex;align-items:center;justify-content:center;}
+.tb-user .nm{font-size:11.5px;color:#fff;line-height:1.15;}
+.tb-user .rl{font-size:10px;color:#8FADC4;line-height:1.15;}
+.tb-icon{width:30px;height:30px;border:none;border-radius:5px;background:transparent;color:var(--bar-ink);
+  font-size:14px;display:flex;align-items:center;justify-content:center;}
+.tb-icon:hover{background:rgba(255,255,255,.1);color:#fff;}
+.page{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+.view{display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;}
+.view.on{display:flex;}
+
+/* ══ HOME (P-04) ══ */
+.home-scroll{flex:1;overflow-y:auto;}
+.home-inner{max-width:1440px;margin:0 auto;padding:20px 32px 56px;display:flex;flex-direction:column;gap:18px;}
+.proto-strip{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);
+  border:1px dashed var(--accent-line);border-radius:7px;padding:9px 14px;}
+.proto-strip .pl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--accent);background:var(--accent-soft);padding:3px 7px;border-radius:3px;}
+.proto-strip label{font-size:12.5px;font-weight:600;color:var(--ink-2);}
+.proto-strip select{height:32px;padding:0 9px;border:1px solid var(--rule);border-radius:5px;
+  background:var(--surface);color:var(--ink);font-size:13px;font-weight:500;min-width:228px;}
+.proto-strip .np{font-size:11.5px;color:var(--muted);margin-left:auto;}
+.cyc-ctl{display:flex;border:1px solid var(--rule);border-radius:5px;overflow:hidden;flex-shrink:0;}
+.cyc-ctl button{height:32px;padding:0 12px;border:none;background:var(--surface);color:var(--muted);font-size:12.5px;font-weight:600;}
+.cyc-ctl button.on{background:var(--accent-soft);color:var(--accent);}
+.cyc-ctl button+button{border-left:1px solid var(--rule);}
+.home-head{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;}
+.home-head h1{margin:0;font-size:24px;font-weight:600;letter-spacing:-.4px;}
+.home-head .sub{font-size:13.5px;color:var(--muted);}
+.home-head .right{margin-left:auto;display:flex;gap:8px;}
+.zone{display:flex;align-items:center;gap:12px;margin-top:10px;}
+.zone .zl{font-size:11px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);white-space:nowrap;}
+.zone .zr{flex:1;height:1px;background:var(--rule);}
+.zone .zn{font-size:11.5px;color:var(--muted);white-space:nowrap;}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(262px,1fr));gap:14px;}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:16px 17px 15px;
+  display:flex;flex-direction:column;gap:11px;box-shadow:var(--shadow);}
+.card.lead{grid-column:span 2;}
+.card.full{grid-column:1/-1;}
+.card.attn{border-color:var(--warn);}
+@media (max-width:760px){.card.lead,.card.full{grid-column:span 1;}}
+.card h3{margin:0;font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);}
+.big{font-family:var(--mono);font-size:27px;font-weight:600;letter-spacing:-.5px;line-height:1;font-variant-numeric:tabular-nums;}
+.big.sm{font-size:21px;}
+.cap{font-size:12.5px;color:var(--ink-2);}
+.card .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:4px;}
+.meter{height:6px;border-radius:3px;background:var(--rule-soft);overflow:hidden;}
+.meter i{display:block;height:100%;background:var(--accent);border-radius:3px;}
+.kv-row{display:flex;align-items:center;gap:10px;font-size:13px;padding:7px 0;border-bottom:1px solid var(--rule-soft);}
+.kv-row:last-child{border-bottom:none;}
+.kv-row .nm{color:var(--ink);font-weight:500;}
+.kv-row .vl{margin-left:auto;font-family:var(--mono);font-size:12.5px;color:var(--ink-2);font-variant-numeric:tabular-nums;}
+.pill{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:3px;white-space:nowrap;}
+.p-ok{background:var(--ok-soft);color:var(--ok);}
+.p-warn{background:var(--warn-soft);color:var(--warn);}
+.p-crit{background:var(--crit-soft);color:var(--crit);}
+.p-add{background:var(--add-soft);color:var(--add);}
+.p-coco{background:var(--coco-soft);color:var(--coco);}
+.attn-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule-soft);font-size:13px;}
+.attn-row:last-child{border-bottom:none;}
+.attn-row .n{font-family:var(--mono);font-size:16px;font-weight:600;min-width:26px;}
+.attn-row .t{color:var(--ink-2);}
+.attn-row button{margin-left:auto;}
+.sbar{display:flex;height:9px;border-radius:5px;overflow:hidden;background:var(--rule-soft);}
+.sbar i{height:100%;}
+.slgd{display:flex;gap:12px;flex-wrap:wrap;margin-top:7px;}
+.slgd span{font-size:11.5px;color:var(--ink-2);display:flex;align-items:center;gap:5px;}
+.slgd i{width:8px;height:8px;border-radius:2px;display:inline-block;}
+.spark{display:flex;align-items:flex-end;gap:5px;height:40px;}
+.spark i{flex:1;border-radius:2px 2px 0 0;background:var(--accent);opacity:.35;}
+.spark i:last-child{opacity:1;}
+.sumtbl{width:100%;border-collapse:collapse;font-size:13px;}
+.sumtbl th{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+  text-align:right;padding:8px 10px;border-bottom:1px solid var(--rule);}
+.sumtbl th.l{text-align:left;}
+.sumtbl td{padding:9px 10px;border-bottom:1px solid var(--rule-soft);text-align:right;
+  font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--ink-2);}
+.sumtbl td.l{text-align:left;font-family:var(--ui);color:var(--ink);font-weight:500;}
+.sumtbl tr.tot td{background:var(--surface-2);font-weight:700;color:var(--ink);border-bottom:none;}
+.sumtbl tr.sub td{background:var(--surface-2);color:var(--muted);font-size:12px;}
+.sumtbl tr.sub td.l{padding-left:26px;font-weight:400;color:var(--ink-2);}
+.sumtbl thead tr.bands th{height:24px;padding:0 8px;text-align:left;text-transform:uppercase;
+  letter-spacing:.08em;font-size:10px;font-weight:700;border-bottom:1px solid var(--rule-soft);}
+.sumtbl thead tr.bands th.b-ref{background:var(--surface-2);color:var(--muted);}
+.sumtbl thead tr.bands th.b-edit{background:var(--accent-soft);color:var(--accent);}
+.exp{background:none;border:none;padding:0 6px 0 0;color:var(--accent);font-size:10px;}
+.acell{display:flex;flex-direction:column;align-items:flex-end;gap:1px;line-height:1.15;}
+.acell .ai{font-size:12px;}
+.acell .ao{font-size:10.5px;color:var(--muted);}
+.abar{display:inline-block;width:44px;height:5px;border-radius:3px;background:var(--rule-soft);overflow:hidden;vertical-align:middle;}
+.abar i{display:block;height:100%;}
+.accwrap{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:14px 16px 10px;
+  box-shadow:var(--shadow);display:flex;flex-direction:column;gap:11px;}
+.acchead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.acchead h4{margin:0;font-size:13.5px;font-weight:600;}
+.seg-ctl{display:flex;border:1px solid var(--rule);border-radius:5px;overflow:hidden;flex-shrink:0;}
+.seg-ctl button{height:30px;padding:0 10px;border:none;background:var(--surface);color:var(--muted);font-size:12px;font-weight:500;}
+.seg-ctl button.on{background:var(--accent-soft);color:var(--accent);font-weight:600;}
+.seg-ctl button+button{border-left:1px solid var(--rule);}`n.top-cycle{border-color:rgba(255,255,255,.28);margin-left:2px;}`n.top-cycle button{background:rgba(255,255,255,.08);color:#D7E6F8;}`n.top-cycle button.on{background:#1E6CC7;color:#fff;}`n.top-cycle button+button{border-left-color:rgba(255,255,255,.24);}
+.seg-ctl.sm button{height:24px;padding:0 7px;font-size:11px;}
+
+/* ══ EXCEPTION LIST (Home Section 1 — flagged lines needing a VH decision) ══ */
+.exc-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--rule-soft);font-size:12.5px;}
+.exc-row:last-child{border-bottom:none;}
+.exc-main{flex:1;min-width:0;}
+.exc-main .d1{font-weight:600;color:var(--ink);}
+.exc-main .d2{color:var(--muted);font-size:11.5px;}
+.exc-dev{font-family:var(--mono);font-size:12px;font-weight:600;white-space:nowrap;}
+.exc-dev.over{color:var(--crit);} .exc-dev.under{color:var(--warn);}
+.exc-acts{display:flex;gap:6px;flex-shrink:0;}
+
+/* ══ WORKBOOK ══ */
+.wb{flex:1;display:flex;overflow:hidden;min-height:0;}
+.rail{width:262px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--rule);
+  display:flex;flex-direction:column;overflow:hidden;transition:width .16s ease;}
+.rail.collapsed{width:46px;}
+.rail-head{height:44px;flex-shrink:0;display:flex;align-items:center;gap:8px;padding:0 8px 0 14px;border-bottom:1px solid var(--rule);}
+.rail-head .t{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);flex:1;white-space:nowrap;}
+.rail-head .cnt{font-family:var(--mono);font-size:10.5px;font-weight:600;background:var(--accent-soft);
+  color:var(--accent);padding:2px 6px;border-radius:9px;}
+.rail-toggle{width:26px;height:26px;flex-shrink:0;border:none;border-radius:5px;background:transparent;
+  color:var(--muted);font-size:14px;display:flex;align-items:center;justify-content:center;}
+.rail-toggle:hover{background:var(--surface-2);color:var(--ink);}
+.rail.collapsed .rail-head{padding:0 10px;}
+.rail.collapsed .rail-head .t,.rail.collapsed .rail-head .cnt,.rail.collapsed .rail-body,.rail.collapsed .rail-foot{display:none;}
+.rail-stub{display:none;flex-direction:column;align-items:center;gap:10px;padding:12px 0;}
+.rail.collapsed .rail-stub{display:flex;}
+.rail-stub .sb{writing-mode:vertical-rl;font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.rail-stub .sc{font-family:var(--mono);font-size:10.5px;font-weight:600;background:var(--accent-soft);
+  color:var(--accent);padding:2px 5px;border-radius:8px;}
+.rail-body{flex:1;overflow-y:auto;padding:12px 14px 20px;display:flex;flex-direction:column;gap:13px;}
+.rail-body::-webkit-scrollbar{width:7px;}
+.rail-body::-webkit-scrollbar-thumb{background:var(--rule);border-radius:4px;}
+.frow{display:flex;flex-direction:column;gap:5px;}
+.frow .fl{font-size:11.5px;font-weight:600;color:var(--ink-2);display:flex;align-items:baseline;gap:6px;}
+.frow .fl .clr{margin-left:auto;font-size:10.5px;color:var(--accent);background:none;border:none;padding:0;text-decoration:underline;}
+.ms{position:relative;}
+.ms-btn{width:100%;height:32px;padding:0 9px;border:1px solid var(--rule);border-radius:5px;
+  background:var(--surface);color:var(--ink);font-size:12.5px;display:flex;align-items:center;gap:6px;text-align:left;}
+.ms-btn:hover{border-color:var(--muted);}
+.ms-btn.act{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:500;}
+.ms-btn .lbl{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ms-btn .lbl.dim{color:var(--muted);}
+.ms-btn .ca{font-size:9px;opacity:.7;}
+.ms-pop{display:none;position:absolute;top:35px;left:0;right:0;z-index:40;background:var(--surface);
+  border:1px solid var(--rule);border-radius:6px;box-shadow:var(--shadow-lg);max-height:300px;overflow:hidden;flex-direction:column;}
+.ms.open .ms-pop{display:flex;}
+.ms-search{padding:8px;border-bottom:1px solid var(--rule-soft);}
+.ms-search input{width:100%;height:30px;padding:0 9px;border:1px solid var(--rule);border-radius:4px;
+  font-size:12.5px;background:var(--surface);color:var(--ink);}
+.ms-search input:focus{outline:none;border-color:var(--accent);}
+.ms-search .ph{font-size:10.5px;color:var(--muted);margin-top:5px;line-height:1.35;}
+.ms-list{overflow-y:auto;padding:4px 0;}
+.ms-list::-webkit-scrollbar{width:7px;}
+.ms-list::-webkit-scrollbar-thumb{background:var(--rule);border-radius:4px;}
+.ms-opt{display:flex;align-items:flex-start;gap:8px;padding:6px 11px;font-size:12.5px;width:100%;
+  background:none;border:none;text-align:left;color:var(--ink);}
+.ms-opt:hover{background:var(--surface-2);}
+.ms-opt .bx{width:14px;height:14px;flex-shrink:0;margin-top:2px;border:1.5px solid var(--rule);border-radius:3px;
+  display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;}
+.ms-opt.on .bx{background:var(--accent);border-color:var(--accent);}
+.ms-opt .tx{flex:1;min-width:0;}
+.ms-opt .t1{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ms-opt .t2{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ms-opt .n{font-family:var(--mono);font-size:10.5px;color:var(--muted);flex-shrink:0;margin-top:1px;}
+.ms-foot{padding:7px 9px;border-top:1px solid var(--rule-soft);display:flex;gap:8px;align-items:center;}
+.ms-foot .c{font-size:11px;color:var(--muted);margin-left:auto;}
+.ms-empty{padding:16px 12px;text-align:center;font-size:12px;color:var(--muted);}
+.rail-foot{padding:10px 14px;border-top:1px solid var(--rule);display:flex;gap:8px;}
+
+.wb-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+.strip{height:48px;flex-shrink:0;display:flex;align-items:center;gap:9px;padding:0 14px;
+  background:var(--surface);border-bottom:1px solid var(--rule);overflow-x:auto;}
+.strip::-webkit-scrollbar{height:0;}
+.vbadge{height:32px;padding:0 12px;border:1px solid var(--rule);border-radius:5px;background:var(--surface-2);
+  color:var(--ink-2);font-size:12.5px;font-weight:600;flex-shrink:0;display:flex;align-items:center;}
+.srch{position:relative;flex-shrink:0;}
+.srch input{width:246px;height:32px;padding:0 10px 0 30px;border:1px solid var(--rule);border-radius:5px;
+  font-size:12.5px;background:var(--surface);color:var(--ink);}
+.srch input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+.srch .ic{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px;pointer-events:none;}
+.aft{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;}
+.ftok{display:inline-flex;align-items:center;gap:6px;background:var(--accent-soft);color:var(--accent);
+  border:1px solid var(--accent-line);border-radius:13px;padding:3px 8px 3px 10px;font-size:11.5px;font-weight:500;white-space:nowrap;}
+.ftok.srt{background:var(--surface-2);color:var(--ink-2);border-color:var(--rule);}
+.ftok button{background:none;border:none;color:inherit;font-size:13px;line-height:1;padding:0;opacity:.6;}
+.ftok button:hover{opacity:1;}
+.strip .sep{width:1px;height:24px;background:var(--rule);flex-shrink:0;}
+.strip .right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.rescount{font-size:12px;color:var(--muted);white-space:nowrap;}
+.rescount b{color:var(--ink);font-family:var(--mono);font-weight:600;}
+
+.grid-wrap{flex:1;overflow:auto;min-height:0;background:var(--canvas);}
+.grid-wrap::-webkit-scrollbar{width:10px;height:10px;}
+.grid-wrap::-webkit-scrollbar-thumb{background:#BCC8D2;border-radius:5px;}
+table.grid{border-collapse:separate;border-spacing:0;width:100%;min-width:1020px;background:var(--surface);}
+table.grid thead th{position:sticky;top:26px;z-index:6;background:var(--surface-2);border-bottom:1px solid var(--rule);
+  font-size:11px;font-weight:600;color:var(--muted);padding:0;height:38px;white-space:nowrap;}
+table.grid thead tr.bands th{height:26px;top:0;z-index:7;font-size:10px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;text-align:left;border-bottom:1px solid var(--rule-soft);padding:0 8px;}
+table.grid thead tr.bands th.b-ref{background:var(--surface-2);color:var(--muted);}
+table.grid thead tr.bands th.b-edit{background:var(--accent-soft);color:var(--accent);}
+table.grid thead tr.bands th.b-add{background:var(--add-soft);color:var(--add);}
+table.grid thead tr.bands th.b-coco{background:var(--coco-soft);color:var(--coco);}
+.sortbtn{width:100%;height:38px;padding:0 8px;background:none;border:none;color:inherit;font:inherit;
+  display:flex;align-items:center;justify-content:flex-end;gap:4px;}
+.sortbtn.l{justify-content:flex-start;}
+.sortbtn:hover{background:var(--rule-soft);color:var(--ink);}
+.sortbtn .ar{font-size:9px;opacity:0;}
+.sortbtn:hover .ar{opacity:.45;}
+.sortbtn.on{color:var(--accent);font-weight:700;}
+.sortbtn.on .ar{opacity:1;}
+th.idc,td.idc{position:sticky;left:0;z-index:5;background:var(--surface);border-right:1px solid var(--rule);
+  text-align:left;min-width:276px;max-width:276px;}
+thead th.idc{z-index:8;background:var(--surface-2);}
+table.grid tbody td{padding:0 8px;border-bottom:1px solid var(--rule-soft);height:40px;vertical-align:middle;
+  text-align:right;font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--ink-2);}
+table.grid tbody tr:hover td{background:#F6FAFD;}
+table.grid tbody tr:hover td.idc{background:#F0F7FC;}
+table.grid tbody tr.exc td.idc{box-shadow:inset 3px 0 0 var(--warn);}
+table.grid tbody tr.isadd td.idc{box-shadow:inset 3px 0 0 var(--add);}
+table.grid tbody tr.rsm-row td{background:var(--surface-2);}
+table.grid tbody tr.rsm-row:hover td{background:#EEF3F7;}
+table.grid tbody tr.lock-row td{background:var(--surface-2);color:var(--muted);}
+table.grid tbody tr.grp-row td{background:var(--accent-soft);font-weight:700;color:var(--ink);border-bottom:1px solid var(--accent-line);}
+table.grid tbody tr.grp-row td.idc{background:var(--accent-soft);}
+table.grid tbody tr.grp-row .exp-tg{color:var(--accent-2);}
+table.grid.compact tbody td{height:31px;}
+table.grid.compact .id-meta{display:none;}
+.id-cell{display:flex;align-items:center;gap:9px;padding:5px 0;}
+.id-txt{min-width:0;flex:1;}
+.id-desc{font-family:var(--ui);font-size:12.5px;font-weight:500;color:var(--ink);line-height:1.25;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.id-meta{display:flex;align-items:center;gap:7px;margin-top:1px;}
+.id-code{font-family:var(--mono);font-size:10.5px;color:var(--accent);font-weight:500;}
+.id-sm{font-size:10.5px;color:var(--muted);}
+.seg-dot{font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px;font-family:var(--ui);}
+.sg-R{background:var(--ok-soft);color:var(--ok);}
+.sg-S{background:var(--warn-soft);color:var(--warn);}
+.sg-D{background:var(--crit-soft);color:var(--crit);}
+.addtag{font-size:9.5px;font-weight:700;padding:1px 5px;border-radius:3px;background:var(--add-soft);color:var(--add);}
+.priotag{font-size:9.5px;font-weight:700;padding:1px 5px;border-radius:3px;background:var(--add-soft);color:var(--add);font-family:var(--mono);}
+.id-btn{width:22px;height:22px;flex-shrink:0;border:1px solid var(--rule);border-radius:4px;background:var(--surface);
+  color:var(--muted);font-size:11px;display:flex;align-items:center;justify-content:center;}
+.id-btn:hover{border-color:var(--accent);color:var(--accent);}
+.exp-tg{width:20px;height:20px;flex-shrink:0;border:none;background:transparent;color:var(--accent);
+  font-size:10px;display:flex;align-items:center;justify-content:center;}
+td.ref .aged{color:var(--warn);font-weight:600;}
+td.ref .aged.hot{color:var(--crit);}
+td.ref.txt{font-family:var(--ui);font-size:11.5px;text-align:left;color:var(--ink-2);white-space:nowrap;}
+td.ref.coco{color:var(--coco);}
+td.sepL{border-left:1px solid var(--rule);}
+th.bsep,td.bsep{border-left:1px solid var(--rule);}
+.bandbtn{width:100%;height:26px;padding:0 8px;background:none;border:none;color:inherit;font:inherit;
+  display:flex;align-items:center;gap:5px;text-align:left;}
+.bandbtn:hover{background:rgba(0,0,0,.05);}
+.bandbtn .bm{font-size:8px;opacity:.6;}
+.id-meta .diff{color:var(--warn);font-weight:700;}
+.colpop{position:absolute;top:34px;right:0;z-index:45;width:318px;background:var(--surface);
+  border:1px solid var(--rule);border-radius:7px;box-shadow:var(--shadow-lg);overflow:hidden;}
+.cp-sec{padding:11px 13px;border-bottom:1px solid var(--rule-soft);}
+.cp-lbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.cp-presets{display:flex;flex-wrap:wrap;gap:5px;}
+.chipx{padding:4px 10px;border-radius:13px;font-size:11.5px;font-weight:500;border:1px solid var(--rule);
+  background:var(--surface);color:var(--ink-2);}
+.chipx:hover{border-color:var(--accent);color:var(--accent);}
+.chipx.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+.cp-row{display:flex;align-items:center;gap:10px;padding:5px 0;}
+.cp-row.dis{opacity:.55;}
+.cp-n{font-size:12.5px;color:var(--ink);flex:1;min-width:0;}
+.cp-c{font-size:10.5px;color:var(--muted);margin-left:6px;font-family:var(--mono);}
+.cp-note{font-size:10.5px;color:var(--muted);text-align:right;max-width:130px;line-height:1.3;}
+.cp-foot{padding:9px 13px;font-size:11px;color:var(--muted);background:var(--surface-2);}
+.cellin{width:52px;height:26px;padding:0 6px;border:1px solid var(--rule);border-radius:4px;text-align:right;
+  font-family:var(--mono);font-size:12.5px;background:var(--surface);color:var(--ink);font-variant-numeric:tabular-nums;}
+.cellin:hover{border-color:var(--muted);}
+.cellin:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+.cellin:disabled{background:var(--surface-2);color:var(--muted);border-color:var(--rule-soft);}
+.cellin.ovr{border-color:var(--warn);background:var(--warn-soft);}
+.cellin.prio{border-color:var(--add);background:var(--add-soft);color:var(--add);}
+.carry{display:block;font-family:var(--mono);font-size:9.5px;color:var(--muted);text-align:right;margin-top:1px;line-height:1;}
+td.tot{font-weight:600;color:var(--ink);background:var(--surface-2);}
+td.gtot{font-weight:700;color:var(--accent);background:var(--accent-soft);}
+.empty-state{padding:56px 24px;text-align:center;color:var(--muted);}
+.empty-state .t{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:5px;}
+.reason-inl{display:flex;align-items:center;gap:5px;margin-top:2px;}
+.reason-inl input{width:100%;height:22px;padding:0 6px;border:1px solid var(--warn);border-radius:3px;
+  font-size:10.5px;background:var(--surface);color:var(--ink);}
+.reason-flag{font-size:9px;font-weight:700;color:var(--warn);white-space:nowrap;}
+
+.commit{height:52px;flex-shrink:0;background:var(--surface);border-top:1px solid var(--rule);
+  display:flex;align-items:center;gap:16px;padding:0 16px;box-shadow:0 -2px 8px rgba(16,32,45,.05);overflow-x:auto;}
+.commit .stat{display:flex;align-items:baseline;gap:7px;white-space:nowrap;}
+.commit .stat .v{font-family:var(--mono);font-size:16px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;}
+.commit .stat .k{font-size:11.5px;color:var(--muted);}
+.commit .div{width:1px;height:24px;background:var(--rule);flex-shrink:0;}
+.commit .right{margin-left:auto;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.commit .saved{font-size:11.5px;color:var(--muted);white-space:nowrap;}
+
+.scrim{display:none;position:fixed;inset:0;background:rgba(16,32,45,.42);z-index:60;}
+.scrim.on{display:block;}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:396px;max-width:92vw;background:var(--surface);
+  z-index:61;box-shadow:var(--shadow-lg);display:none;flex-direction:column;}
+.drawer.on{display:flex;}
+.dr-head{padding:16px 18px 14px;border-bottom:1px solid var(--rule);display:flex;gap:12px;align-items:flex-start;}
+.dr-head h3{margin:0;font-size:15.5px;font-weight:600;line-height:1.3;}
+.dr-head .cd{font-family:var(--mono);font-size:11.5px;color:var(--accent);margin-top:3px;}
+.dr-close{width:28px;height:28px;flex-shrink:0;margin-left:auto;border:none;border-radius:5px;
+  background:transparent;color:var(--muted);font-size:16px;}
+.dr-close:hover{background:var(--surface-2);color:var(--ink);}
+.dr-body{flex:1;overflow-y:auto;padding:4px 18px 24px;}
+.dr-sec{padding:15px 0;border-bottom:1px solid var(--rule-soft);}
+.dr-sec:last-child{border-bottom:none;}
+.dr-sec h4{margin:0 0 9px;font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);}
+.dr-i{display:flex;align-items:baseline;gap:8px;font-size:12.5px;padding:4px 0;border-bottom:1px solid var(--rule-soft);}
+.dr-i .k{color:var(--muted);}
+.dr-i .v{margin-left:auto;font-family:var(--mono);font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;}
+.dr-i .v.w{color:var(--warn);} .dr-i .v.c{color:var(--crit);}
+.dr-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;}
+.dr-src{font-size:11px;color:var(--muted);margin-top:8px;}
+
+.modal{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;padding:20px;
+  background:rgba(16,32,45,.48);}
+.modal.on{display:flex;}
+.mbox{background:var(--surface);border-radius:10px;width:100%;max-width:480px;max-height:86vh;
+  display:flex;flex-direction:column;box-shadow:var(--shadow-lg);overflow:hidden;}
+.mbox.wide{max-width:620px;}
+.mhead{padding:18px 20px 14px;border-bottom:1px solid var(--rule);}
+.mhead h3{margin:0;font-size:17px;font-weight:600;}
+.mhead .s{font-size:12.5px;color:var(--muted);margin-top:3px;}
+.mbody{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:14px;}
+.mrow{display:flex;align-items:baseline;gap:10px;font-size:13.5px;padding:7px 0;border-bottom:1px solid var(--rule-soft);}
+.mrow .k{color:var(--ink-2);}
+.mrow .v{margin-left:auto;font-family:var(--mono);font-weight:600;font-size:14.5px;color:var(--ink);font-variant-numeric:tabular-nums;}
+.notice{border-radius:6px;padding:11px 13px;font-size:12.5px;display:flex;gap:9px;align-items:flex-start;line-height:1.5;}
+.n-warn{background:var(--warn-soft);color:var(--warn);}
+.n-acc{background:var(--accent-soft);color:var(--accent-2);}
+.n-add{background:var(--add-soft);color:var(--add);}
+.mfoot{padding:14px 20px;border-top:1px solid var(--rule);display:flex;gap:10px;justify-content:flex-end;align-items:center;}
+.mfoot .l{margin-right:auto;font-size:12px;color:var(--muted);}
+.toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(10px);z-index:80;
+  background:var(--bar);color:#fff;padding:10px 16px;border-radius:6px;font-size:13px;
+  box-shadow:var(--shadow-lg);opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;}}
+@media (max-width:900px){
+  .rail{position:absolute;left:0;top:0;bottom:52px;z-index:30;box-shadow:var(--shadow-lg);}
+  .rail.collapsed{width:46px;}
+  .tb-status .seg:nth-child(n+2){display:none;}
+  .srch input{width:160px;}
+}
+</style>
+</head>
+<body>
+<!-- ══ LOGIN (P-01) ══ -->
+<div id="login">
+  <div class="lg-shell">
+    <div>
+      <div class="lg-logo">VECV<span>plan</span></div>
+      <div class="lg-cycle"><span>S&amp;OP-1A</span><b>Jul 2026</b><span>· Vertical review closes</span><b>18 Jul, 23:59 IST</b></div>
+    </div>
+    <form class="lg-card" onsubmit="doLogin(event)">
+      <h1>Sign in</h1>
+      <p class="sub">VH code or work email.</p>
+      <div class="fld" id="fId">
+        <label for="lgId">VH code or email</label>
+        <input id="lgId" type="text" value="VH-LMD" autocomplete="username" oninput="clearErr()">
+        <span class="err">⚠ We don't recognise that VH code.</span>
+      </div>
+      <div class="fld" id="fPw">
+        <label for="lgPw">Password <button type="button" class="link hint" onclick="toast('A reset link would go to the address on file')">Forgot password?</button></label>
+        <input id="lgPw" type="password" value="demo-password" autocomplete="current-password" oninput="clearErr()">
+        <span class="err">⚠ Incorrect password. 4 attempts left before the account locks.</span>
+      </div>
+      <button type="submit" class="btn btn-primary" style="height:38px;justify-content:center;font-size:14px;">Sign in</button>
+      <div class="lg-or">or</div>
+      <button type="button" class="btn btn-ghost" style="height:38px;justify-content:center;font-size:13.5px;" onclick="doLogin(event)">Sign in with VECVNet SSO</button>
+      <p class="lg-foot">Trouble signing in? Contact Sales Planning support</p>
+    </form>
+    <p class="lg-note">Prototype · your role and vertical come from your account · P-01, same login screen as every persona</p>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+  <div class="topbar">
+    <div class="tb-logo">VECV<span>plan</span></div>
+    <nav class="tb-nav">
+      <button id="nvHome" class="on" onclick="go('home')">Home</button>
+      <button id="nvWb" onclick="go('wb')">Indent workbook</button>
+    </nav>
+    <div class="tb-status">
+      <span class="seg">S&amp;OP-<b id="tbCycLbl">1A</b> · <b>Jul 2026</b></span><div class="seg-ctl top-cycle" id="cycCtlTop" aria-label="Planning cycle"></div>
+      <span class="seg">Closes in <span class="warnv" id="tbClock">—</span></span>
+      <span class="seg" id="tbState">Status: <b>3 of 3 regions submitted</b></span>
+    </div>
+    <div class="tb-right">
+      <button class="tb-icon" onclick="toggleTheme()" title="Light / dark">◐</button>
+      <div class="tb-user">
+        <div class="tb-av">AR</div>
+        <div><div class="nm">A. Reddy</div><div class="rl">VH · LMD Vertical</div></div>
+      </div>
+      <button class="tb-icon" onclick="signOut()" title="Sign out">⎋</button>
+    </div>
+  </div>
+
+  <div class="page">
+    <!-- HOME + SUMMARY -->
+    <div class="view on" id="vHome">
+      <div class="wb"><div id="homeRailMount"></div><div class="home-scroll"><div class="home-inner">
+        <div class="proto-strip">
+          <span class="pl">Prototype control</span>
+          <label for="personaSel">Viewing as</label>
+          <select id="personaSel" onchange="setPersona(this.value)">
+            <option value="dealer">Dealer — Sharma Motors, Delhi NCR (previous)</option>
+            <option value="asm">ASM — North Cluster (previous)</option>
+            <option value="rsm" disabled>RSM — North Region (pending — D-01/02/03)</option>
+            <option value="vh" selected>Vertical Head — LMD</option>
+            <option value="iso" disabled>ISO — Central Planning (later)</option>
+          </select>
+          <span style="font-size:12.5px;font-weight:600;color:var(--ink-2);margin-left:6px">Cycle</span>
+          <div class="cyc-ctl" id="cycCtl"></div>
+          <span class="np">Persona and cycle switching live here, not in the product chrome — P-02</span>
+        </div>
+
+        <div class="home-head">
+          <div><h1>Good afternoon, A. Reddy</h1>
+            <div class="sub">July 2026 · LMD Vertical · 3 RSM regions · <span id="hdClusters">~8 clusters (approx.)</span></div></div>
+          <div class="right">
+            <button class="btn btn-ghost" onclick="openExport()">Export</button>
+            <button class="btn btn-primary" onclick="go('wb')">Continue to indent workbook →</button>
+          </div>
+        </div>
+
+        <div class="zone"><span class="zl">Indent progress</span><span class="zr"></span>
+          <span class="zn" id="zProg"></span></div>
+        <div class="cards">
+          <div class="card lead">
+            <h3 id="hcTitle">Vertical indent — LMD</h3>
+            <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;">
+              <div><div class="big" id="hcEntered">—</div><div class="cap">of — lines with an entry</div></div>
+              <div><div class="big" id="hcUnits">—</div><div class="cap">units for July, vertical total</div></div>
+              <div style="margin-left:auto"><span class="pill" id="hcStatus">In progress</span></div>
+            </div>
+            <div class="meter"><i id="hcMeter" style="width:0%"></i></div>
+            <div class="cap">Vertical indent auto-submits to <b>ISO, Central Planning</b> at <b>18 Jul, 23:59 IST</b>. Whatever is unresolved then goes up as-is. Any M1 priority quantities you set carry forward as ISO's default 1st Priority.</div>
+            <div class="acts">
+              <button class="btn btn-primary btn-sm" onclick="go('wb')">Open indent workbook</button>
+              <button class="btn btn-ghost btn-sm" onclick="saveVh()">Save</button>
+              <button class="btn btn-add btn-sm" onclick="jumpPriority()">Set priority quantities →</button>
+            </div>
+          </div>
+          <div class="card attn" style="cursor:pointer" onclick="toggleAttn()">
+            <h3>Lines needing attention</h3>
+            <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap">
+              <div><div class="big" id="hcAttnCount" style="color:var(--warn)">—</div><div class="cap">line<span id="hcAttnCountCap"></span> flagged, vertical-wide</div></div>
+            </div>
+            <div class="cap" id="hcAttnCap" style="color:var(--muted)"></div>
+            <div class="acts"><button class="btn btn-ghost btn-sm" id="attnBtn" onclick="event.stopPropagation();toggleAttn()">▸ Review flagged lines</button></div>
+          </div>
+          <div class="card">
+            <h3>Your regions</h3>
+            <div id="hcRegions"></div>
+          </div>
+        </div>
+
+        <div id="attnPanel" style="display:none"></div>
+
+        <div class="zone"><span class="zl">Summary</span><span class="zr"></span>
+          <span class="zn">Reflects the filters you set in the indent workbook · carried over from the RSM/ASM summary shape (D-07 resolved)</span></div>
+        <div class="cards">
+          <div class="card">
+            <h3>Vertical indent vs last cycle</h3>
+            <div style="display:flex;align-items:flex-end;gap:16px;">
+              <div><div class="big sm" id="kIndent">—</div><div class="cap">July vertical indent</div></div>
+              <div><div class="big sm" id="kPrev">—</div><div class="cap">planned last cycle</div></div>
+            </div>
+            <div class="cap"><span class="pill" id="kPrevPill">—</span> vs last cycle's plan for July</div>
+          </div>
+          <div class="card">
+            <h3>M1 indent vs ABP target</h3>
+            <div style="display:flex;align-items:flex-end;gap:16px;">
+              <div><div class="big sm" id="kAbpPct">—</div><div class="cap" id="kAbpCap">of ABP target</div></div>
+            </div>
+            <div class="meter" style="margin-top:2px"><i id="kAbpMeter" style="width:0%"></i></div>
+            <div class="cap" style="color:var(--muted)">ABP target split across FERTs by submitted share · same ABP integration as Dealer/ASM (#24-lite).</div>
+          </div>
+          <div class="card" style="cursor:pointer" onclick="toggleAcc()">
+            <h3>Vertical indent accuracy</h3>
+            <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;">
+              <div><div class="big sm" id="kAcc">—</div><div class="cap">vertical avg · 4-cycle</div></div>
+              <div><div class="big sm" id="kBias">—</div><div class="cap" id="kBiasCap">bias</div></div>
+              <div style="margin-left:auto"><span class="pill" id="kAccPill">—</span></div>
+            </div>
+            <div style="max-width:260px"><div class="spark" id="kSpark"></div></div>
+            <div class="cap" style="color:var(--muted)">Tolerance ±10% — same figure that gates an override reason in the grid.</div>
+            <div class="acts"><button class="btn btn-ghost btn-sm" id="accBtn" onclick="event.stopPropagation();toggleAcc()">▸ View report card</button></div>
+          </div>
+        </div>
+
+        <div class="cards" style="margin-top:14px">
+          <div class="card">
+            <h3>Total availability</h3>
+            <div class="big sm" id="kAvailability">—</div>
+            <div class="cap" id="kAvailabilityCap">Stock + confirmed pipeline</div>
+          </div>
+          <div class="card">
+            <h3>Last month sold</h3>
+            <div class="big sm" id="kLastSold">—</div>
+            <div class="cap" id="kLastSoldCap">Retail, most recent month</div>
+          </div>
+          <div class="card">
+            <h3>1A vs 1B variance</h3>
+            <div class="big sm" id="kCycleVariance">—</div>
+            <div class="cap" id="kCycleVarianceCap">S&amp;OP-1B vs S&amp;OP-1A</div>
+          </div>
+        </div>
+
+        <div id="accPanel" style="display:none"></div>
+<div class="zone"><span class="zl">Rollup</span><span class="zr"></span></div>
+        <div class="card" style="padding:12px 14px 10px;gap:10px">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <span style="font-size:11.5px;font-weight:600;color:var(--ink-2)">Group by</span>
+            <div class="seg-ctl" id="rollGb"></div>
+            <span style="margin-left:auto;font-size:11.5px;color:var(--muted)" id="rollNote"></span>
+          </div>
+          <div style="overflow-x:auto"><table class="sumtbl" id="rollTbl"></table></div>
+        </div>
+      </div></div></div>
+    </div>
+
+    <!-- WORKBOOK -->
+    <div class="view" id="vWb">
+      <div class="wb">
+        <aside class="rail" id="rail">
+          <div class="rail-head">
+            <span class="t">Filters</span><span class="cnt" id="railCnt" style="display:none">0</span>
+            <button class="rail-toggle" onclick="toggleRail()" id="railBtn" title="Collapse">‹</button>
+          </div>
+          <div class="rail-stub" onclick="toggleRail()"><span class="sc" id="stubCnt" style="display:none">0</span><span class="sb">Filters</span></div>
+          <div class="rail-body" id="railBody"></div>
+          <div class="rail-foot">
+            <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" onclick="clearAll()">Clear all</button>
+            <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" onclick="saveView()">Save view</button>
+          </div>
+        </aside>
+
+        <div class="wb-main">
+          <div class="strip">
+            <span class="vbadge">LMD Vertical</span>
+            <div class="srch"><span class="ic">⌕</span>
+              <input id="qBox" type="text" placeholder="Search code or description" oninput="setQ(this.value)"></div>
+            <div class="aft" id="aft"></div>
+            <div class="right">
+              <span style="font-size:11px;color:var(--muted)">Group by</span>
+              <div class="seg-ctl" id="gbCtl"></div>
+              <span class="sep"></span>
+              <span class="rescount" id="resCount"></span>
+              <span class="sep"></span>
+              <div class="seg-ctl">
+                <button id="dnComf" class="on" onclick="setDensity(0)">Comfortable</button>
+                <button id="dnComp" onclick="setDensity(1)">Compact</button>
+              </div>
+              <div style="position:relative">
+                <button class="btn btn-ghost btn-sm" id="colBtn" onclick="toggleColPop(event)">☷ Columns</button>
+                <div class="colpop" id="colPop" style="display:none" onclick="event.stopPropagation()"></div>
+              </div>
+              <button class="btn btn-ghost btn-sm" onclick="openExport()">Export</button>
+            </div>
+          </div>
+          <div class="grid-wrap" id="gridWrap">
+            <table class="grid" id="grid"><thead id="gHead"></thead><tbody id="gBody"></tbody></table>
+            <div class="empty-state" id="gEmpty" style="display:none">
+              <div class="t">No lines match these filters</div>
+              <div>Clear a filter to bring lines back — nothing in the vertical is touched.</div>
+              <div style="margin-top:12px"><button class="btn btn-ghost btn-sm" onclick="clearAll()">Clear all filters</button></div>
+            </div>
+          </div>
+          <div class="commit" id="commit"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="scrim" id="scrim" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer" aria-label="Line detail"></aside>
+
+<div class="modal" id="review"><div class="mbox">
+  <div class="mhead"><h3>Review &amp; submit</h3><div class="s" id="revSub"></div></div>
+  <div class="mbody" id="reviewBody"></div>
+  <div class="mfoot"><button class="btn btn-ghost" onclick="closeM('review')">Cancel</button>
+    <button class="btn btn-primary" id="revSubmitBtn" onclick="saveVh()">Save</button></div>
+</div></div>
+
+<div class="modal" id="expM"><div class="mbox wide">
+  <div class="mhead"><h3>Export</h3><div class="s" id="expSub"></div></div>
+  <div class="mbody">
+    <div class="notice n-acc"><span>ⓘ</span><div>In the live product this downloads a file. Here it's on screen so you can check the shape — select all and copy.</div></div>
+    <textarea class="csvbox" id="csvBox" readonly onclick="this.select()" style="width:100%;height:170px;border:1px solid var(--rule);border-radius:6px;padding:9px;font-family:var(--mono);font-size:11px;background:var(--surface-2);color:var(--ink-2);resize:none;white-space:pre"></textarea>
+  </div>
+  <div class="mfoot"><button class="btn btn-ghost" onclick="closeM('expM')">Close</button>
+    <button class="btn btn-primary" onclick="copyCsv()">Copy to clipboard</button></div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   VECVplan — VH (Vertical Head, LMD), first build of the new-pattern
+   workbench. Sits one level above the ASM Prototype v1.3 in the same
+   moderation shape (P-20): VH sets one consolidated number per FERT for
+   the whole vertical; each RSM region's own submitted number shows as a
+   read-only reference sub-row, in the same period shape as entry — the
+   same mechanism ASM uses for its dealers, one level up.
+
+   ── Column-parity check (P-19), against the old Demand Planning
+   Workbench Phase0's VH screen ──
+   · Eicher segment (Runner/Repeater/Stranger) — kept, same seg-dot.
+   · Marketing dims (Tonnage/Fuel/AC/MPG) — kept, same LMD_RAW catalogue
+     ASM already uses, so this file's numbers agree with ASM's.
+   · COCO breakdown (Dealer/Actual/Virtual/National) — kept as a
+     read-only reference band (off by default). NOT kept: the old
+     screen's full Private-vs-COCO alternate table swap — that entire
+     view now lives in the separate COCO Workbench per the current app
+     boundaries (the old file's own comments say the COCO persona
+     buttons were removed for the same reason). VH here only needs the
+     reference figures for context against the private network.
+   · Current + trend offtake/retail — kept, same bands as ASM.
+   · Three lower layers (Dealer/ASM/RBH full W1-W4+Aug+Sep+Total,
+     read-only) — COLLAPSED to one layer: each RSM region's own
+     submitted number, read-only, full period shape. This is the
+     moderation-grain decision made for this build (confirmed before
+     starting): VH's reference stops at RSM, it does not model
+     individual clusters or dealers underneath. Flagging as a scope
+     reduction versus literal old-screen parity, not an oversight.
+   · VH indent W1-W4+Aug+Sep+Total — kept, this is the entry band.
+   · S&OP-1B comparison — kept: a "Cycle" control (S&OP-1A / S&OP-1B);
+     in 1B, a locked-1A reference band appears and a line whose 1B
+     entry strays more than ±30% from its own locked 1A submission
+     needs a reason, reusing the old screen's own stated rule
+     ("RSM/VH may not diverge >30% between S&OP-1A and S&OP-1B") rather
+     than re-deriving a number. Note this is a SECOND, separate
+     tolerance from the ±10% RSM-vs-VH check below — D-01 does not yet
+     say whether that's intentional; flagging it rather than quietly
+     merging the two.
+   · M1 priority quantity — kept, as an editable band (own toggle,
+     off by default), feeding the Review & Submit copy that tells VH
+     this carries forward as ISO's default 1st Priority.
+   · Revenue/GM (Phase 1, greyed in the old screen) — excluded, same as
+     Pipeline's D-06 exclusion: no source yet.
+   · Sales Plan handoff to ISO — this file doesn't render ISO's own
+     screen; reflected here only as commit-bar/review-modal copy
+     ("Goes to ISO ... your priority quantities carry forward").
+
+   ── Divergences from the old VH screen (flagged, not silently done) ──
+   1. No vertical selector. ASM's cluster carried both LMD and HD, so it
+      needed a toggle; a VH role is defined by ONE vertical (this A.
+      Reddy instance is "VH · LMD Vertical" in the old file's own mock
+      data), so per P-06 ("omit the control rather than disabling it")
+      there's a static "LMD Vertical" badge instead of a dropdown.
+   2. No Add Line / Add FERT. The old screen gave the RSM tier an
+      "+ Add FERT" button; the new pattern doc doesn't carry P-11 past
+      the dealer who originates a code (ASM's own build note excludes it
+      for the same reason). Excluding it here too for consistency,
+      flagging in case the business wants it reinstated for VH.
+   3. Rollup (P-16) dimensions: kept RSM / MPG / Tonnage / FERT; dropped
+      Cluster / State / Dealer / ASM from the old VH screen's group-by
+      list, because this build's data model (per the agreed scale — see
+      below) stops at RSM-region granularity. Modelling individual
+      clusters/dealers under 3 regions was out of scope for this pass.
+   4. D-01, D-02, D-03, D-12 are still open, same as the handoff doc
+      says. TOL below (±10%) is the same working value ASM used, reused
+      again here — still not a business-confirmed number for VH. D-12
+      (no "accept as submitted" action) is carried exactly as ASM built
+      it, per instruction, even though the handoff doc singles out VH as
+      where this will be felt more.
+   5. Mock scale (D-02): 3 RSM regions, sized by a stated, disclosed
+      derivation from ASM's own numbers (see REGIONS below) — not a
+      real business volume, kept deliberately small and traceable
+      rather than invented from nothing. */
+
+const TOL=10;           // RSM-vs-VH override tolerance — same working value as ASM (D-01 still open)
+const TOL_1B=30;        // S&OP-1A-vs-1B max deviation — reused verbatim from the old workbench's own stated rule
+const CAPITAL_FACTOR=38/120; // same constant ASM uses (Capital Trucks vs Sharma Motors ABP)
+const CLUSTER_UNIT=1+CAPITAL_FACTOR; // one ASM-cluster-equivalent, as a factor on the base LMD raw figures
+
+/* tuple: 0 code 1 desc 2 mpg 3 ton 4 fuel 5 ac 6 seg 7 subV
+   8 st<60 9 st60-90 10 st90-180 11 st>180 12 openFg 13 openPO 14 offtakeL3 15 prevPlan 16-19 w1-w4 20 aug 21 sep
+   — identical to VECVplan-Dealer-Prototype-v4_5.html and VECVplan-ASM-Prototype-v1_3.html, so all
+   three files agree with each other. */
+const LMD_RAW=[
+["V4130CAF","Pro 2110 H HSD 20FT BSVI NGB AC","Pro 2110","21T","Diesel","AC","R","5–16T",4,2,1,1,4,1,84,95,24,23,23,22,88,82],
+["V4030DZL","Pro 2110 L CBC 22FT BSVI NGB AC","Pro 2110","21T","Diesel","AC","R","5–16T",17,0,0,0,17,0,71,75,19,18,18,18,70,65],
+["V4131SLP","Pro 2110 M SLP 24FT BSVI NGB","Pro 2110","21T","Diesel","NonAC","S","5–16T",3,1,0,0,3,2,38,40,10,10,9,9,36,34],
+["V5530TKR","Pro 2059XP Plus F HSD EW 14FT BSVI AC","Pro 2059XP","14T","Diesel","AC","R","5–16T",1,0,1,0,1,0,42,38,9,8,8,8,35,32],
+["V5531CBC","Pro 2059XP E CBC 14FT BSVI AC POR","Pro 2059XP","14T","Diesel","AC","R","5–16T",2,1,0,0,2,1,36,34,9,8,8,7,32,30],
+["V5532SLP","Pro 2059XP M SLP CBC BSVI SRSS WTL","Pro 2059XP","14T","Diesel","NonAC","S","5–16T",0,2,1,0,3,0,18,20,5,4,4,4,17,16],
+["V4025EXP","Pro 2095XPT D FBT BSVI LY PRM","Pro 2095XPT","16T","Diesel","NonAC","S","5–16T",3,1,1,0,5,2,30,26,8,8,7,7,28,26],
+["V3515SUB","Pro 2095XP F HSD 16FT BSVI AC NGB","Pro 2095XP","16T","Diesel","AC","R","5–16T",6,1,1,0,8,1,36,42,10,10,9,9,38,35],
+["V3516WTK","Pro 2095 F 16FT WTANK BSVI AC NGB 5S","Pro 2095XP","16T","Diesel","AC","S","5–16T",1,0,0,0,1,0,14,16,4,4,3,3,13,12],
+["V3517MSC","Pro 2095XP G MSC BSVI AC 5S POR PRM","Pro 2095XP","16T","Diesel","AC","D","5–16T",0,1,1,1,3,0,6,9,2,1,1,1,6,5],
+["V3518CNG","Pro 2095XP F CNG 16FT BSVI AC NGB","Pro 2095XP","16T","CNG","AC","S","5–16T",2,0,0,0,2,3,22,18,6,5,5,5,21,20],
+["V2875CBC","Pro 2075 D CBC 12FT AB BSVI AC DW 5S","Pro 2075","18T","Diesel","AC","R","5–16T",5,2,0,0,7,1,48,52,13,12,12,12,46,44],
+["V2680LHD","Pro 2080 G DSD 18FT BSVI DW BASE","Pro 2080","20T","Diesel","NonAC","R","5–16T",4,1,0,0,5,2,40,38,10,10,10,9,38,36],
+["V2490CBC","Pro 2049 D BSVI 14FT CBC DW PRM","Pro 2049","12T","Diesel","NonAC","R","5–16T",3,1,0,0,4,1,44,46,12,11,11,11,42,40],
+["V3015MSL","Pro 3015 M SLP CBC BSVI TY PRM","Pro 3015","15T","Diesel","NonAC","R","5–16T",5,0,0,0,5,2,34,32,9,8,8,8,31,30],
+["V1095XPC","Pro 1095XP H CBC BSVI AB PS TY 4.7","Pro 1095XP","9T","Diesel","AC","S","Sub-5T",3,1,0,0,4,1,26,24,7,6,6,6,24,22],
+["V1075HCB","Pro 1075 H CBC RHD BSVI AB PRM TY","Pro 1075","7.5T","Diesel","NonAC","R","Sub-5T",2,1,0,0,3,0,28,26,7,7,6,6,25,24],
+["V1055C1C","Pro 1055 C1 CBC BSVI 4.7 HB TY PRM","Pro 1055","5.5T","Diesel","NonAC","R","Sub-5T",6,1,0,0,7,2,36,34,10,9,9,8,33,31],
+];
+const SEGNAME={R:'Runner',S:'Repeater',D:'Stranger'};
+
+/* ── RSM regions (the "submitters" VH moderates, per P-20) ──
+   North Region's own person (P. Mehta) is the SAME RSM the ASM Prototype's
+   cluster reports to — the ASM North Cluster is one of North Region's
+   three clusters. Each region's factor is stated as a cluster-count
+   multiple of CLUSTER_UNIT (one ASM-cluster-equivalent on the base raw
+   figures) — a disclosed derivation, not an invented number, same
+   discipline ASM used for Capital Trucks. accHistory/abpTarget below are
+   built the same way, from the ASM file's own Sharma+Capital cluster
+   totals (Mar 376/347, Apr 385/362, May 379/341, Jun 390/351, ABP 395),
+   scaled by that same per-region cluster count. */
+const CLUSTER_ACC=[{m:'Mar',ind:376,off:347},{m:'Apr',ind:385,off:362},{m:'May',ind:379,off:341},{m:'Jun',ind:390,off:351}];
+const CLUSTER_ABP=395;
+const REGIONS=[
+  {code:'RSM-N',name:'North Region',person:'P. Mehta',clusters:'~3 clusters (incl. the ASM North Cluster)',scale:3.0,loc:'Delhi NCR · Punjab · Haryana',cluster:'North Cluster',state:'Delhi NCR',asm:'North ASM',dealer:'North dealer network'},
+  {code:'RSM-S',name:'South Region',person:'S. Iyer',clusters:'~3 clusters',scale:2.6,loc:'Karnataka · Tamil Nadu · Kerala',cluster:'South Cluster',state:'Karnataka',asm:'South ASM',dealer:'South dealer network'},
+  {code:'RSM-E',name:'East Region',person:'K. Banerjee',clusters:'~2 clusters',scale:1.8,loc:'West Bengal · Odisha',cluster:'East Cluster',state:'West Bengal',asm:'East ASM',dealer:'East dealer network'},
+];
+REGIONS.forEach(r=>{
+  r.factor=CLUSTER_UNIT*r.scale;
+  r.abpTarget=Math.round(CLUSTER_ABP*r.scale);
+  r.accHistory=CLUSTER_ACC.map(h=>({m:h.m,ind:Math.round(h.ind*r.scale),off:Math.round(h.off*r.scale)}));
+});
+const VERT_FACTOR=REGIONS.reduce((a,r)=>a+r.scale,0); // vertical-wide facts (stock/trend/COCO) scale by total cluster count, ≈7.4
+
+let uid=0;
+function mk(r){
+  const o3=r[14]!==undefined?r[14]:0;
+  const base={i:uid++, code:r[0], desc:r[1], my:r[22]||((r[0]||'').match(/[89]$/)?'MY25':'MY26'), mpg:r[2], ton:r[3], fuel:r[4], ac:r[5], seg:r[6], sv:r[7],
+    s60:Math.round((r[8]||0)*VERT_FACTOR),s90:Math.round((r[9]||0)*VERT_FACTOR),
+    s180:Math.round((r[10]||0)*VERT_FACTOR),sOver:Math.round((r[11]||0)*VERT_FACTOR),
+    openFg:Math.round((r[12]||0)*VERT_FACTOR),openPO:Math.round((r[13]||0)*VERT_FACTOR),
+    o3:Math.round(o3*VERT_FACTOR),
+    prev0:r[15]||0,
+    baseV:[r[16]||0,r[17]||0,r[18]||0,r[19]||0,r[20]||0,r[21]||0],
+    /* VH's override lives HERE — at the consolidated FERT level, one number for the whole vertical —
+       not per region. ovr starts empty (nothing touched yet). Separate arrays for each cycle so
+       switching S&OP-1A/1B doesn't clobber the other cycle's work. */
+    ovr:{'1A':[null,null,null,null,null,null],'1B':[null,null,null,null,null,null]},
+    reason:{'1A':'','1B':''},
+    priority:{R:'High',S:'Medium',D:'Low'}[r[6]], priorityQty:null, rgpQty:0,
+    salesArea:'Private', vertical:'LMD'};
+  base.o6=Math.round(base.o3*2.05); base.o12=Math.round(base.o3*4.1); base.oly=Math.round(base.o3*3.6);
+  base.r3=Math.round(base.o3*0.42); base.r6=Math.round(base.o3*0.86); base.r12=Math.round(base.o3*1.7); base.rly=Math.round(base.o3*1.5);
+  base.eseg=SEGNAME[base.seg];
+  base.fa=Math.round(base.openPO*.55); base.fc=Math.round(base.openPO*.35); base.hotInq=Math.max(0,Math.round(base.o3*.08));
+  base.revenue=Math.round(base.o3*18.5); base.gmPct=base.seg==='R'?12.5:base.seg==='S'?10.8:8.9;
+  /* COCO reference — Dealer stock / Actual / Virtual / National, vertical-wide, read-only, scaled off
+     each FERT's own base weekly figure so it stays proportionate across lines (same VERT_FACTOR as
+     every other vertical-wide fact — stock/trend — above). */
+  const cbase=Math.max(1,Math.round(base.baseV[0]*VERT_FACTOR*0.3));
+  base.cocoD=cbase; base.cocoA=Math.round(cbase*0.8); base.cocoV=Math.round(cbase*0.5); base.cocoN=Math.round(cbase*1.6);
+  /* per-region breakdown: each region's own submitted number for this FERT — read-only reference,
+     never edited directly. Same weekly/monthly shape as the entry row above it. */
+  base.regions=REGIONS.map(r=>({
+    code:r.code,name:r.name,
+    submitted:base.baseV.map(v=>Math.round(v*r.factor)),
+    prevSubmitted:Math.round(base.prev0*r.factor)
+  }));
+  /* locked S&OP-1A snapshot — what VH actually submitted last time, frozen. For this prototype it's
+     seeded once at load (equal to the vertical-wide submitted default, i.e. "as if 1A closed with no
+     VH override"), so the 1B screen has a real, stable number to compare against. */
+  base.locked1A=base.regions.reduce((a,rg)=>a.map((v,c)=>v+rg.submitted[c]),[0,0,0,0,0,0]);
+  return base;
+}
+const D=LMD_RAW.map(mk);
+
+/* ════════ CYCLE STATE ════════ */
+let cycle='1A'; // '1A' or '1B'
+function ovrOf(f){ return f.ovr[cycle]; }
+function reasonOf(f){ return f.reason[cycle]; }
+function setReasonVal(f,val){ f.reason[cycle]=val; }
+
+/* the fixed total a region actually submitted for a column — never changes once the cycle opened;
+   VH's override (f.ovr[cycle]) never touches this, it only overrides the CONSOLIDATED total below. */
+function regionSubmittedTotal(rg){ return rg.submitted.reduce((a,b)=>a+b,0); }
+function regionSubmittedJul(rg){ return rg.submitted[0]+rg.submitted[1]+rg.submitted[2]+rg.submitted[3]; }
+/* CONSOLIDATED FERT total = what all regions submitted for that column, summed — this is the default
+   VH sees and moderates. vhV is the CURRENT figure: VH's override if one exists at the FERT level for
+   THIS cycle, else the consolidated submitted default. There is no per-region override. */
+function vertSubmitted(f,c){ return f.regions.reduce((a,rg)=>a+rg.submitted[c],0); }
+function vhV(f,c){ const o=ovrOf(f)[c]; return o!==null?o:vertSubmitted(f,c); }
+function jul(f){ return vhV(f,0)+vhV(f,1)+vhV(f,2)+vhV(f,3)+(f.rgpQty||0); }
+function gTot(f){ return jul(f)+vhV(f,4)+vhV(f,5); }
+function vertPrev(f){ return f.regions.reduce((a,rg)=>a+rg.prevSubmitted,0); }
+function rgOf(f,code){ return f.regions.find(r=>r.code===code); }
+const stockTot=d=>d.s60+d.s90+d.s180+d.sOver;
+const hasEntry=f=>f.regions.some(rg=>rg.submitted.some(v=>v>0))||ovrOf(f).some(v=>v!==null);
+function vertSubmittedTotal(f){ return f.regions.reduce((a,rg)=>a+regionSubmittedTotal(rg),0); }
+/* Reference layers retained from the Phase 0 VH sheet. The refreshed prototype has a region-level
+   source model; these values preserve the old inspection layers without changing VH's editable plan. */
+function legacyIndent(f,layer,c){
+  const source=vertSubmitted(f,c);
+  const factor={dealer:.90,asm:.96,coco:.18}[layer]||1;
+  return Math.round(source*factor);
+}
+function legacyIndentTotal(f,layer){ return [0,1,2,3,4,5].reduce((a,c)=>a+legacyIndent(f,layer,c),0); }
+function vertCurrentTotal(f){ return [0,1,2,3,4,5].reduce((a,c)=>a+vhV(f,c),0); }
+function fertDeviationPct(f){
+  const base=vertSubmittedTotal(f); if(!base)return 0;
+  return Math.round((vertCurrentTotal(f)-base)/base*100);
+}
+/* locked-1A deviation — only meaningful in 1B: how far the CURRENT (1B) total sits from what VH
+   actually locked in at S&OP-1A. */
+function locked1ATotal(f){ return f.locked1A.reduce((a,b)=>a+b,0); }
+function locked1ADeviationPct(f){
+  const base=locked1ATotal(f); if(!base)return 0;
+  return Math.round((vertCurrentTotal(f)-base)/base*100);
+}
+function fertNeedsReason(f){
+  const overTol=Math.abs(fertDeviationPct(f))>TOL;
+  const over1B=cycle==='1B'&&Math.abs(locked1ADeviationPct(f))>TOL_1B;
+  return (overTol||over1B) && !reasonOf(f);
+}
+/* which of the three regions a region is, as a share of the vertical — used only to split
+   vertical-level reference figures back down to an illustrative per-region share for review views
+   (the rollup's "by region" grouping); it plays no part in flagging or overriding, which happen at
+   the consolidated FERT level only. */
+function regionShareFactor(rg){ const r=REGIONS.find(x=>x.code===rg.code); return r.factor/REGIONS.reduce((a,x)=>a+x.factor,0); }
+function regionExpected3mo(f,rg){ return Math.round(threeMoAvg(f)*regionShareFactor(rg)); }
+function regionExpectedAbp(f,rg){ return Math.round(abpForFert(f)*regionShareFactor(rg)); }
+/* the flag that puts a line in VH's "needs a decision" list: what the vertical's regions actually
+   submitted for this FERT (before any VH override) deviates more than ±TOL% from either the 3-month
+   average or the ABP target — same two comparisons, same ±10%, as ASM's own screen, evaluated once
+   per consolidated line. In 1B, a line can ALSO be flagged purely for straying >TOL_1B% from VH's own
+   locked 1A submission, even if it's within tolerance of what the regions just resubmitted. */
+function fertFlag(f){
+  const actual=vertSubmittedJul(f);
+  const exp3=threeMoAvg(f), expAbp=abpForFert(f);
+  const dev3=exp3?Math.round((actual-exp3)/exp3*100):0;
+  const devAbp=expAbp?Math.round((actual-expAbp)/expAbp*100):0;
+  const mainDev=Math.abs(dev3)>=Math.abs(devAbp)?dev3:devAbp;
+  return {flagged:Math.abs(dev3)>TOL||Math.abs(devAbp)>TOL, dev3, devAbp, mainDev};
+}
+/* a line is "open" — needing VH review — if it was flagged on submission and hasn't been overridden
+   yet this cycle; or if an override was made that itself strays outside ±TOL% of what the vertical
+   actually submitted, with no reason recorded; or (1B only) the current total strays outside ±TOL_1B%
+   of the locked 1A submission, with no reason recorded. There is no separate "accept as submitted"
+   action (D-12 still open) — the only way to close a flagged-at-submission line is to actually
+   override it; the only way to close a line whose override itself deviates is to give a reason. */
+function fertOpen(f){
+  const untouched=ovrOf(f).every(v=>v===null);
+  if(untouched&&fertFlag(f).flagged)return true;
+  if(fertNeedsReason(f))return true;
+  return false;
+}
+function fertHasException(f){ return fertOpen(f); }
+/* a clear, unambiguous sentence for why a line needs review — direction spelled out (above/below), not
+   just an arrow and a bare percentage (P-10's sub-rule). Used in the line-detail drawer and the
+   attention panel; returns null when the line isn't currently flagged. */
+function fertFlagExplain(f){
+  const untouched=ovrOf(f).every(v=>v===null);
+  if(untouched){
+    const flag=fertFlag(f);
+    if(!flag.flagged)return null;
+    const useAbp=Math.abs(flag.devAbp)>Math.abs(flag.dev3);
+    const pct=useAbp?flag.devAbp:flag.dev3;
+    return `${Math.abs(pct)}% ${pct>0?'above':'below'} the ${useAbp?'ABP target':'3-month average'} — what the regions submitted for this line, before any override`;
+  }
+  const pct=fertDeviationPct(f);
+  const over1B=cycle==='1B'?locked1ADeviationPct(f):0;
+  if(Math.abs(pct)>TOL)return `Your override is ${Math.abs(pct)}% ${pct>0?'above':'below'} what the vertical's regions submitted`;
+  if(cycle==='1B'&&Math.abs(over1B)>TOL_1B)return `Your S&OP-1B number is ${Math.abs(over1B)}% ${over1B>0?'above':'below'} your own locked S&OP-1A submission`;
+  return null;
+}
+
+/* per-FERT indent-vs-offtake history, derived deterministically — kept only to drive the "By vehicle"
+   view of the accuracy report card, same approach as ASM. */
+function fertHist(f){
+  if(f._h)return f._h;
+  const seed=[...f.code].reduce((a,c)=>a+c.charCodeAt(0),0);
+  const base=Math.max(1,Math.round(vertSubmittedJul(f)/12));
+  f._h=['Mar','Apr','May','Jun'].map((m,i)=>{
+    const ind=Math.max(1,base+((seed+i*7)%5)-2);
+    const off=Math.max(0,ind+((seed*(i+3))%5)-2);
+    return {m,ind,off};
+  });
+  return f._h;
+}
+/* the fixed, never-changing vertical total each region actually submitted this cycle (unaffected by
+   any later VH override) — the anchor every reference band below is built from. */
+function vertSubmittedJul(f){
+  if(f._vsj!==undefined)return f._vsj;
+  f._vsj=f.regions.reduce((a,rg)=>a+regionSubmittedJul(rg),0);
+  return f._vsj;
+}
+/* 3-month average — deterministic, seeded variance around what was actually submitted this cycle.
+   Same reasoning as ASM's own threeMoAvg: offtake and indent sit at unrelated scales in this data set,
+   so a history derived from offtake flagged every line; this instead produces a believable minority of
+   genuine outliers, stable across renders. */
+function threeMoAvg(f){
+  const idx=D.indexOf(f);
+  const base=vertSubmittedJul(f);
+  const isOutlier=idx%7===2;
+  const jitterPct=isOutlier?(idx%2===0?27:-24):(((idx*13)%9)-4);
+  return Math.max(1,Math.round(base*(1+jitterPct/100)));
+}
+function abpForFert(f){
+  const idx=D.indexOf(f);
+  const base=vertSubmittedJul(f);
+  const isOutlier=idx%5===3;
+  const jitterPct=isOutlier?(idx%2===0?-29:23):(((idx*7)%9)-4);
+  return Math.max(1,Math.round(base*(1+jitterPct/100)));
+}
+
+/* ════════ FILTER MODEL — every filter is the same control (P-05) ════════ */
+const FKEYS=['fert','rsm','salesarea','vertical','my','sv','seg','mpg','ton','fuel','ac','flag'];
+let F={}; FKEYS.forEach(k=>F[k]=new Set());
+let q='', compact=false, railOpen=true, submitted={'1A':false,'1B':false}, savedViews=[];
+let sortKey=null, sortDir=-1;
+const FLAGS=[['noentry','No entry yet'],['exception','Needs your decision'],['aged180','Stock over 180 days'],
+             ['aged90','Stock over 90 days'],['priority','Priority quantity set']];
+
+function matchFlag(f,fl){
+  if(fl==='noentry')return !hasEntry(f);
+  if(fl==='exception')return fertHasException(f);
+  if(fl==='aged180')return f.sOver>0;
+  if(fl==='aged90')return f.s180+f.sOver>0;
+  if(fl==='priority')return f.priorityQty!==null;
+  return true;
+}
+const VALOF={fert:'code',salesarea:'salesArea',vertical:'vertical',my:'my',sv:'sv',seg:'seg',mpg:'mpg',ton:'ton',fuel:'fuel',ac:'ac'};
+function pass(f,skip){
+  for(const k of FKEYS){
+    if(k===skip)continue;
+    if(!F[k].size)continue;
+    if(k==='flag')continue;
+    if(k==='rsm'){ if(![...F.rsm].every(rc=>f.regions.some(rg=>rg.code===rc&&rg.submitted.some(v=>v>0)))) return false; continue; }
+    if(!F[k].has(f[VALOF[k]]))return false;
+  }
+  if(!skip||skip!=='flag'){ if(F.flag.size&&![...F.flag].every(fl=>matchFlag(f,fl)))return false; }
+  if(q){const s=q.toLowerCase(); if(!(f.code.toLowerCase().includes(s)||f.desc.toLowerCase().includes(s)))return false;}
+  return true;
+}
+function optCount(key,val){
+  return D.filter(f=>{ if(!pass(f,key))return false;
+    if(key==='flag')return matchFlag(f,val);
+    if(key==='rsm')return f.regions.some(rg=>rg.code===val&&rg.submitted.some(v=>v>0));
+    return f[VALOF[key]]===val; }).length;
+}
+const activeCount=()=>FKEYS.reduce((a,k)=>a+F[k].size,0);
+const SORTV={desc:f=>f.desc,code:f=>f.code,sv:f=>f.sv,mpg:f=>f.mpg,fuel:f=>f.fuel,ac:f=>f.ac,ton:f=>f.ton,
+  stock:stockTot,s60:f=>f.s60,s90:f=>f.s90,s180:f=>f.s180,sOver:f=>f.sOver,
+  openFg:f=>f.openFg,openPO:f=>f.openPO,
+  o3:f=>f.o3,o6:f=>f.o6,o12:f=>f.o12,oly:f=>f.oly, r3:f=>f.r3,r6:f=>f.r6,r12:f=>f.r12,rly:f=>f.rly,
+  cocoD:f=>f.cocoD,cocoA:f=>f.cocoA,cocoV:f=>f.cocoV,cocoN:f=>f.cocoN,
+  priority:f=>({High:3,Medium:2,Low:1}[f.priority]||0), rgp:f=>f.rgpQty||0, my:f=>f.my,
+  dealerIndent:f=>legacyIndentTotal(f,'dealer'), asmIndent:f=>legacyIndentTotal(f,'asm'), cocoIndent:f=>legacyIndentTotal(f,'coco'), dind:vertSubmittedTotal,
+  dW1:f=>vertSubmitted(f,0),dW2:f=>vertSubmitted(f,1),dW3:f=>vertSubmitted(f,2),dW4:f=>vertSubmitted(f,3),
+  dJul:f=>vertSubmitted(f,0)+vertSubmitted(f,1)+vertSubmitted(f,2)+vertSubmitted(f,3),
+  dAug:f=>vertSubmitted(f,4),dSep:f=>vertSubmitted(f,5),dTot:vertSubmittedTotal,
+  prev:vertPrev, avg3:threeMoAvg, abp:abpForFert, locked:locked1ATotal,
+  w0:f=>vhV(f,0),w1:f=>vhV(f,1),w2:f=>vhV(f,2),w3:f=>vhV(f,3),
+  jul:jul,aug:f=>vhV(f,4),sep:f=>vhV(f,5),tot:gTot};
+const SORTLBL={desc:'Vehicle',code:'FERT code',sv:'Sub-vertical',mpg:'MPG',fuel:'Fuel',ac:'Cabin',ton:'Tonnage',
+  stock:'Stock total',s60:'Stock <60D',s90:'Stock 60–90D',s180:'Stock 90–180D',sOver:'Stock >180D',
+  openFg:'Opening stock',openPO:'Live POs',
+  o3:'Offtake L3',o6:'Offtake L6',o12:'Offtake L12',oly:'Offtake LYSM',
+  r3:'Retail L3',r6:'Retail L6',r12:'Retail L12',rly:'Retail LYSM',
+  cocoD:'COCO Dealer stock',cocoA:'COCO Actual',cocoV:'COCO Virtual',cocoN:'COCO National',
+  priority:'Priority',rgp:'RGP quantity',my:'Model year',
+  dealerIndent:'Dealer indent (read-only)',asmIndent:'ASM indent (read-only)',cocoIndent:'COCO VH indent (read-only)',dind:'RSM indent (as submitted)',dW1:'W1 (submitted)',dW2:'W2 (submitted)',dW3:'W3 (submitted)',dW4:'W4 (submitted)',
+  dJul:'Jul (submitted)',dAug:'Aug (submitted)',dSep:'Sep (submitted)',dTot:'Total (submitted)',
+  prev:'Last cycle',avg3:'3-month average',abp:'ABP target',locked:'Locked S&OP-1A',
+  w0:'W1',w1:'W2',w2:'W3',w3:'W4',jul:'July',aug:'August',sep:'September',tot:'Total'};
+
+/* ════════ COLUMN BANDS (P-08) ════════
+   Reference layers: RSM indent, last cycle, 3-month average, ABP target, COCO reference (new, VH-only)
+   — each its own band, collapsed to one figure by default. Vehicle attributes / Stock / Trend bands
+   carry over from ASM/Dealer for column parity (P-19). Pipeline stays disabled pending D-06. Priority
+   is its own editable band (new), styled apart from the main entry band so it reads as a distinct
+   VH-only capability, not part of the moderated total. Locked-1A only appears while cycle==='1B'. */
+const num=(v)=>v||v===0?v:'–';
+const BANDS=[
+  {k:'code',label:'Vehicle code',summary:{k:'code',label:'Vehicle code',get:f=>f.code,txt:true,raw:f=>f.code},cols:[{k:'code',label:'Vehicle code',get:f=>f.code,txt:true,raw:f=>f.code}]},
+  {k:'my',label:'Model year',summary:{k:'my',label:'Model year',get:f=>f.my,txt:true,raw:f=>f.my},cols:[{k:'my',label:'Model year',get:f=>f.my,txt:true,raw:f=>f.my}]},
+  {k:'attr',label:'Vehicle attributes',summary:{k:'mpg',label:'MPG',get:f=>f.mpg,txt:true,raw:f=>f.mpg},cols:[
+    {k:'sv',label:'Sub-vertical',get:f=>f.sv,txt:true,raw:f=>f.sv},
+    {k:'mpg',label:'MPG',get:f=>f.mpg,txt:true,raw:f=>f.mpg},
+    {k:'ton',label:'Tonnage',get:f=>f.ton,txt:true,raw:f=>f.ton},
+    {k:'fuel',label:'Fuel',get:f=>f.fuel,txt:true,raw:f=>f.fuel},
+    {k:'ac',label:'AC / Non-AC',get:f=>f.ac==='AC'?'AC':'Non-AC',txt:true,raw:f=>f.ac==='AC'?'AC':'Non-AC'},
+    {k:'eseg',label:'Eicher segment',get:f=>f.eseg,txt:true,raw:f=>f.eseg}]},
+  {k:'stock',label:'Vertical stock on hand',summary:{k:'stock',label:'Stock',
+    get:f=>`<span class="${f.sOver>0?'aged hot':(f.s180>0?'aged':'')}">${num(stockTot(f))}</span>`,raw:f=>stockTot(f)},cols:[
+    {k:'s60',label:'&lt;60D',get:f=>num(f.s60),raw:f=>f.s60},
+    {k:'s90',label:'60–90D',get:f=>f.s90?`<span class="aged">${f.s90}</span>`:'–',raw:f=>f.s90},
+    {k:'s180',label:'90–180D',get:f=>f.s180?`<span class="aged">${f.s180}</span>`:'–',raw:f=>f.s180},
+    {k:'sOver',label:'&gt;180D',get:f=>f.sOver?`<span class="aged hot">${f.sOver}</span>`:'–',raw:f=>f.sOver},
+    {k:'stock',label:'Total',get:f=>`<b>${num(stockTot(f))}</b>`,raw:f=>stockTot(f)}]},
+  {k:'open',label:'Opening &amp; live POs',summary:{k:'openPO',label:'Live POs',get:f=>num(f.openPO),raw:f=>f.openPO},cols:[
+    {k:'openFg',label:'Mth opening stk',get:f=>num(f.openFg),raw:f=>f.openFg},
+    {k:'openPO',label:'Live POs',get:f=>num(f.openPO),raw:f=>f.openPO}]},
+  {k:'pipe',label:'Pipeline',summary:{k:'hotInq',label:'Hot inquiry',get:f=>num(f.hotInq),raw:f=>f.hotInq},cols:[
+    {k:'fa',label:'FA',get:f=>num(f.fa),raw:f=>f.fa},{k:'fc',label:'FC',get:f=>num(f.fc),raw:f=>f.fc},
+    {k:'hotInq',label:'Hot inquiry',get:f=>num(f.hotInq),raw:f=>f.hotInq}]},
+  {k:'off',label:'Trend — offtake',summary:{k:'o3',label:'Offtake L3',get:f=>num(f.o3),raw:f=>f.o3},cols:[
+    {k:'o3',label:'L3',get:f=>num(f.o3),raw:f=>f.o3},{k:'o6',label:'L6',get:f=>num(f.o6),raw:f=>f.o6},
+    {k:'o12',label:'L12',get:f=>num(f.o12),raw:f=>f.o12},{k:'oly',label:'LYSM',get:f=>num(f.oly),raw:f=>f.oly}]},
+  {k:'ret',label:'Trend — retail',summary:{k:'r3',label:'Retail L3',get:f=>num(f.r3),raw:f=>f.r3},cols:[
+    {k:'r3',label:'L3',get:f=>num(f.r3),raw:f=>f.r3},{k:'r6',label:'L6',get:f=>num(f.r6),raw:f=>f.r6},
+    {k:'r12',label:'L12',get:f=>num(f.r12),raw:f=>f.r12},{k:'rly',label:'LYSM',get:f=>num(f.rly),raw:f=>f.rly}]},
+  {k:'coco',label:'COCO reference (read-only)',cls:'coco',summary:{k:'cocoN',label:'COCO Natl',get:f=>`<span class="coco">${num(f.cocoN)}</span>`,raw:f=>f.cocoN},cols:[
+    {k:'cocoD',label:'Dealer',get:f=>`<span class="coco">${num(f.cocoD)}</span>`,raw:f=>f.cocoD},
+    {k:'cocoA',label:'Actual',get:f=>`<span class="coco">${num(f.cocoA)}</span>`,raw:f=>f.cocoA},
+    {k:'cocoV',label:'Virtual',get:f=>`<span class="coco">${num(f.cocoV)}</span>`,raw:f=>f.cocoV},
+    {k:'cocoN',label:'National',get:f=>`<span class="coco" style="font-weight:700">${num(f.cocoN)}</span>`,raw:f=>f.cocoN}]},
+  {k:'dealerIndent',label:'Dealer indent (read-only)',summary:{k:'dealerIndent',label:'Dealer plan',get:f=>`<b>${num(legacyIndentTotal(f,'dealer'))}</b>`,raw:f=>legacyIndentTotal(f,'dealer')},cols:[
+    {k:'dealerW1',label:'W1',get:f=>num(legacyIndent(f,'dealer',0)),raw:f=>legacyIndent(f,'dealer',0)},
+    {k:'dealerW2',label:'W2',get:f=>num(legacyIndent(f,'dealer',1)),raw:f=>legacyIndent(f,'dealer',1)},
+    {k:'dealerW3',label:'W3',get:f=>num(legacyIndent(f,'dealer',2)),raw:f=>legacyIndent(f,'dealer',2)},
+    {k:'dealerW4',label:'W4',get:f=>num(legacyIndent(f,'dealer',3)),raw:f=>legacyIndent(f,'dealer',3)},
+    {k:'dealerJul',label:'Jul',get:f=>num([0,1,2,3].reduce((a,c)=>a+legacyIndent(f,'dealer',c),0)),raw:f=>[0,1,2,3].reduce((a,c)=>a+legacyIndent(f,'dealer',c),0)},
+    {k:'dealerAug',label:'Aug',get:f=>num(legacyIndent(f,'dealer',4)),raw:f=>legacyIndent(f,'dealer',4)},
+    {k:'dealerSep',label:'Sep',get:f=>num(legacyIndent(f,'dealer',5)),raw:f=>legacyIndent(f,'dealer',5)},
+    {k:'dealerTot',label:'Total',get:f=>`<b>${num(legacyIndentTotal(f,'dealer'))}</b>`,raw:f=>legacyIndentTotal(f,'dealer')} ]},
+  {k:'asmIndent',label:'ASM indent (read-only)',summary:{k:'asmIndent',label:'ASM plan',get:f=>`<b>${num(legacyIndentTotal(f,'asm'))}</b>`,raw:f=>legacyIndentTotal(f,'asm')},cols:[
+    {k:'asmW1',label:'W1',get:f=>num(legacyIndent(f,'asm',0)),raw:f=>legacyIndent(f,'asm',0)},
+    {k:'asmW2',label:'W2',get:f=>num(legacyIndent(f,'asm',1)),raw:f=>legacyIndent(f,'asm',1)},
+    {k:'asmW3',label:'W3',get:f=>num(legacyIndent(f,'asm',2)),raw:f=>legacyIndent(f,'asm',2)},
+    {k:'asmW4',label:'W4',get:f=>num(legacyIndent(f,'asm',3)),raw:f=>legacyIndent(f,'asm',3)},
+    {k:'asmJul',label:'Jul',get:f=>num([0,1,2,3].reduce((a,c)=>a+legacyIndent(f,'asm',c),0)),raw:f=>[0,1,2,3].reduce((a,c)=>a+legacyIndent(f,'asm',c),0)},
+    {k:'asmAug',label:'Aug',get:f=>num(legacyIndent(f,'asm',4)),raw:f=>legacyIndent(f,'asm',4)},
+    {k:'asmSep',label:'Sep',get:f=>num(legacyIndent(f,'asm',5)),raw:f=>legacyIndent(f,'asm',5)},
+    {k:'asmTot',label:'Total',get:f=>`<b>${num(legacyIndentTotal(f,'asm'))}</b>`,raw:f=>legacyIndentTotal(f,'asm')} ]},
+  {k:'dind',label:'RSM indent — as submitted',summary:{k:'dind',label:'RSM indent',get:f=>`<b>${num(vertSubmittedTotal(f))}</b>`,
+    raw:f=>vertSubmittedTotal(f),rawD:(f,code)=>rgOf(f,code).submitted.reduce((a,b)=>a+b,0)},cols:[
+    {k:'dW1',label:'W1',get:f=>num(vertSubmitted(f,0)),raw:f=>vertSubmitted(f,0),rawD:(f,code)=>rgOf(f,code).submitted[0]},
+    {k:'dW2',label:'W2',get:f=>num(vertSubmitted(f,1)),raw:f=>vertSubmitted(f,1),rawD:(f,code)=>rgOf(f,code).submitted[1]},
+    {k:'dW3',label:'W3',get:f=>num(vertSubmitted(f,2)),raw:f=>vertSubmitted(f,2),rawD:(f,code)=>rgOf(f,code).submitted[2]},
+    {k:'dW4',label:'W4',get:f=>num(vertSubmitted(f,3)),raw:f=>vertSubmitted(f,3),rawD:(f,code)=>rgOf(f,code).submitted[3]},
+    {k:'dJul',label:'Jul',get:f=>num(vertSubmitted(f,0)+vertSubmitted(f,1)+vertSubmitted(f,2)+vertSubmitted(f,3)),
+      raw:f=>vertSubmitted(f,0)+vertSubmitted(f,1)+vertSubmitted(f,2)+vertSubmitted(f,3),
+      rawD:(f,code)=>{const rg=rgOf(f,code);return rg.submitted[0]+rg.submitted[1]+rg.submitted[2]+rg.submitted[3];}},
+    {k:'dAug',label:'Aug',get:f=>num(vertSubmitted(f,4)),raw:f=>vertSubmitted(f,4),rawD:(f,code)=>rgOf(f,code).submitted[4]},
+    {k:'dSep',label:'Sep',get:f=>num(vertSubmitted(f,5)),raw:f=>vertSubmitted(f,5),rawD:(f,code)=>rgOf(f,code).submitted[5]},
+    {k:'dTot',label:'Total',get:f=>`<b>${num(vertSubmittedTotal(f))}</b>`,
+      raw:f=>vertSubmittedTotal(f),rawD:(f,code)=>rgOf(f,code).submitted.reduce((a,b)=>a+b,0)}]},
+  {k:'cocoIndent',label:'COCO VH indent (read-only)',cls:'coco',summary:{k:'cocoIndent',label:'COCO VH plan',get:f=>`<span class="coco"><b>${num(legacyIndentTotal(f,'coco'))}</b></span>`,raw:f=>legacyIndentTotal(f,'coco')},cols:[
+    {k:'cocoIW1',label:'W1',get:f=>num(legacyIndent(f,'coco',0)),raw:f=>legacyIndent(f,'coco',0)},
+    {k:'cocoIW2',label:'W2',get:f=>num(legacyIndent(f,'coco',1)),raw:f=>legacyIndent(f,'coco',1)},
+    {k:'cocoIW3',label:'W3',get:f=>num(legacyIndent(f,'coco',2)),raw:f=>legacyIndent(f,'coco',2)},
+    {k:'cocoIW4',label:'W4',get:f=>num(legacyIndent(f,'coco',3)),raw:f=>legacyIndent(f,'coco',3)},
+    {k:'cocoIJul',label:'Jul',get:f=>num([0,1,2,3].reduce((a,c)=>a+legacyIndent(f,'coco',c),0)),raw:f=>[0,1,2,3].reduce((a,c)=>a+legacyIndent(f,'coco',c),0)},
+    {k:'cocoIAug',label:'Aug',get:f=>num(legacyIndent(f,'coco',4)),raw:f=>legacyIndent(f,'coco',4)},
+    {k:'cocoISep',label:'Sep',get:f=>num(legacyIndent(f,'coco',5)),raw:f=>legacyIndent(f,'coco',5)},
+    {k:'cocoITot',label:'Total',get:f=>`<b>${num(legacyIndentTotal(f,'coco'))}</b>`,raw:f=>legacyIndentTotal(f,'coco')} ]},
+  {k:'last',label:'Last cycle',cols:[{k:'prev',label:'Last mth plan',get:f=>num(vertPrev(f)),
+    raw:f=>vertPrev(f),rawD:(f,code)=>rgOf(f,code).prevSubmitted}]},
+  {k:'avg3',label:'3-month average',cols:[{k:'avg3',label:'Avg (L3M)',get:f=>num(threeMoAvg(f)),
+    raw:f=>threeMoAvg(f),rawD:(f,code)=>regionExpected3mo(f,rgOf(f,code))}]},
+  {k:'abp',label:'ABP target',cols:[{k:'abp',label:'ABP',get:f=>num(abpForFert(f)),
+    raw:f=>abpForFert(f),rawD:(f,code)=>regionExpectedAbp(f,rgOf(f,code))}]},
+  {k:'locked',label:'Locked S&amp;OP-1A (your submission)',onlyIf:()=>cycle==='1B',cols:[
+    {k:'locked',label:'Locked 1A',get:f=>`<b>${num(locked1ATotal(f))}</b>`,raw:f=>locked1ATotal(f)}]},
+  {k:'compare1b',label:'S&amp;OP-1A comparison (locked)',onlyIf:()=>cycle==='1B',cols:[
+    {k:'gapNorm',label:'Gap vs norm',get:f=>num(jul(f)-threeMoAvg(f)),raw:f=>jul(f)-threeMoAvg(f)},
+    {k:'pendFc',label:'Pending FC',get:f=>num(f.fc),raw:f=>f.fc},
+    {k:'matchNos',label:'Match NOS',get:f=>num(locked1ATotal(f)),raw:f=>locked1ATotal(f)},
+    {k:'matchPct',label:'Match %',get:f=>locked1ATotal(f)?Math.round(gTot(f)/locked1ATotal(f)*100)+'%':'–',raw:f=>locked1ATotal(f)?Math.round(gTot(f)/locked1ATotal(f)*100):0}]},
+];
+const PRESETS={
+  essentials:{code:'full',my:'summary',attr:'summary',stock:'summary',open:'summary',pipe:'summary',off:'summary',ret:'summary',coco:'summary',dealerIndent:'summary',asmIndent:'summary',dind:'summary',cocoIndent:'summary',last:'summary',avg3:'off',abp:'off',locked:'off',compare1b:'summary'},
+  moderating:{code:'full',my:'summary',attr:'off',stock:'off',open:'off',pipe:'summary',off:'off',ret:'off',coco:'summary',dealerIndent:'summary',asmIndent:'summary',dind:'full',cocoIndent:'summary',last:'full',avg3:'full',abp:'full',locked:'full',compare1b:'full'},
+  all:{code:'full',my:'full',attr:'full',stock:'full',open:'full',pipe:'full',off:'full',ret:'full',coco:'full',dealerIndent:'full',asmIndent:'full',dind:'full',cocoIndent:'full',last:'full',avg3:'full',abp:'full',locked:'full',compare1b:'full'},
+};
+const PRESET_LBL={essentials:'Essentials',moderating:'Moderating focus',all:'Everything'};
+let bandMode=Object.assign({},PRESETS.essentials);
+let activePreset='essentials';
+/* priority is its own toggle, independent of the reference-band presets above (it's an editable field,
+   not a reference layer) — off by default, so the "M1 priority quantity" workflow is opt-in per user. */
+let priorityOn=true, rgpOn=true;
+function togglePriority(){ priorityOn=!priorityOn; render(); renderColPop(); }
+function activeCols(){
+  const out=[];
+  BANDS.forEach(b=>{
+    if(b.disabled)return;
+    if(b.onlyIf&&!b.onlyIf())return;
+    const m=bandMode[b.k]||'off';
+    if(m==='off')return;
+    if(m==='summary'&&b.summary)out.push({...b.summary,band:b,first:true});
+    else b.cols.forEach((c,i)=>out.push({...c,band:b,first:i===0}));
+  });
+  return out;
+}
+function bandSpan(){
+  const cols=activeCols(),out=[];
+  cols.forEach(c=>{
+    const last=out[out.length-1];
+    if(last&&last.b===c.band)last.n++;
+    else out.push({b:c.band,n:1,mode:bandMode[c.band.k]});
+  });
+  return out;
+}
+/* aggregate one reference-band column across a set of FERTs, for a group-header row. Numeric columns
+   sum their `raw` (or region-scoped `rawD`, when a region code is given and the column defines one —
+   dind/last/avg3/abp). Text/attribute columns show the shared value if every FERT in the group agrees,
+   otherwise a dash (P-19's group-header addition). */
+function groupRefCell(col,fs,regionCode){
+  if(!fs.length)return '–';
+  if(col.txt){
+    const vals=new Set(fs.map(f=>col.raw?col.raw(f):null));
+    return vals.size===1?([...vals][0]||'–'):'–';
+  }
+  const fn=(regionCode&&col.rawD)?(f=>col.rawD(f,regionCode)):col.raw;
+  if(!fn)return '–';
+  return num(fs.reduce((a,f)=>a+(fn(f)||0),0));
+}
+function groupRefCells(fs,regionCode){
+  const cols=activeCols();
+  return cols.length
+    ? cols.map(c=>`<td class="ref${c.first?' bsep':''}${c.txt?' txt':''}${c.band.cls==='coco'?' coco':''}">${groupRefCell(c,fs,regionCode)}</td>`).join('')
+    : '<td class="ref"></td>';
+}
+function priorityCell(f){
+  if(!priorityOn)return '';
+  const p=f.priority||'Medium';
+  const color=p==='High'?'#C62828':p==='Low'?'#2E7D32':'#C77700';
+  const bg=p==='High'?'#FEECEC':p==='Low'?'#E8F5E9':'#FFF8E1';
+  return `<td class="bsep" style="text-align:center"><span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700;color:${color};background:${bg}">${p}</span></td>`;
+}
+function priorityGroupCell(fs){
+  if(!priorityOn)return '';
+  const levels=[...new Set(fs.map(f=>f.priority||'Medium'))];
+  return `<td class="bsep" style="text-align:center;font-size:10px;font-weight:600;color:var(--muted)">${levels.length===1?levels[0]:'Mixed'}</td>`;
+}
+function rgpCell(f){
+  if(!rgpOn)return '';
+  return `<td class="bsep" style="background:var(--add-soft)"><input class="cellin prio" type="number" min="0" inputmode="numeric"
+    value="${f.rgpQty||0}" title="RGP quantity" oninput="setRgp(${f.i},this.value)" onblur="render()"></td>`;
+}
+function rgpGroupCell(fs){ return rgpOn?`<td class="bsep" style="background:var(--add-soft);color:var(--add);font-weight:600">${fs.reduce((a,f)=>a+(f.rgpQty||0),0)}</td>`:''; }
+function setPriority(fi,val){
+  const f=D.find(x=>x.i===fi); if(!f)return;
+  const v=val===''?null:Math.max(0,parseInt(val)||0);
+  f.priorityQty=v;
+}
+function setRgp(fi,val){ const f=D.find(x=>x.i===fi); if(f)f.rgpQty=Math.max(0,parseInt(val)||0); }
+function rows(){
+  let r=D.filter(f=>pass(f));
+  if(sortKey){
+    const fn=SORTV[sortKey];
+    r=[...r].sort((a,b)=>{const x=fn(a),y=fn(b);
+      return (typeof x==='string'?x.localeCompare(y):x-y)*sortDir;});
+  }
+  return r;
+}
+
+/* ════════ LOGIN / SHELL ════════ */
+function clearErr(){['fId','fPw'].forEach(i=>document.getElementById(i).classList.remove('invalid'));}
+function doLogin(e){
+  if(e&&e.preventDefault)e.preventDefault();
+  if(!document.getElementById('lgId').value.trim()){document.getElementById('fId').classList.add('invalid');return;}
+  if(!document.getElementById('lgPw').value){document.getElementById('fPw').classList.add('invalid');return;}
+  document.getElementById('login').style.display='none';
+  document.getElementById('app').classList.add('on');
+  buildRail(); render(); renderCycCtl(); tick();
+}
+function signOut(){document.getElementById('app').classList.remove('on');document.getElementById('login').style.display='flex';}
+function setPersona(v){
+  if(v==='vh')return;
+  if(v==='dealer'){toast('Opens the Dealer prototype — this file only builds the VH screen');document.getElementById('personaSel').value='vh';return;}
+  if(v==='asm'){toast('Opens the ASM Prototype — this file only builds the VH screen');document.getElementById('personaSel').value='vh';return;}
+  toast('Only the VH vertical experience is built in this iteration');document.getElementById('personaSel').value='vh';
+}
+function renderCycCtl(){
+  const html=`<button class="${cycle==='1A'?'on':''}" onclick="setCycle('1A')">S&amp;OP-1A</button>
+    <button class="${cycle==='1B'?'on':''}" onclick="setCycle('1B')">S&amp;OP-1B</button>`;
+  ['cycCtl','cycCtlTop'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=html;});
+}
+function setCycle(c){
+  if(c===cycle)return;
+  cycle=c;
+  document.getElementById('tbCycLbl').textContent=c;
+  renderCycCtl();
+  toast(c==='1B'?'Switched to S&OP-1B — compare against your locked 1A submission':'Switched to S&OP-1A');
+  buildRail(); render();
+}
+function toggleTheme(){
+  const r=document.documentElement;
+  const dark=r.getAttribute('data-theme')==='dark'||(!r.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme:dark)').matches);
+  r.setAttribute('data-theme',dark?'light':'dark');
+}
+function go(v){
+  const rail=document.getElementById('rail'), homeMount=document.getElementById('homeRailMount'), wbMount=document.querySelector('#vWb .wb');
+  if(rail){if(v==='home'&&homeMount&&rail.parentElement!==homeMount)homeMount.appendChild(rail);if(v==='wb'&&wbMount&&rail.parentElement!==wbMount)wbMount.prepend(rail);}
+  document.getElementById('vHome').classList.toggle('on',v==='home');
+  document.getElementById('vWb').classList.toggle('on',v==='wb');
+  document.getElementById('nvHome').classList.toggle('on',v==='home');
+  document.getElementById('nvWb').classList.toggle('on',v==='wb');
+  render();
+}
+function jumpFilter(flag,regionCode){
+  F.flag.clear(); F.flag.add(flag);
+  if(regionCode){F.rsm.clear();F.rsm.add(regionCode);}
+  go('wb'); buildRail(); render();
+  toast('Filtered to: '+(FLAGS.find(f=>f[0]===flag)||['','that filter'])[1]);
+}
+function jumpPriority(){
+  priorityOn=true; go('wb'); buildRail(); render(); renderColPop();
+  toast('Priority quantity column is now visible — set M1 priority per line');
+}
+function tick(){
+  const now=new Date(); const cutDay=cycle==='1A'?18:25; const t=new Date(now); t.setDate(cutDay); t.setHours(23,59,0,0);
+  if(t<now)t.setMonth(t.getMonth()+1);
+  const ms=t-now, d=Math.floor(ms/864e5), h=Math.floor(ms%864e5/36e5), m=Math.floor(ms%36e5/6e4);
+  document.getElementById('tbClock').textContent=d>0?`${d}d ${h}h`:`${h}h ${m}m`;
+  setTimeout(tick,60000);
+}
+
+/* ════════ FILTER RAIL — one control type for everything (P-05) ════════ */
+let msOpen=null; const msQ={};
+function optsFor(key){
+  if(key==='fert')return D.map(f=>({v:f.code,t1:f.code,t2:f.desc}));
+  if(key==='rsm')return REGIONS.map(r=>({v:r.code,t1:r.name,t2:r.person+' · '+r.loc}));
+  if(key==='seg')return ['R','S','D'].map(v=>({v,t1:SEGNAME[v]}));
+  if(key==='ac')return ['AC','NonAC'].map(v=>({v,t1:v==='NonAC'?'Non-AC':'AC'}));
+  if(key==='flag')return FLAGS.map(([v,t1])=>({v,t1}));
+  const f=VALOF[key];
+  let vals=[...new Set(D.map(x=>x[f]))];
+  if(key==='ton')vals.sort((a,b)=>parseFloat(a)-parseFloat(b)); else vals.sort();
+  return vals.map(v=>({v,t1:v}));
+}
+const FLABEL={fert:'FERT',rsm:'RSM region',salesarea:'Sales Area',vertical:'Vertical',my:'Model year',sv:'Sub-vertical',seg:'Eicher segment',mpg:'MPG model',ton:'Tonnage',
+  fuel:'Fuel',ac:'Cabin',flag:'Status'};
+function msOptions(key){
+  const s=(msQ[key]||'').toLowerCase();
+  const out=optsFor(key).filter(o=>{
+    if(!s)return true;
+    return s.split(/[,\n]/).map(t=>t.trim()).filter(Boolean)
+      .some(t=>String(o.t1).toLowerCase().includes(t)||String(o.t2||'').toLowerCase().includes(t));
+  }).map(o=>{
+    const n=key==='rsm'?undefined:optCount(key,o.v), on=F[key].has(o.v);
+    if(n===0&&!on)return '';
+    return `<button class="ms-opt${on?' on':''}" onclick="tog('${key}','${o.v}')">
+      <span class="bx">${on?'✓':''}</span>
+      <span class="tx"><span class="t1">${o.t1}</span>${o.t2?`<span class="t2">${o.t2}</span>`:''}</span>
+      ${n!==undefined?`<span class="n">${n}</span>`:''}</button>`;
+  }).join('');
+  return out||'<div class="ms-empty">No match</div>';
+}
+function msBlock(key){
+  const total=optsFor(key).length, sel=F[key].size;
+  const lbl=sel===0?'All':(sel===1?(optsFor(key).find(o=>F[key].has(o.v))||{t1:'1 selected'}).t1:sel+' selected');
+  return `<div class="frow">
+    <div class="fl">${FLABEL[key]}${sel?`<button class="clr" onclick="F['${key}'].clear();buildRail();render()">clear</button>`:''}</div>
+    <div class="ms${msOpen===key?' open':''}">
+      <button class="ms-btn${sel?' act':''}" onclick="event.stopPropagation();toggleMs('${key}')">
+        <span class="lbl${sel?'':' dim'}">${lbl}</span><span class="ca">▾</span></button>
+      <div class="ms-pop" onclick="event.stopPropagation()">
+        <div class="ms-search">
+          <input type="text" id="msq-${key}" placeholder="Search ${FLABEL[key].toLowerCase()}…" value="${msQ[key]||''}"
+            oninput="msFilter('${key}',this.value)">
+        </div>
+        <div class="ms-list" id="msl-${key}">${msOptions(key)}</div>
+        <div class="ms-foot">
+          <button class="btn btn-quiet btn-sm" onclick="F['${key}'].clear();buildRail();render()">Clear</button>
+          <span class="c">${sel} of ${total}</span></div>
+      </div></div></div>`;
+}
+function toggleMs(key){
+  msOpen=msOpen===key?null:key; buildRail();
+  if(msOpen){const el=document.getElementById('msq-'+key); if(el)el.focus();}
+}
+function msFilter(key,v){ msQ[key]=v; document.getElementById('msl-'+key).innerHTML=msOptions(key); }
+document.addEventListener('click',()=>{ if(msOpen){msOpen=null;buildRail();} });
+function tog(key,val){ const s=F[key]; s.has(val)?s.delete(val):s.add(val); buildRail(); render(); }
+function buildRail(){
+  let h='';
+  if(savedViews.length){
+    h+=`<div class="frow"><div class="fl">Saved views</div>
+      <select class="ms-btn" style="height:32px" onchange="applyView(this.value)">
+        <option value="">Choose a saved view…</option>
+        ${savedViews.map((v,i)=>`<option value="${i}">${v.name}</option>`).join('')}</select></div>`;
+  }
+  FKEYS.forEach(k=>{ h+=msBlock(k); });
+  document.getElementById('railBody').innerHTML=h;
+  const n=activeCount();
+  ['railCnt','stubCnt'].forEach(id=>{const el=document.getElementById(id);el.style.display=n?'':'none';el.textContent=n;});
+}
+function clearAll(){ FKEYS.forEach(k=>F[k].clear()); q=''; sortKey=null; document.getElementById('qBox').value=''; buildRail(); render(); }
+function setQ(v){ q=v; render(); }
+function saveView(){
+  if(!activeCount()){toast('Nothing to save — no filters applied');return;}
+  const bits=[];
+  FKEYS.forEach(k=>{ if(F[k].size){ const o=optsFor(k).find(o=>F[k].has(o.v)); bits.push(F[k].size>1?F[k].size+' '+FLABEL[k]:(o?o.t1:FLABEL[k])); } });
+  savedViews.push({name:bits.slice(0,2).join(' · '),F:Object.fromEntries(FKEYS.map(k=>[k,[...F[k]]]))});
+  buildRail(); toast('View saved');
+}
+function applyView(i){ if(i==='')return; const v=savedViews[i]; FKEYS.forEach(k=>F[k]=new Set(v.F[k]||[])); buildRail(); render(); toast('Applied "'+v.name+'"'); }
+function toggleRail(){ railOpen=!railOpen;
+  document.getElementById('rail').classList.toggle('collapsed',!railOpen);
+  document.getElementById('railBtn').textContent=railOpen?'‹':'›'; }
+
+/* ════════ GRID (P-08: identity / reference / entry) ════════
+   Identity = one FERT row, collapsed by default. Reference bands include RSM indent, last cycle,
+   3-month average, ABP, COCO reference (VH-only) alongside the carried-over vehicle/stock/trend bands,
+   plus Locked-1A while in the 1B cycle. Entry ("VH Indent") shows the vertical total, computed and
+   read-only at the FERT row; expanding a row (▶) reveals one sub-row per RSM region — the read-only
+   reference this pattern doc calls out (P-20/P-08's addition), one level up from ASM's dealer rows. */
+let expanded=new Set();
+function toggleExpand(i){ expanded.has(i)?expanded.delete(i):expanded.add(i); render(); }
+function setDensity(c){ compact=!!c;
+  document.getElementById('dnComf').classList.toggle('on',!c);
+  document.getElementById('dnComp').classList.toggle('on',!!c);
+  document.getElementById('grid').classList.toggle('compact',!!c); }
+function setSort(k){ if(sortKey===k){ if(sortDir===-1)sortDir=1; else {sortKey=null;} } else {sortKey=k;sortDir=-1;} render(); }
+function th(k,label,left,sep){
+  const on=sortKey===k;
+  return `<th class="${sep?'bsep':''}"><button class="sortbtn${left?' l':''}" onclick="setSort('${k}')" title="Sort by ${SORTLBL[k]||label}">
+    ${label}<span class="ar">${on?(sortDir===-1?'▼':'▲'):'▼'}</span></button></th>`;
+}
+function head(){
+  const cols=activeCols(), spans=bandSpan();
+  const bandRow=spans.map(s=>{
+    const short=s.mode==='summary'&&s.b.summary;
+    const cls=s.b.cls==='coco'?' b-coco':'';
+    return `<th class="b-ref bsep${cls}" colspan="${s.n}">
+      <button class="bandbtn" onclick="cycleBand('${s.b.k}')"
+        title="${s.b.label.replace(/&amp;/g,'&')} · ${s.mode==='summary'?'Expand this group':'Collapse this group'}">${short?s.b.summary.label:s.b.label}
+        <span class="bm">${s.mode==='summary'?'▸':'▾'}</span></button></th>`;
+  }).join('');
+  const prioHead=priorityOn?`<th class="b-ref bsep" colspan="1"><span style="display:flex;align-items:center;height:100%;padding:0 8px">Priority</span></th>`:'';
+  const rgpHead=rgpOn?`<th class="b-add bsep" colspan="1"><span style="display:flex;align-items:center;height:100%;padding:0 8px">RGP</span></th>`:'';
+  const colRow=cols.map(c=>th(c.k,c.label,false,c.first)).join('');
+  const prioColHead=priorityOn?`<th class="bsep"><button class="sortbtn" onclick="setSort('priority')" title="Sort by priority">Priority<span class="ar">${sortKey==='priority'?(sortDir===-1?'▼':'▲'):'▼'}</span></button></th>`:'';
+  const rgpColHead=rgpOn?`<th class="bsep"><button class="sortbtn" onclick="setSort('rgp')" title="Sort by RGP quantity">Qty<span class="ar">${sortKey==='rgp'?(sortDir===-1?'▼':'▲'):'▼'}</span></button></th>`:'';
+  return `<tr class="bands">
+      <th class="idc b-ref">Vehicle</th>
+      ${bandRow||'<th class="b-ref">&nbsp;</th>'}${prioHead}${rgpHead}
+      <th class="b-edit bsep" colspan="8">VH Indent · S&amp;OP-${cycle} · July 2026</th></tr>
+    <tr><th class="idc"><button class="sortbtn l${sortKey==='desc'?' on':''}" onclick="setSort('desc')">Vehicle<span class="ar">${sortKey==='desc'?(sortDir===-1?'▼':'▲'):'▼'}</span></button></th>
+      ${colRow||'<th>&nbsp;</th>'}${prioColHead}${rgpColHead}
+      ${th('w0','W1',false,true)}${th('w1','W2')}${th('w2','W3')}${th('w3','W4')}
+      ${th('jul','Jul')}${th('aug','Aug')}${th('sep','Sep')}${th('tot','Total')}</tr>`;
+}
+function cycleBand(k){
+  const b=BANDS.find(x=>x.k===k);
+  const m=bandMode[k];
+  bandMode[k]= b.summary ? (m==='summary'?'full':'summary') : (m==='full'?'off':'full');
+  activePreset=null; render(); renderColPop();
+}
+function setBand(k,m){ bandMode[k]=m; activePreset=null; render(); renderColPop(); }
+function setPreset(p){ bandMode=Object.assign({},PRESETS[p]); activePreset=p; render(); renderColPop(); }
+let colPopOpen=false;
+function toggleColPop(e){ if(e)e.stopPropagation(); colPopOpen=!colPopOpen; renderColPop(); }
+function renderColPop(){
+  const el=document.getElementById('colPop');
+  el.style.display=colPopOpen?'':'none';
+  document.getElementById('colBtn').classList.toggle('on',colPopOpen);
+  if(!colPopOpen)return;
+  el.innerHTML=`
+    <div class="cp-sec"><div class="cp-lbl">Presets</div>
+      <div class="cp-presets">${Object.keys(PRESETS).map(p=>
+        `<button class="chipx${activePreset===p?' on':''}" onclick="setPreset('${p}')">${PRESET_LBL[p]}</button>`).join('')}</div></div>
+    <div class="cp-sec"><div class="cp-lbl">Column groups</div>
+      <div class="cp-row"><span class="cp-n">Priority<span class="cp-c">1 col</span></span>
+        <div class="seg-ctl sm"><button class="${!priorityOn?'on':''}" onclick="if(priorityOn)togglePriority()">Hide</button>
+        <button class="${priorityOn?'on':''}" onclick="if(!priorityOn)togglePriority()">Full</button></div></div>
+      <div class="cp-row"><span class="cp-n">RGP<span class="cp-c">1 col</span></span>
+        <div class="seg-ctl sm"><button class="${!rgpOn?'on':''}" onclick="rgpOn=false;render();renderColPop()">Hide</button>
+        <button class="${rgpOn?'on':''}" onclick="rgpOn=true;render();renderColPop()">Full</button></div></div>
+      ${BANDS.map(b=>{
+        if(b.disabled)return `<div class="cp-row dis"><span class="cp-n">${b.label.replace(/&amp;/g,'&')}</span>
+          <span class="cp-note">${b.disabled}</span></div>`;
+        if(b.onlyIf&&!b.onlyIf())return `<div class="cp-row dis"><span class="cp-n">${b.label.replace(/&amp;/g,'&')}</span>
+          <span class="cp-note">Only in S&amp;OP-1B</span></div>`;
+        const m=bandMode[b.k]||'off';
+        return `<div class="cp-row"><span class="cp-n">${b.label.replace(/&amp;/g,'&')}<span class="cp-c">${b.cols.length} col${b.cols.length===1?'':'s'}</span></span>
+          <div class="seg-ctl sm">
+            <button class="${m==='off'?'on':''}" onclick="setBand('${b.k}','off')">Hide</button>
+            ${b.summary?`<button class="${m==='summary'?'on':''}" onclick="setBand('${b.k}','summary')">Summary</button>`:''}
+            <button class="${m==='full'?'on':''}" onclick="setBand('${b.k}','full')">Full</button>
+          </div></div>`;}).join('')}
+    </div>
+    <div class="cp-foot">Click any group header in the grid to expand or collapse it.</div>`;
+}
+document.addEventListener('click',()=>{ if(colPopOpen){colPopOpen=false;renderColPop();} });
+
+/* FERT-row entry cell: VH's override field for the CONSOLIDATED vertical total (not any one region's
+   line), scoped to the current cycle. Focus shows the default — what the vertical's regions actually
+   submitted — as "was X"; overriding beyond ±TOL% requires a reason before it stops counting as an
+   exception (shared shape with ASM's/ISO's own override pattern). */
+function dcell(fi,c,cls){
+  const f=D.find(x=>x.i===fi);
+  const cur=vhV(f,c), def=vertSubmitted(f,c);
+  const isOvr=ovrOf(f)[c]!==null;
+  return `<td class="${cls||''}"><input class="cellin${isOvr?' ovr':''}" type="number" min="0" inputmode="numeric"
+      data-fi="${fi}" data-c="${c}" value="${cur}"
+      onfocus="this.select()" oninput="editFert(${fi},${c},this.value)" onkeydown="gridKey(event)" onpaste="gridPaste(event,${fi})" onblur="render()">
+    ${def!==cur?`<span class="carry">was ${def}</span>`:''}</td>`;
+}
+function totalGridCols(){ return 1+Math.max(activeCols().length,1)+(priorityOn?1:0)+(rgpOn?1:0)+8; }
+function fertBannerRow(f){
+  const needsReason=fertNeedsReason(f);
+  let inner='';
+  if(needsReason){
+    const ex=fertFlagExplain(f);
+    inner=`<span class="reason-flag">${ex} — reason needed:</span>
+        <input type="text" placeholder="Why this override…" value="${reasonOf(f)}" oninput="setReason(${f.i},this.value)" onblur="render()">`;
+  } else if(reasonOf(f)){
+    inner=`<span style="font-size:10px;color:var(--muted)">Reason: ${reasonOf(f)}</span>`;
+  } else return '';
+  return `<tr><td class="idc" style="padding-left:30px" colspan="${totalGridCols()}"><div class="reason-inl" style="margin-top:0">${inner}</div></td></tr>`;
+}
+/* read-only region breakdown — what each RSM region actually submitted for this line, in the same
+   W1–W4 / Jul / Aug / Sep / Total shape as the editable row above it, never itself editable. VH
+   moderates the consolidated row; this is reference only. */
+function regionRefRow(f,ri){
+  const rg=f.regions[ri];
+  const rJul=rg.submitted[0]+rg.submitted[1]+rg.submitted[2]+rg.submitted[3];
+  const rTot=rg.submitted.reduce((a,b)=>a+b,0);
+  return `<tr class="rsm-row">
+    <td class="idc" style="padding-left:30px">
+      <div style="font-size:11.5px;font-weight:600">↳ ${rg.name}</div>
+      <div style="font-size:10px;color:var(--muted);font-family:var(--mono)">${rg.code} · as submitted, read-only</div></td>
+    ${groupRefCells([f],rg.code)}${priorityOn?'<td class="bsep"></td>':''}${rgpOn?'<td class="bsep"></td>':''}
+    <td class="sepL" style="color:var(--muted)">${rg.submitted[0]}</td><td style="color:var(--muted)">${rg.submitted[1]}</td><td style="color:var(--muted)">${rg.submitted[2]}</td><td style="color:var(--muted)">${rg.submitted[3]}</td>
+    <td class="tot" style="color:var(--ink-2)">${rJul}</td><td style="color:var(--muted)">${rg.submitted[4]}</td><td style="color:var(--muted)">${rg.submitted[5]}</td><td class="gtot" style="color:var(--ink-2);background:var(--surface-2)">${rTot}</td></tr>`;
+}
+function row(f){
+  const cols=activeCols();
+  const ref=cols.map(c=>`<td class="ref${c.first?' bsep':''}${c.txt?' txt':''}${c.band.cls==='coco'?' coco':''}">${c.get(f)}</td>`).join('')
+    ||'<td class="ref">&nbsp;</td>';
+  const isOpen=expanded.has(f.i);
+  const exc=fertHasException(f);
+  const main=`<tr class="${exc?'exc':(hasEntry(f)?'':'noentry')}">
+    <td class="idc"><div class="id-cell">
+      <button class="exp-tg" onclick="toggleExpand(${f.i})" title="${isOpen?'Collapse':'Expand to RSM region breakdown'}">${isOpen?'▼':'▶'}</button>
+      <div class="id-txt">
+      <div class="id-desc" title="${f.desc}">${f.desc}</div>
+      </div>
+      <button class="id-btn" onclick="openDrawer(${f.i})" title="Line detail">ⓘ</button></div></td>
+    ${ref}${priorityCell(f)}${rgpCell(f)}${dcell(f.i,0,'sepL')}${dcell(f.i,1)}${dcell(f.i,2)}${dcell(f.i,3)}
+    <td class="tot" id="jul-${f.i}">${jul(f)}</td>${dcell(f.i,4)}${dcell(f.i,5)}<td class="gtot" id="gtot-${f.i}">${gTot(f)}</td></tr>`;
+  const banner=fertBannerRow(f);
+  const subRows=isOpen?f.regions.map((rg,ri)=>regionRefRow(f,ri)).join(''):'';
+  return main+banner+subRows;
+}
+/* ── grid grouping (Group by: FERT / RSM / MPG / Tonnage) ──
+   Editing always stays anchored at the FERT×vertical level (row() above); grouping only changes how
+   VH reviews the grid. MPG and Tonnage partition FERTs 1:1, so their group rows nest the same editable
+   FERT rows underneath a read-only aggregate header. A FERT doesn't belong to one region — every
+   region submits against every FERT — so "RSM" instead nests a read-only per-region, per-FERT
+   breakdown (edit that line from the FERT view). Cluster/State/Dealer/ASM grouping from the old VH
+   screen are not offered — this build's data model stops at RSM-region granularity (see the header
+   comment's divergence note #3). */
+const GB_OPTS=[['fert','FERT'],['rsm','RSM'],['mpg','MPG'],['ton','Tonnage']];
+let gridGroupBy='fert', gridGroupOpen=new Set();
+function setGridGroupBy(k){ gridGroupBy=k; gridGroupOpen=new Set(); render(); }
+function toggleGrpRow(k){ gridGroupOpen.has(k)?gridGroupOpen.delete(k):gridGroupOpen.add(k); render(); }
+function renderGbCtl(){
+  document.getElementById('gbCtl').innerHTML=GB_OPTS.map(([k,l])=>
+    `<button class="${gridGroupBy===k?'on':''}" onclick="setGridGroupBy('${k}')">${l}</button>`).join('');
+}
+function grpAgg(fs){
+  const w=[0,1,2,3].map(c=>fs.reduce((a,f)=>a+vhV(f,c),0));
+  const julV=w.reduce((a,b)=>a+b,0), aug=fs.reduce((a,f)=>a+vhV(f,4),0), sep=fs.reduce((a,f)=>a+vhV(f,5),0);
+  return {w,jul:julV,aug,sep,tot:julV+aug+sep};
+}
+function grpHeaderRow(key,label,sub,fs,open){
+  const v=grpAgg(fs);
+  return `<tr class="grp-row">
+    <td class="idc"><button class="exp-tg" onclick="toggleGrpRow('${key}')" title="${open?'Collapse':'Expand'}">${open?'▼':'▶'}</button>
+      <span>${label}</span> <span style="font-weight:400;color:var(--muted);font-size:11px">${sub?sub+' · ':''}${fs.length} line${fs.length===1?'':'s'}</span></td>
+    ${groupRefCells(fs,null)}${priorityGroupCell(fs)}${rgpGroupCell(fs)}
+    <td class="sepL tot">${v.w[0]}</td><td class="tot">${v.w[1]}</td><td class="tot">${v.w[2]}</td><td class="tot">${v.w[3]}</td>
+    <td class="tot">${v.jul}</td><td class="tot">${v.aug}</td><td class="tot">${v.sep}</td><td class="gtot">${v.tot}</td></tr>`;
+}
+function regionGrpAgg(rg,fs){
+  const w=[0,1,2,3].map(c=>fs.reduce((a,f)=>a+f.regions.find(r=>r.code===rg.code).submitted[c],0));
+  const julV=w.reduce((a,b)=>a+b,0);
+  const aug=fs.reduce((a,f)=>a+f.regions.find(r=>r.code===rg.code).submitted[4],0);
+  const sep=fs.reduce((a,f)=>a+f.regions.find(r=>r.code===rg.code).submitted[5],0);
+  return {w,jul:julV,aug,sep,tot:julV+aug+sep};
+}
+function regionGrpHeaderRow(rg,fs,open){
+  const v=regionGrpAgg(rg,fs);
+  return `<tr class="grp-row">
+    <td class="idc"><button class="exp-tg" onclick="toggleGrpRow('${rg.code}')" title="${open?'Collapse':'Expand'}">${open?'▼':'▶'}</button>
+      <span>${rg.name}</span> <span style="font-weight:400;color:var(--muted);font-size:11px">${rg.person} · as submitted, read-only · ${fs.length} line${fs.length===1?'':'s'}</span></td>
+    ${groupRefCells(fs,rg.code)}${priorityGroupCell(fs)}${rgpGroupCell(fs)}
+    <td class="sepL tot">${v.w[0]}</td><td class="tot">${v.w[1]}</td><td class="tot">${v.w[2]}</td><td class="tot">${v.w[3]}</td>
+    <td class="tot">${v.jul}</td><td class="tot">${v.aug}</td><td class="tot">${v.sep}</td><td class="gtot">${v.tot}</td></tr>`;
+}
+function regionGrpFertRow(f,rg){
+  const rl=f.regions.find(r=>r.code===rg.code);
+  const rJul=rl.submitted[0]+rl.submitted[1]+rl.submitted[2]+rl.submitted[3];
+  const rTot=rl.submitted.reduce((a,b)=>a+b,0);
+  return `<tr class="rsm-row">
+    <td class="idc" style="padding-left:30px">
+      <div style="font-size:11.5px;font-weight:500">${f.desc}</div>
+      </td>
+    ${groupRefCells([f],rg.code)}${priorityOn?'<td class="bsep"></td>':''}
+    <td class="sepL" style="color:var(--muted)">${rl.submitted[0]}</td><td style="color:var(--muted)">${rl.submitted[1]}</td><td style="color:var(--muted)">${rl.submitted[2]}</td><td style="color:var(--muted)">${rl.submitted[3]}</td>
+    <td class="tot" style="color:var(--ink-2)">${rJul}</td><td style="color:var(--muted)">${rl.submitted[4]}</td><td style="color:var(--muted)">${rl.submitted[5]}</td><td class="gtot" style="color:var(--ink-2);background:var(--surface-2)">${rTot}</td></tr>`;
+}
+function gridRowsHtml(rs){
+  if(gridGroupBy==='fert')return rs.map(row).join('');
+  if(gridGroupBy==='mpg'||gridGroupBy==='ton'){
+    const key=gridGroupBy==='mpg'?'mpg':'ton';
+    let keys=[...new Set(rs.map(f=>f[key]))];
+    if(gridGroupBy==='ton')keys.sort((a,b)=>parseFloat(a)-parseFloat(b)); else keys.sort();
+    return keys.map(kv=>{
+      const fs=rs.filter(f=>f[key]===kv), open=gridGroupOpen.has(kv);
+      return grpHeaderRow(kv,kv,'',fs,open)+(open?fs.map(row).join(''):'');
+    }).join('');
+  }
+  // rsm — read-only per-region breakdown, every FERT currently in view under each region
+  return REGIONS.map(rg=>{
+    const open=gridGroupOpen.has(rg.code);
+    return regionGrpHeaderRow(rg,rs,open)+(open?rs.map(f=>regionGrpFertRow(f,rg)).join(''):'');
+  }).join('');
+}
+function render(){
+  const homeMount=document.getElementById('homeRailMount'), rail=document.getElementById('rail');
+  if(homeMount&&rail&&document.getElementById('vHome').classList.contains('on')&&rail.parentElement!==homeMount)homeMount.appendChild(rail);
+  const rs=rows();
+  document.getElementById('gHead').innerHTML=head();
+  document.getElementById('gBody').innerHTML=gridRowsHtml(rs);
+  document.getElementById('gEmpty').style.display=rs.length?'none':'';
+  document.getElementById('grid').style.display=rs.length?'':'none';
+  document.getElementById('resCount').innerHTML=`<b>${rs.length}</b> of ${D.length} lines`;
+  renderGbCtl();
+  renderTokens(); renderCommit(); renderHome();
+}
+function renderTokens(){
+  const t=[];
+  const add=(lbl,fn,cls)=>t.push(`<span class="ftok ${cls||''}">${lbl}<button onclick="${fn}" aria-label="Remove">×</button></span>`);
+  FKEYS.forEach(k=>{
+    if(!F[k].size)return;
+    if(k==='fert'){ add(F.fert.size+' FERT'+(F.fert.size>1?'s':''),`F.fert.clear();buildRail();render()`); return; }
+    F[k].forEach(v=>{ const o=optsFor(k).find(o=>o.v===v); add(o?o.t1:v,`tog('${k}','${v}')`); });
+  });
+  if(q)add('"'+q+'"',`document.getElementById('qBox').value='';setQ('')`);
+  if(sortKey)add('Sorted: '+SORTLBL[sortKey]+' '+(sortDir===-1?'high→low':'low→high'),`setSort('${sortKey}');setSort('${sortKey}')`,'srt');
+  document.getElementById('aft').innerHTML=t.length
+    ? `<span class="sep"></span>`+t.join('')+`<button class="btn btn-quiet btn-sm" onclick="clearAll()">Clear all</button>` : '';
+}
+/* live keystroke path: update the model and patch just this row's own totals/styling in place — never
+   a full render() here, so focus and the in-progress keystroke are never dropped. */
+function editFert(fi,c,val){
+  const f=D.find(x=>x.i===fi); if(!f)return;
+  const v=Math.max(0,parseInt(val)||0);
+  ovrOf(f)[c]=(v===vertSubmitted(f,c))?null:v;
+  [0,1,2,3,4,5].forEach(cc=>{
+    const input=document.querySelector(`.cellin[data-fi="${fi}"][data-c="${cc}"]`);
+    if(!input)return;
+    input.classList.toggle('ovr', ovrOf(f)[cc]!==null);
+    let carry=input.parentElement.querySelector('.carry');
+    const def=vertSubmitted(f,cc), cur=vhV(f,cc);
+    if(def!==cur){
+      if(!carry){ carry=document.createElement('span'); carry.className='carry'; input.insertAdjacentElement('afterend',carry); }
+      carry.textContent='was '+def;
+    } else if(carry){ carry.remove(); }
+  });
+  const julEl=document.getElementById('jul-'+fi); if(julEl)julEl.textContent=jul(f);
+  const gtotEl=document.getElementById('gtot-'+fi); if(gtotEl)gtotEl.textContent=gTot(f);
+}
+function setReason(fi,val){
+  const f=D.find(x=>x.i===fi); if(!f)return;
+  setReasonVal(f,val); renderCommit(); renderHome();
+}
+function commitAndFocus(fi,c){
+  render();
+  const el=document.querySelector(`.cellin[data-fi="${fi}"][data-c="${c}"]`);
+  if(el){ el.focus(); el.select(); }
+}
+function gridKey(e){
+  const t=e.target,c=+t.dataset.c;
+  const all=[...document.querySelectorAll('.cellin[data-fi]')],idx=all.indexOf(t);
+  const coordsAt=n=>{const el=all[n]; return el?{fi:+el.dataset.fi,c:+el.dataset.c}:null;};
+  if(e.key==='ArrowDown'||e.key==='Enter'){
+    const el=all.find(el=>+el.dataset.c===c&&all.indexOf(el)>idx);
+    if(el){e.preventDefault(); const tc=coordsAt(all.indexOf(el)); commitAndFocus(tc.fi,tc.c);}
+  } else if(e.key==='ArrowUp'){
+    const el=all.filter(el=>+el.dataset.c===c&&all.indexOf(el)<idx).pop();
+    if(el){e.preventDefault(); const tc=coordsAt(all.indexOf(el)); commitAndFocus(tc.fi,tc.c);}
+  } else if(e.key==='ArrowLeft'&&t.selectionStart===0){
+    const tc=coordsAt(idx-1); if(tc){e.preventDefault(); commitAndFocus(tc.fi,tc.c);}
+  } else if(e.key==='ArrowRight'&&t.selectionStart===t.value.length){
+    const tc=coordsAt(idx+1); if(tc){e.preventDefault(); commitAndFocus(tc.fi,tc.c);}
+  } else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='d'){
+    e.preventDefault();
+    const p=all.filter(el=>+el.dataset.c===c&&all.indexOf(el)<idx).pop();
+    if(p){t.value=p.value;t.dispatchEvent(new Event('input'));toast('Filled down from the line above');}
+  }
+}
+/* paste spans consecutive FERT rows (in the grid's current sort/filter order) starting at the cell
+   pasted into — same shape as pasting into any other spreadsheet-style grid (P-09). */
+function gridPaste(e,fi){
+  const txt=(e.clipboardData||window.clipboardData).getData('text');
+  if(!/[\t\n]/.test(txt))return;
+  e.preventDefault();
+  const t=e.target,startC=+t.dataset.c;
+  const rs=rows(); const startIdx=rs.findIndex(f=>f.i===fi); if(startIdx<0)return;
+  let n=0;
+  txt.replace(/\r/g,'').split('\n').filter(l=>l.length).forEach((ln,li)=>{
+    const f=rs[startIdx+li]; if(!f)return;
+    ln.split('\t').forEach((cv,ci)=>{
+      const c=startC+ci; if(c>5)return;
+      const num=parseInt(cv.replace(/[^\d-]/g,''));
+      if(!isNaN(num)){const v=Math.max(0,num); ovrOf(f)[c]=(v===vertSubmitted(f,c))?null:v; n++;}
+    });
+  });
+  render();
+  toast(n+' cell'+(n===1?'':'s')+' pasted from your spreadsheet');
+}
+
+/* ════════ COMMIT (P-12 — always the full vertical scope) ════════ */
+function exceptionLines(){ return D.filter(fertHasException); }
+function renderCommit(){
+  const julT=D.reduce((a,f)=>a+jul(f),0), grand=D.reduce((a,f)=>a+gTot(f),0);
+  const missing=D.filter(f=>!hasEntry(f)).length, filtered=activeCount()>0||!!q;
+  const excCount=exceptionLines().length;
+  const el=document.getElementById('commit');
+  if(submitted[cycle]){
+    el.innerHTML=`<div class="stat"><span class="v" style="color:var(--ok)">✓</span>
+      <span class="k">LMD vertical indent submitted (S&amp;OP-${cycle}) · ${D.length} lines · ${julT} units for July</span></div>
+      <div class="right"><button class="btn btn-ghost btn-sm" onclick="openExport()">View what was sent</button>
+      <button class="btn btn-ghost btn-sm" onclick="reopen()">Reopen</button></div>`; return;
+  }
+  el.innerHTML=`<div class="stat"><span class="v">${D.length}</span><span class="k">lines</span></div>
+    <div class="stat"><span class="v">${julT}</span><span class="k">units · July</span></div>
+    <div class="stat"><span class="v">${grand}</span><span class="k">Jul–Sep</span></div>
+    ${missing?`<div class="div"></div><div class="stat"><span class="v" style="color:var(--warn)">${missing}</span><span class="k">with no entry</span></div>`:''}
+    ${excCount?`<div class="div"></div><div class="stat"><span class="v" style="color:var(--warn)">${excCount}</span><span class="k">needing a decision</span></div>`:''}
+    <div class="right">
+      ${filtered?`<span class="saved" style="color:var(--warn)">⚠ Totals are for all ${D.length} lines, not the filtered view</span>`:`<span class="saved">Saved just now</span>`}
+      <button class="btn btn-primary btn-sm" onclick="saveVh()">Save</button></div>`;
+}
+
+/* ════════ HOME (P-04: two sections, Indent progress then Summary) ════════
+   Section 1 follows ASM's own shape (lead card + supporting cards) with the exception list folded in
+   — same two-section structure, VH-specific content, one level up from ASM's dealer-facing cards. */
+function computeRegionAccuracy(rg){
+  const h=rg.accHistory;
+  const pcts=h.map(x=>Math.round(Math.min(x.ind,x.off)/Math.max(x.ind,x.off,1)*100));
+  const avg=Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length);
+  const ti=h.reduce((a,x)=>a+x.ind,0), to=h.reduce((a,x)=>a+x.off,0);
+  const bias=to?Math.round((ti/to-1)*100):0;
+  const devAbp=rg.abpTarget?Math.round((ti/4)/rg.abpTarget*100-100):0;
+  return {region:rg,pcts,avg,bias,ti,to,devAbp,isFlagged:Math.abs(bias)>TOL||Math.abs(devAbp)>TOL};
+}
+function renderHome(){
+  const entered=D.filter(hasEntry).length;
+  const julT=D.reduce((a,f)=>a+jul(f),0);
+  document.getElementById('hcTitle').textContent='Vertical indent — LMD · S&OP-'+cycle;
+  document.getElementById('hcEntered').textContent=entered;
+  const el=document.querySelector('#hcEntered').nextElementSibling;
+  if(el)el.textContent='of '+D.length+' lines with an entry';
+  document.getElementById('hcUnits').textContent=julT;
+  document.getElementById('hcMeter').style.width=Math.round(entered/D.length*100)+'%';
+  const excCount=exceptionLines().length;
+  const st=document.getElementById('hcStatus');
+  st.textContent=submitted[cycle]?'Submitted':(excCount?excCount+' flagged':'On track');
+  st.className='pill '+(submitted[cycle]?'p-ok':(excCount?'p-warn':'p-ok'));
+  document.getElementById('tbState').innerHTML=submitted[cycle]
+    ?'Status: <b class="okv">Submitted to ISO</b>':`Status: <b>${REGIONS.length} of ${REGIONS.length} regions submitted</b>`;
+
+  /* "Lines needing attention" — a compact KPI card scoped to the vertical (there is only one vertical
+     here, unlike ASM which had LMD/HD). Clicking it opens a panel below with two views: by FERT (the
+     flagged consolidated lines, each expandable to the read-only region breakdown behind it) and by
+     RSM region (each region, expandable to the same flagged lines with that region's own submitted
+     number) — P-21's second group-by on the exception list itself. */
+  const excLines=D.filter(fertHasException);
+  document.getElementById('hcAttnCount').textContent=excLines.length;
+  document.getElementById('hcAttnCountCap').textContent=excLines.length===1?'':'s';
+  if(excLines.length){
+    const bySv={};
+    excLines.forEach(f=>{ bySv[f.sv]=(bySv[f.sv]||0)+1; });
+    document.getElementById('hcAttnCap').textContent=Object.entries(bySv).map(([sv,n])=>`${n} in ${sv}`).join(' · ');
+  } else {
+    document.getElementById('hcAttnCap').textContent='✓ Nothing outside tolerance right now.';
+  }
+  if(attnOpen)renderAttnPanel(excLines);
+
+  /* "Your regions" — read-only, what each RSM region actually submitted; opens the workbook grouped
+     by that region (read-only breakdown — override still happens on the consolidated FERT row). */
+  document.getElementById('hcRegions').innerHTML=REGIONS.map(rg=>{
+    const gJul=D.reduce((a,f)=>{const r=f.regions.find(r=>r.code===rg.code);return a+regionSubmittedJul(r);},0);
+    return `<div class="kv-row"><span class="nm">${rg.name}</span>
+      <span class="pill p-ok">Submitted</span>
+      <span class="vl">${gJul} units · Jul · ${rg.person}</span>
+      <button class="btn btn-quiet btn-sm" onclick="gridGroupBy='rsm';gridGroupOpen=new Set(['${rg.code}']);go('wb');buildRail();render()">Open →</button></div>`;
+  }).join('');
+  document.getElementById('zProg').textContent=submitted[cycle]
+    ? 'LMD vertical indent submitted' : (excCount?excCount+' lines flagged · closes 18 Jul':entered+' of '+D.length+' lines with an entry · closes 18 Jul');
+
+  /* ── Summary (Section 2) — carried over from the RSM/ASM Summary shape, not reinvented ── */
+  const prevT=D.reduce((a,f)=>a+vertPrev(f),0);
+  document.getElementById('kIndent').textContent=julT;
+  document.getElementById('kPrev').textContent=prevT;
+  const pPct=prevT?Math.round((julT/prevT-1)*100):0;
+  const pp=document.getElementById('kPrevPill');
+  pp.textContent=(pPct>0?'+':'')+pPct+'%'; pp.className='pill '+(Math.abs(pPct)<=10?'p-ok':'p-warn');
+
+  const abpT=D.reduce((a,f)=>a+abpForFert(f),0);
+  const abpPct=abpT?Math.round(julT/abpT*100):0;
+  document.getElementById('kAbpPct').textContent=abpPct+'%';
+  document.getElementById('kAbpCap').textContent=`${julT} indent vs ${abpT} ABP target`;
+  document.getElementById('kAbpMeter').style.width=Math.min(abpPct,100)+'%';
+
+  // Phase 0 VH summary flags: calculated from the same vertical FERT rows as the workbook.
+  const availability=D.reduce((a,f)=>a+stockTot(f)+(f.openPO||0),0);
+  const lastMonthSold=D.reduce((a,f)=>a+Math.round((f.r3||0)/3),0);
+  const sop1aTotal=D.reduce((a,f)=>a+f.locked1A.slice(0,4).reduce((b,v)=>b+v,0),0);
+  const sop1bTotal=D.reduce((a,f)=>a+f.ovr['1B'].slice(0,4).reduce((b,v,c)=>b+(v===null?vertSubmitted(f,c):v),0),0);
+  const cycleVariance=sop1bTotal-sop1aTotal;
+  const cycleVariancePct=sop1aTotal?Math.round(cycleVariance/sop1aTotal*100):0;
+  document.getElementById('kAvailability').textContent=availability;
+  document.getElementById('kAvailabilityCap').textContent='Stock + confirmed pipeline';
+  document.getElementById('kLastSold').textContent=lastMonthSold;
+  document.getElementById('kLastSoldCap').textContent='Retail, most recent month · derived from L3';
+  document.getElementById('kCycleVariance').textContent=(cycleVariance>0?'+':'')+cycleVariance+' ('+(cycleVariancePct>0?'+':'')+cycleVariancePct+'%)';
+  document.getElementById('kCycleVariance').style.color=cycleVariance<0?'var(--crit)':(cycleVariance>0?'var(--ok)':'var(--ink)');
+  document.getElementById('kCycleVarianceCap').textContent='S&OP-1B vs S&OP-1A';
+
+  const accData=REGIONS.map(computeRegionAccuracy);
+  const avgAcc=Math.round(accData.reduce((a,r)=>a+r.avg,0)/accData.length);
+  const avgBias=Math.round(accData.reduce((a,r)=>a+r.bias,0)/accData.length);
+  document.getElementById('kAcc').textContent=avgAcc+'%';
+  document.getElementById('kBias').textContent=(avgBias>0?'+':'')+avgBias+'%';
+  document.getElementById('kBias').style.color=Math.abs(avgBias)<=TOL?'var(--ok)':'var(--warn)';
+  document.getElementById('kBiasCap').textContent=avgBias>0?'over-indent':(avgBias<0?'under-indent':'no bias');
+  const ap=document.getElementById('kAccPill');
+  ap.textContent=Math.abs(avgBias)<=TOL?'Within ±10%':(avgBias>0?'Consistently over':'Consistently under');
+  ap.className='pill '+(Math.abs(avgBias)<=TOL?'p-ok':'p-warn');
+  const sparkPcts=[0,1,2,3].map(i=>Math.round(accData.reduce((a,r)=>a+r.pcts[i],0)/accData.length));
+  document.getElementById('kSpark').innerHTML=sparkPcts.map((v,i)=>
+    `<i style="height:${v}%" title="Cycle ${i+1}: ${v}%"></i>`).join('');
+
+  if(accOpen)renderAccPanel();
+  renderRollup();
+}
+
+/* ── "Lines needing attention" panel — two switchable views (P-21): By FERT (the flagged consolidated
+   lines, each expandable to the read-only region breakdown behind it) and By RSM region (each region,
+   expandable to the same flagged lines showing that region's own submitted number). Both are pure
+   review — there's no accept/dismiss action here (D-12), just Review → which jumps into the workbook
+   where the actual override happens. */
+let attnOpen=false, attnView='fert', attnExpanded=new Set(), attnExpandedRegion=new Set();
+function toggleAttn(){
+  attnOpen=!attnOpen;
+  document.getElementById('attnBtn').textContent=(attnOpen?'▾':'▸')+' Review flagged lines';
+  document.getElementById('attnPanel').style.display=attnOpen?'':'none';
+  if(attnOpen)renderHome();
+}
+function setAttnView(v){ attnView=v; attnExpanded=new Set(); attnExpandedRegion=new Set(); renderHome(); }
+function toggleAttnLine(fi){ attnExpanded.has(fi)?attnExpanded.delete(fi):attnExpanded.add(fi); renderHome(); }
+function toggleAttnGroup(code){ attnExpandedRegion.has(code)?attnExpandedRegion.delete(code):attnExpandedRegion.add(code); renderHome(); }
+function reviewLine(fi){
+  gridGroupBy='fert';
+  F.fert=new Set([D.find(x=>x.i===fi).code]);
+  go('wb'); buildRail(); expanded.add(fi); render();
+}
+function attnLineRow(f){
+  const ex=fertFlagExplain(f);
+  const open=attnExpanded.has(f.i);
+  const rowsHtml=open?f.regions.map(rg=>{
+    const rJul=rg.submitted[0]+rg.submitted[1]+rg.submitted[2]+rg.submitted[3];
+    return `<tr class="sub"><td class="l" colspan="2">↳ ${rg.name} <span style="font-family:var(--mono);color:var(--muted)">${rg.code}</span></td>
+      <td class="l">submitted</td><td style="font-family:var(--mono)">${rJul} <span style="color:var(--muted)">(Jul)</span></td></tr>`;
+  }).join(''):'';
+  return `<tr><td class="l"><button class="exp" onclick="toggleAttnLine(${f.i})" aria-label="Expand">${open?'▼':'▶'}</button>${f.desc}
+      <span style="font-family:var(--mono);color:var(--muted)">${f.code}</span></td>
+    <td class="l">${f.sv}</td>
+    <td class="l">${ex}</td>
+    <td><button class="btn btn-ghost btn-sm" onclick="reviewLine(${f.i})">Review →</button></td></tr>${rowsHtml}`;
+}
+function renderAttnPanel(excLines){
+  const host=document.getElementById('attnPanel');
+  if(!excLines.length){
+    host.innerHTML=`<div class="accwrap"><div class="cap" style="color:var(--ok)">✓ Nothing outside tolerance right now — nothing to review.</div></div>`;
+    return;
+  }
+  const tabs=`<div class="seg-ctl">
+    <button class="${attnView==='fert'?'on':''}" onclick="setAttnView('fert')">By FERT</button>
+    <button class="${attnView==='rsm'?'on':''}" onclick="setAttnView('rsm')">By RSM region</button>
+  </div>`;
+  let body;
+  if(attnView==='fert'){
+    body=`<table class="sumtbl">
+      <thead><tr><th class="l">FERT</th><th class="l">Sub-vertical</th><th class="l">Why it's flagged</th><th></th></tr></thead>
+      <tbody>${excLines.map(attnLineRow).join('')}</tbody>
+    </table>`;
+  } else {
+    body=`<table class="sumtbl">
+      <thead><tr><th class="l">RSM region</th><th>Lines flagged</th><th class="l"></th><th></th></tr></thead>
+      <tbody>${REGIONS.map(rg=>{
+        const open=attnExpandedRegion.has(rg.code);
+        const rowsHtml=open?excLines.map(f=>{
+          const rl=f.regions.find(r=>r.code===rg.code);
+          const rJul=rl.submitted[0]+rl.submitted[1]+rl.submitted[2]+rl.submitted[3];
+          return `<tr class="sub"><td class="l" colspan="2">${f.desc} <span style="font-family:var(--mono);color:var(--muted)">${f.code}</span></td>
+            <td class="l" style="font-family:var(--mono)">${rJul} submitted (Jul)</td>
+            <td><button class="btn btn-ghost btn-sm" onclick="reviewLine(${f.i})">Review →</button></td></tr>`;
+        }).join(''):'';
+        return `<tr><td class="l"><button class="exp" onclick="toggleAttnGroup('${rg.code}')" aria-label="Expand">${open?'▼':'▶'}</button>${rg.name}</td>
+          <td>${excLines.length}</td><td class="l">${rg.person}</td><td></td></tr>${rowsHtml}`;
+      }).join('')}</tbody>
+    </table>`;
+  }
+  host.innerHTML=`<div class="accwrap">
+    <div class="acchead">
+      <h4>Lines needing attention</h4>
+      ${tabs}
+      <span style="margin-left:auto;font-size:11.5px;color:var(--muted)">${attnView==='fert'?"Expand a line to see each region's submitted number behind it":"Expand a region to see their submitted number on each flagged line"}</span>
+    </div>
+    ${body}
+  </div>`;
+}
+
+let accOpen=false, accView='rsm';
+function toggleAcc(){
+  accOpen=!accOpen;
+  document.getElementById('accBtn').textContent=(accOpen?'▾':'▸')+' View report card';
+  document.getElementById('accPanel').style.display=accOpen?'':'none';
+  if(accOpen)renderAccPanel();
+}
+function setAccView(v){ accView=v; renderAccPanel(); }
+function accRow(name,sub,hist,onClick,abp){
+  const pcts=hist.map(h=>Math.round(Math.min(h.ind,h.off)/Math.max(h.ind,h.off,1)*100));
+  const avg=Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length);
+  const ti=hist.reduce((a,h)=>a+h.ind,0), to=hist.reduce((a,h)=>a+h.off,0);
+  const bias=to?Math.round((ti/to-1)*100):0;
+  const col=avg>=90?'var(--ok)':avg>=80?'var(--warn)':'var(--crit)';
+  const pill=Math.abs(bias)<=TOL?['p-ok','Within ±10%']:(bias>0?['p-warn','Over by '+bias+'%']:['p-warn','Under by '+Math.abs(bias)+'%']);
+  return `<tr${onClick?` style="cursor:pointer" onclick="${onClick}"`:''}>
+    <td class="l">${name}${sub?`<div style="font-size:10.5px;color:var(--muted);font-family:var(--mono)">${sub}</div>`:''}</td>
+    ${hist.map(h=>`<td><div class="acell"><span class="ai">${h.ind}</span><span class="ao">took ${h.off}</span></div></td>`).join('')}
+    <td><span style="color:${col};font-weight:700">${avg}%</span>
+      <div class="abar"><i style="width:${avg}%;background:${col}"></i></div></td>
+    ${abp!==undefined?`<td style="text-align:right;font-family:var(--mono)">${abp}%</td>`:''}
+    <td style="text-align:right"><span class="pill ${pill[0]}">${pill[1]}</span></td></tr>`;
+}
+function renderAccPanel(){
+  const months=REGIONS[0].accHistory.map(h=>h.m);
+  let body='', abpCol='';
+  if(accView==='rsm'){
+    abpCol='<th style="text-align:right">vs ABP</th>';
+    const vertHist=months.map((m,i)=>({m,
+      ind:REGIONS.reduce((a,r)=>a+r.accHistory[i].ind,0),
+      off:REGIONS.reduce((a,r)=>a+r.accHistory[i].off,0)}));
+    body=REGIONS.map(rg=>{
+      const r=computeRegionAccuracy(rg);
+      return accRow(rg.name,rg.code,rg.accHistory,null,100+r.devAbp);
+    }).join('')+accRow('<b>Whole vertical</b>','',vertHist);
+  }else{
+    const rs=rows().filter(f=>f.o3>0).slice(0,25);
+    body=rs.length?rs.map(f=>accRow(f.desc,f.code,fertHist(f),`closeAccTo(${f.i})`))
+      .join(''):`<tr><td class="l" colspan="7" style="color:var(--muted)">No lines with offtake history in this filter.</td></tr>`;
+  }
+  document.getElementById('accPanel').innerHTML=`
+    <div class="accwrap">
+      <div class="acchead">
+        <h4>Vertical indent accuracy — last four cycles</h4>
+        <div class="seg-ctl">
+          <button class="${accView==='rsm'?'on':''}" onclick="setAccView('rsm')">By RSM region</button>
+          <button class="${accView==='fert'?'on':''}" onclick="setAccView('fert')">By FERT</button>
+        </div>
+        <span style="margin-left:auto;font-size:11.5px;color:var(--muted)">
+          Monthly · ${accView==='fert'?'top 25 lines in your current filter · click a row to open it':'each RSM region in the LMD vertical'}</span>
+      </div>
+      <div class="cap" style="color:var(--muted);padding:0 0 2px">Each month below shows what the region <b>indented</b> (large number) over what they <b>took</b> — the offtake — underneath it.</div>
+      <div style="overflow-x:auto"><table class="sumtbl">
+        <thead><tr><th class="l">${accView==='rsm'?'RSM region':'FERT'}</th>
+          ${months.map(m=>`<th>${m}<div style="font-size:9px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">indent / offtake</div></th>`).join('')}<th>Accuracy</th>${abpCol}<th style="text-align:right">Bias</th></tr></thead>
+        <tbody>${body}</tbody></table></div>
+      <div class="cap" style="color:var(--muted);padding-bottom:4px">
+        <b>Indent</b> is what the region planned for that month. <b>Offtake</b> is what they actually took from stock. Accuracy is the smaller of the two over the larger. Bias is the total indented against the total taken across all four months — positive means consistently asking for more than they lift. Tolerance ±10%, same figure that gates an override reason in the grid.</div>
+    </div>`;
+}
+function closeAccTo(i){ const f=D.find(x=>x.i===i); if(!f)return; gridGroupBy='fert'; F.fert=new Set([f.code]); go('wb'); buildRail(); render(); toast('Opened '+f.code); }
+
+/* ════════ ROLLUP with group-by (P-16) ════════
+   The Phase 0 VH view included Dealer, ASM, Cluster and State cuts. They are restored here using
+   the refreshed summary table's existing expandable rows and the available region roster. */
+const ROLL_GB=[['dealer','Dealer'],['asm','ASM'],['rsm','RSM'],['cluster','Cluster'],['state','State'],['mpg','MPG'],['ton','Tonnage'],['fert','FERT']];
+let rollBy='rsm'; let rollOpen=new Set();
+function setRollBy(k){ rollBy=k; rollOpen=new Set(); renderRollup(); }
+function toggleRollRow(k){ rollOpen.has(k)?rollOpen.delete(k):rollOpen.add(k); renderRollup(); }
+function lineVals(fs,regionCode){
+  const val=(f,c)=>regionCode?f.regions.find(r=>r.code===regionCode).submitted[c]:vhV(f,c);
+  const s60=fs.reduce((a,f)=>a+f.s60,0), s90=fs.reduce((a,f)=>a+f.s90,0),
+    s180=fs.reduce((a,f)=>a+f.s180,0), sOver=fs.reduce((a,f)=>a+f.sOver,0);
+  const o3=fs.reduce((a,f)=>a+f.o3,0), o6=fs.reduce((a,f)=>a+f.o6,0),
+    o12=fs.reduce((a,f)=>a+f.o12,0), oly=fs.reduce((a,f)=>a+f.oly,0);
+  const prev=regionCode?fs.reduce((a,f)=>a+f.regions.find(r=>r.code===regionCode).prevSubmitted,0):fs.reduce((a,f)=>a+vertPrev(f),0);
+  const w=[0,1,2,3].map(c=>fs.reduce((a,f)=>a+val(f,c),0));
+  const jul=w.reduce((a,b)=>a+b,0), aug=fs.reduce((a,f)=>a+val(f,4),0), sep=fs.reduce((a,f)=>a+val(f,5),0);
+  const abp=fs.reduce((a,f)=>a+(regionCode?Math.round(abpForFert(f)*regionShareFactor(f.regions.find(r=>r.code===regionCode))):abpForFert(f)),0);
+  const avg3=fs.reduce((a,f)=>a+(regionCode?regionExpected3mo(f,f.regions.find(r=>r.code===regionCode)):threeMoAvg(f)),0);
+  const priority=fs.reduce((a,f)=>a+(f.priorityQty||0),0);
+  return {s60,s90,s180,sOver, stock:s60+s90+s180+sOver, o3,o6,o12,oly,
+    prev, delta:jul-prev, w0:w[0],w1:w[1],w2:w[2],w3:w[3], jul,aug,sep, tot:jul+aug+sep, abp, avg3, priority};
+}
+const ROLL_INDENT=[
+  {k:'w0',label:'W1'},{k:'w1',label:'W2'},{k:'w2',label:'W3'},{k:'w3',label:'W4'},
+  {k:'jul',label:'Jul',bold:true},{k:'aug',label:'Aug'},{k:'sep',label:'Sep'},{k:'tot',label:'Total',bold:true}];
+function deltaCell(v){
+  const c=v.delta>0?'var(--ok)':v.delta<0?'var(--crit)':'var(--muted)';
+  return `<span style="color:${c};font-weight:600">${v.delta>0?'+':''}${v.delta||0}</span>`;
+}
+const ROLL_BANDS=[
+  {k:'stock',label:'Vertical stock',summary:{k:'stock',label:'Stock',get:v=>v.stock||'–'},cols:[
+    {k:'s60',label:'&lt;60D',get:v=>v.s60||'–'},{k:'s90',label:'60–90D',get:v=>v.s90||'–'},
+    {k:'s180',label:'90–180D',get:v=>v.s180||'–'},{k:'sOver',label:'&gt;180D',get:v=>v.sOver||'–'},
+    {k:'stock',label:'Total',get:v=>v.stock||'–'}]},
+  {k:'off',label:'Trend — offtake',summary:{k:'o3',label:'Off L3',get:v=>v.o3||'–'},cols:[
+    {k:'o3',label:'L3',get:v=>v.o3||'–'},{k:'o6',label:'L6',get:v=>v.o6||'–'},
+    {k:'o12',label:'L12',get:v=>v.o12||'–'},{k:'oly',label:'LYSM',get:v=>v.oly||'–'}]},
+  {k:'last',label:'Last cycle',summary:{k:'delta',label:'Δ vs last',get:deltaCell},cols:[
+    {k:'prev',label:'Last cycle',get:v=>v.prev||'–'},{k:'delta',label:'Δ vs last',get:deltaCell}]},
+  {k:'avg3',label:'3-month average',cols:[{k:'avg3',label:'Avg (L3M)',get:v=>v.avg3||'–'}]},
+  {k:'abp',label:'ABP target',cols:[{k:'abp',label:'ABP',get:v=>v.abp||'–'}]},
+  {k:'priority',label:'M1 priority qty',cols:[{k:'priority',label:'Priority',get:v=>v.priority||'–'}]},
+];
+let rollBandMode={stock:'summary',off:'summary',last:'summary',avg3:'off',abp:'off',priority:'off'};
+function activeRollCols(){
+  const out=[];
+  ROLL_BANDS.forEach(b=>{
+    const m=rollBandMode[b.k]||'off';
+    if(m==='off')return;
+    if(m==='summary'&&b.summary)out.push({...b.summary,band:b});
+    else b.cols.forEach(c=>out.push({...c,band:b}));
+  });
+  return out;
+}
+function rollBandSpan(){
+  const cols=activeRollCols(), out=[];
+  cols.forEach(c=>{
+    const last=out[out.length-1];
+    if(last&&last.b===c.band)last.n++;
+    else out.push({b:c.band,n:1,mode:rollBandMode[c.band.k]});
+  });
+  return out;
+}
+function cycleRollBand(k){
+  const b=ROLL_BANDS.find(x=>x.k===k);
+  const m=rollBandMode[k];
+  rollBandMode[k]= b.summary ? (m==='summary'?'full':'summary') : (m==='full'?'off':'full');
+  renderRollup();
+}
+function rowCells(v){
+  return ROLL_INDENT.map(c=>`<td${c.bold?' style="font-weight:700"':''}>${v[c.k]||'–'}</td>`).join('')
+    +activeRollCols().map(c=>`<td>${c.get(v)}</td>`).join('');
+}
+function renderRollup(){
+  document.getElementById('rollGb').innerHTML=ROLL_GB.map(([k,l])=>
+    `<button class="${rollBy===k?'on':''}" onclick="setRollBy('${k}')">${l}</button>`).join('');
+  const src=rows();
+  document.getElementById('rollNote').textContent=(activeCount()||q)
+    ?`${src.length} of ${D.length} lines — indent workbook filters applied`:`All ${D.length} lines`;
+  const label={dealer:'Dealer',asm:'ASM',rsm:'RSM region',cluster:'Cluster',state:'State',mpg:'MPG',ton:'Tonnage',fert:'FERT'}[rollBy];
+  const spans=rollBandSpan();
+  const bandRow=spans.map(s=>{
+    const short=s.mode==='summary'&&s.b.summary;
+    return `<th class="b-ref" colspan="${s.n}"><button class="bandbtn" onclick="cycleRollBand('${s.b.k}')"
+      title="${s.b.label} · ${s.mode==='summary'?'Expand this group':'Collapse this group'}">${short?s.b.summary.label:s.b.label}
+      <span class="bm">${s.mode==='summary'?'▸':'▾'}</span></button></th>`;}).join('');
+  const colRow=`${ROLL_INDENT.map(c=>`<th>${c.label}</th>`).join('')}${activeRollCols().map(c=>`<th>${c.label}</th>`).join('')}`;
+  let h=`<thead>
+      <tr class="bands"><th class="l" rowspan="2">${label}</th><th rowspan="2">Lines</th>
+        <th class="b-edit" colspan="8">VH Indent · S&amp;OP-${cycle} · July 2026</th>${bandRow}</tr>
+      <tr>${colRow}</tr>
+    </thead><tbody>`;
+  if(rollBy==='fert'){
+    src.forEach(f=>{
+      const v=lineVals([f]);
+      h+=`<tr><td class="l">${f.desc}<div style="font-size:10.5px;color:var(--muted);font-family:var(--mono)">${f.code}</div></td>
+        <td>1</td>${rowCells(v)}</tr>`;
+    });
+  } else if(['dealer','asm','rsm','cluster','state'].includes(rollBy)){
+    const prop={dealer:'dealer',asm:'asm',rsm:'name',cluster:'cluster',state:'state'}[rollBy];
+    const groups=[...new Map(REGIONS.map(r=>[r[prop],r])).values()];
+    groups.forEach(rg=>{
+      const key=rollBy+'-'+rg.code;
+      const v=lineVals(src,rg.code);
+      const open=rollOpen.has(key);
+      h+=`<tr><td class="l"><button class="exp" onclick="toggleRollRow('${key}')" aria-label="Expand">${open?'▼':'▶'}</button>${rg[prop]}</td>
+        <td>${src.length}</td>${rowCells(v)}</tr>`;
+      if(open)src.forEach(f=>{
+        const dv2=lineVals([f],rg.code);
+        h+=`<tr class="sub"><td class="l">${f.desc} <span style="font-family:var(--mono);color:var(--muted)">${f.code}</span></td>
+          <td>1</td>${rowCells(dv2)}</tr>`;
+      });
+    });
+  } else {
+    const keys=[...new Set(src.map(f=>f[VALOF[rollBy]]))];
+    if(rollBy==='ton')keys.sort((a,b)=>parseFloat(a)-parseFloat(b)); else keys.sort();
+    keys.forEach(k=>{
+      const fs=src.filter(f=>f[VALOF[rollBy]]===k);
+      const v=lineVals(fs);
+      const open=rollOpen.has(k);
+      h+=`<tr><td class="l"><button class="exp" onclick="toggleRollRow('${k}')" aria-label="Expand">${open?'▼':'▶'}</button>${k}</td>
+        <td>${fs.length}</td>${rowCells(v)}</tr>`;
+      if(open)fs.forEach(f=>{
+        const fv=lineVals([f]);
+        h+=`<tr class="sub"><td class="l">${f.desc} <span style="font-family:var(--mono);color:var(--muted)">${f.code}</span></td>
+          <td>1</td>${rowCells(fv)}</tr>`;
+      });
+    });
+  }
+  const tv=lineVals(src);
+  h+=`<tr class="tot"><td class="l">Total</td><td>${src.length}</td>${rowCells(tv)}</tbody>`;
+  document.getElementById('rollTbl').innerHTML=h;
+}
+
+/* ════════ DRAWER (P-10) ════════ */
+function openDrawer(i){
+  const f=D.find(x=>x.i===i); const st=stockTot(f);
+  const flagExplain=fertHasException(f)?fertFlagExplain(f):null;
+  document.getElementById('drawer').innerHTML=`
+    <div class="dr-head"><div><h3>${f.desc}</h3><div class="cd">${f.code}</div></div>
+      <button class="dr-close" onclick="closeDrawer()" aria-label="Close">×</button></div>
+    <div class="dr-body">
+      <div class="dr-sec"><h4>Vehicle</h4>
+        <div class="dr-i"><span class="k">Eicher segment</span><span class="v"><span class="seg-dot sg-${f.seg}">${SEGNAME[f.seg]}</span></span></div>
+        <div class="dr-i"><span class="k">MPG model</span><span class="v">${f.mpg}</span></div>
+        <div class="dr-i"><span class="k">Tonnage</span><span class="v">${f.ton}</span></div>
+        <div class="dr-i"><span class="k">Fuel · cabin</span><span class="v">${f.fuel} · ${f.ac==='AC'?'AC':'Non-AC'}</span></div>
+        <div class="dr-i"><span class="k">Sub-vertical</span><span class="v">${f.sv}</span></div></div>
+      <div class="dr-sec"><h4>Vertical stock on hand — ${st} units</h4>
+        <div class="dr-i"><span class="k">Under 60 days</span><span class="v">${f.s60}</span></div>
+        <div class="dr-i"><span class="k">60–90 days</span><span class="v ${f.s90?'w':''}">${f.s90}</span></div>
+        <div class="dr-i"><span class="k">90–180 days</span><span class="v ${f.s180?'w':''}">${f.s180}</span></div>
+        <div class="dr-i"><span class="k">Over 180 days</span><span class="v ${f.sOver?'c':''}">${f.sOver}</span></div>
+        <div class="dr-i"><span class="k">Opening stock, 1 Jul</span><span class="v">${f.openFg}</span></div>
+        <div class="dr-i"><span class="k">Live purchase orders</span><span class="v">${f.openPO}</span></div>
+        <div class="dr-src">◷ From SAP · refreshed today 06:00 IST</div></div>
+      <div class="dr-sec"><h4>Consolidated — S&amp;OP-${cycle}, this cycle</h4>
+        <div class="dr-i"><span class="k">July total (all regions)</span><span class="v">${jul(f)}${ovrOf(f).some(v=>v!==null)?' <span style="color:var(--warn);font-size:10px">overridden by VH</span>':''}</span></div>
+        ${flagExplain?`<div class="dr-i" style="display:block"><span class="k">Why this needs review</span><div class="v" style="font-weight:400;color:var(--warn);text-align:left;margin-top:3px">${flagExplain}</div></div>`:''}
+        ${reasonOf(f)?`<div class="dr-i"><span class="k">Reason</span><span class="v" style="font-weight:400">${reasonOf(f)}</span></div>`:''}
+        <div class="dr-src">◷ VH moderates this one consolidated number per FERT, not each region's line.</div></div>
+      ${cycle==='1B'?`<div class="dr-sec"><h4>Locked S&amp;OP-1A — your own submission</h4>
+        <div class="dr-i"><span class="k">Locked total (Jul–Sep)</span><span class="v">${locked1ATotal(f)}</span></div>
+        <div class="dr-i"><span class="k">Current S&amp;OP-1B vs locked 1A</span><span class="v ${Math.abs(locked1ADeviationPct(f))>TOL_1B?'w':''}">${locked1ADeviationPct(f)>0?'+':''}${locked1ADeviationPct(f)}%</span></div>
+        <div class="dr-src">◷ Max ±30% between S&amp;OP-1A and S&amp;OP-1B, reused from the old workbench's own rule — a separate check from the ±10% vs-regions tolerance above (D-01 doesn't yet say whether that's intentional).</div></div>`:''}
+      <div class="dr-sec"><h4>By RSM region — as submitted, read-only</h4>
+        ${f.regions.map(rg=>`<div class="dr-i"><span class="k">${rg.name} <span style="color:var(--muted);font-weight:400">(${rg.person})</span></span><span class="v">${regionSubmittedJul(rg)}</span></div>`).join('')}
+        <div class="dr-src">◷ RSM submissions · refreshed on their last save</div></div>
+      <div class="dr-sec"><h4>Reference — this FERT</h4>
+        <div class="dr-i"><span class="k">Last cycle (vertical)</span><span class="v">${vertPrev(f)}</span></div>
+        <div class="dr-i"><span class="k">3-month average (vertical)</span><span class="v">${threeMoAvg(f)}</span></div>
+        <div class="dr-i"><span class="k">ABP target (vertical, split by submitted share)</span><span class="v">${abpForFert(f)}</span></div>
+        <div class="dr-src">◷ ABP is a light integration (#24-lite) — see the Dealer prototype's own note.</div></div>
+      <div class="dr-sec"><h4>COCO reference (read-only)</h4>
+        <div class="dr-i"><span class="k">Dealer stock</span><span class="v">${f.cocoD}</span></div>
+        <div class="dr-i"><span class="k">Actual</span><span class="v">${f.cocoA}</span></div>
+        <div class="dr-i"><span class="k">Virtual</span><span class="v">${f.cocoV}</span></div>
+        <div class="dr-i"><span class="k">National</span><span class="v">${f.cocoN}</span></div>
+        <div class="dr-src">◷ Company-owned outlet stock, for reference against the private/dealer network. The full COCO location view lives in the separate COCO Workbench.</div></div>
+      <div class="dr-sec"><h4>Priority</h4>
+        <div class="dr-i"><span class="k">Priority level</span><span class="v">${f.priority}</span></div>
+        <div class="dr-src">◷ Read-only planning priority, matching the Phase 0 VH reference.</div></div>
+    </div>`;
+  document.getElementById('drawer').classList.add('on');
+  document.getElementById('scrim').classList.add('on');
+}
+function closeDrawer(){document.getElementById('drawer').classList.remove('on');document.getElementById('scrim').classList.remove('on');}
+
+/* ════════ EXPORT (P-18: export shows what will be exported) ════════ */
+function openExport(){
+  const rs=rows().length?rows():D;
+  const scope=(activeCount()||q)?`${rs.length} filtered lines`:`all ${D.length} lines`;
+  document.getElementById('expSub').textContent=`LMD Vertical · S&OP-${cycle} · July 2026 · ${scope}`;
+  const hdr=['FERT Code','Description','Eicher segment','MPG','Tonnage','Fuel','Cabin',
+    'Last cycle','3-month avg','ABP target','Locked S&OP-1A','W1','W2','W3','W4','Jul','Aug','Sep','Total','Overridden','Reason','Priority','RGP Qty',
+    REGIONS[0].name+' submitted (Jul)',REGIONS[1].name+' submitted (Jul)',REGIONS[2].name+' submitted (Jul)'];
+  const lines=[hdr.join(',')];
+  rs.forEach(f=>{
+    lines.push([f.code,'"'+f.desc+'"',SEGNAME[f.seg],f.mpg,f.ton,f.fuel,f.ac,
+      vertPrev(f),threeMoAvg(f),abpForFert(f),cycle==='1B'?locked1ATotal(f):'—',
+      vhV(f,0),vhV(f,1),vhV(f,2),vhV(f,3),jul(f),vhV(f,4),vhV(f,5),gTot(f),
+      ovrOf(f).some(v=>v!==null)?'Y':'N','"'+(reasonOf(f)||'')+'"',f.priority,f.rgpQty||0,
+      regionSubmittedJul(f.regions[0]),regionSubmittedJul(f.regions[1]),regionSubmittedJul(f.regions[2])].join(','));
+  });
+  document.getElementById('csvBox').value=lines.join('\n');
+  document.getElementById('expM').classList.add('on');
+}
+function copyCsv(){
+  const el=document.getElementById('csvBox'); el.select();
+  try{ navigator.clipboard.writeText(el.value); toast('Copied to clipboard'); }
+  catch(e){ toast('Select the text and copy'); }
+}
+
+/* ════════ REVIEW & SUBMIT (P-13) ════════ */
+function openReview(){
+  const julT=D.reduce((a,f)=>a+jul(f),0), aug=D.reduce((a,f)=>a+vhV(f,4),0), sep=D.reduce((a,f)=>a+vhV(f,5),0);
+  const prevT=D.reduce((a,f)=>a+vertPrev(f),0), missing=D.filter(f=>!hasEntry(f)).length;
+  const excCount=exceptionLines().length;
+  const prioritySet=D.filter(f=>f.priorityQty!==null).length;
+  const delta=julT-prevT, pct=prevT?Math.round(delta/prevT*100):0;
+  const filtered=activeCount()>0||!!q;
+  document.getElementById('revSub').textContent=`S&OP-${cycle} · July 2026 · LMD Vertical (A. Reddy)`;
+  document.getElementById('reviewBody').innerHTML=`
+    ${filtered?`<div class="notice n-warn"><span>⚠</span><div><b>You have filters applied.</b> Submitting sends the <b>full</b> LMD vertical indent — all ${D.length} lines — not just the ${rows().length} on screen.</div></div>`:''}
+    ${missing?`<div class="notice n-warn"><span>⚠</span><div><b>${missing} lines have no entry from any region.</b> They go up as zero. <button class="link" onclick="closeM('review');jumpFilter('noentry')">Review them first</button></div></div>`:''}
+    ${excCount?`<div class="notice n-warn"><span>⚠</span><div><b>${excCount} line${excCount>1?'s':''} still flagged</b> — override with a reason before you submit (there's no separate "accept as submitted" action — D-12 is still open on whether that's right). <button class="link" onclick="closeM('review');jumpFilter('exception')">Review them first</button></div></div>`:''}
+    <div>
+      <div class="mrow"><span class="k">Lines</span><span class="v">${D.length}</span></div>
+      <div class="mrow"><span class="k">July (W1–W4)</span><span class="v">${julT}</span></div>
+      <div class="mrow"><span class="k">August</span><span class="v">${aug}</span></div>
+      <div class="mrow"><span class="k">September</span><span class="v">${sep}</span></div>
+      <div class="mrow"><span class="k">vs last cycle's plan for July</span>
+        <span class="v" style="color:${delta<0?'var(--warn)':'var(--ok)'}">${delta>0?'+':''}${delta} · ${pct>0?'+':''}${pct}%</span></div>
+      <div class="mrow"><span class="k">M1 priority quantities set</span><span class="v">${prioritySet} of ${D.length}</span></div>
+    </div>
+    <div class="notice n-add"><span>①</span><div>Any M1 priority quantities you've set become <b>ISO's default 1st Priority</b> on Copy — ISO can still override them.</div></div>
+    <div class="notice n-acc"><span>→</span><div>Goes to <b>ISO, Central Planning</b> as your Sales Plan for S&amp;OP-${cycle}. You can reopen and resubmit until <b>18 Jul, 23:59 IST</b>.</div></div>`;
+  document.getElementById('revSubmitBtn').disabled=excCount>0;
+  document.getElementById('review').classList.add('on');
+}
+function doSubmit(){ submitted[cycle]=true; closeM('review'); render(); toast('LMD vertical indent (S&OP-'+cycle+') submitted to ISO'); }
+function reopen(){ submitted[cycle]=false; render(); toast('Reopened — resubmit before the cut-off'); }
+function closeM(id){ document.getElementById(id).classList.remove('on'); }
+
+let tt;
+function toast(m){ const el=document.getElementById('toast'); el.textContent=m; el.classList.add('on');
+  clearTimeout(tt); tt=setTimeout(()=>el.classList.remove('on'),2600); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){closeDrawer();['review','expM'].forEach(closeM);} });
+buildRail(); render(); renderColPop(); renderCycCtl();
+</script>
+<script id="vh-save">
+const VH_SAVE_KEY='vecvplan-vh-saved-v1';
+function saveVh(){if(document.activeElement instanceof HTMLElement)document.activeElement.blur();try{localStorage.setItem(VH_SAVE_KEY,JSON.stringify({version:1,rows:D,savedAt:new Date().toISOString()}));closeM('review');toast('Saved in this browser. Entries remain editable.');}catch(e){toast('Unable to save. Please try again.');}}
+try{const saved=JSON.parse(localStorage.getItem(VH_SAVE_KEY)||'null');if(saved?.version===1&&Array.isArray(saved.rows)){D.splice(0,D.length,...saved.rows);uid=Math.max(uid,...D.map(f=>Number(f.i)||0))+1;}}catch(e){}
+doSubmit=saveVh;
+buildRail();render();
+</script></body>
+</html>

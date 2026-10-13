@@ -1,0 +1,1956 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VECVplan — ISO Consolidation Workbench (Phase 0)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0D1B2A;--ink2:#1A2E42;--ink3:#2C4159;--grey:#5A6E82;--grey-lt:#E8EDF2;
+  --rule:#D1DAE3;--rule-lt:#EBF0F5;--bg:#F0F4F8;--surface:#FFFFFF;--s2:#F7F9FB;
+  --navy:#0B2545;--blue:#1565C0;--blue-lt:#E3EEFF;--blue-mid:#1976D2;
+  --lmd:#1565C0;--lmd-lt:#E3EEFF;--hd:#6A1B9A;--hd-lt:#F3E5F5;--bus:#00695C;--bus-lt:#E0F2F1;
+  --green:#1B5E20;--green-lt:#E8F5E9;--amber:#E65100;--amber-lt:#FFF3E0;--red:#B71C1C;--red-lt:#FEECEC;--teal:#00695C;
+  --run:#2E7D32;--run-lt:#E8F5E9;--slog:#E65100;--slog-lt:#FFF3E0;--dag:#C62828;--dag-lt:#FEECEC;
+  --enrich:#0277BD;--enrich-lt:#E1F5FE;
+  --font:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;--r:4px;
+  --sh:0 1px 3px rgba(13,27,42,.08);--sh2:0 2px 8px rgba(13,27,42,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);font-size:13px;color:var(--ink);background:var(--bg);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+/* LOGIN */
+#loginScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;
+  background:linear-gradient(135deg,var(--navy) 0%,#1A3A6B 60%,#0E6B8A 100%);position:relative;overflow:hidden;}
+#loginScreen::before{content:'';position:absolute;top:-20%;right:-10%;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(21,101,192,.25),transparent 70%);}
+#loginScreen::after{content:'';position:absolute;bottom:-15%;left:-5%;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(0,105,92,.2),transparent 70%);}
+.login-wrap{display:flex;gap:20px;position:relative;z-index:1;align-items:stretch;}
+.login-card{background:var(--surface);border-radius:12px;width:520px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;}
+.login-header{background:var(--navy);padding:24px 30px 20px;display:flex;align-items:center;gap:12px;}
+.login-logo{font-size:21px;font-weight:700;color:#fff;}
+.login-logo span{color:#7AB3E8;}
+.login-badge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:4px;padding:3px 10px;font-size:10px;color:#A8C4DC;margin-left:auto;}
+.login-body{padding:24px 30px;}
+.login-title{font-size:17px;font-weight:700;margin-bottom:4px;}
+.login-sub{font-size:12px;color:var(--grey);margin-bottom:20px;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--ink2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.03em;}
+.field input,.field select{width:100%;height:38px;padding:0 12px;border:1.5px solid var(--rule);border-radius:var(--r);font-size:13px;font-family:var(--font);color:var(--ink);}
+.field input:focus,.field select:focus{outline:none;border-color:var(--blue);background:var(--blue-lt);}
+.login-divider{display:flex;align-items:center;gap:10px;margin:18px 0;color:var(--grey);font-size:11px;}
+.login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:var(--rule);}
+.vertical-pills{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px;}
+.vpill{border:1.5px solid var(--rule);border-radius:6px;padding:9px 6px;text-align:center;cursor:pointer;transition:all .15s;}
+.vpill.lmd{border-color:var(--lmd);background:var(--lmd-lt);}
+.vpill.hd{border-color:var(--hd);background:var(--hd-lt);}
+.vpill.bus{border-color:var(--bus);background:var(--bus-lt);}
+.vpill-name{font-size:12px;font-weight:700;margin-bottom:1px;}
+.vpill.lmd .vpill-name{color:var(--lmd);}
+.vpill.hd .vpill-name{color:var(--hd);}
+.vpill.bus .vpill-name{color:var(--bus);}
+.vpill-sub{font-size:8px;color:var(--grey);}
+.subvert-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;}
+.svpill{border:1.5px solid var(--rule);border-radius:14px;padding:5px 12px;font-size:11px;font-weight:600;color:var(--ink2);cursor:pointer;transition:all .12s;}
+.svpill.active{border-color:var(--blue);background:var(--blue-lt);color:var(--blue);}
+.svpill:hover{border-color:var(--blue);}
+.login-btn{width:100%;height:40px;background:var(--blue);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);transition:background .12s;}
+.login-btn:hover{background:var(--blue-mid);}
+.login-note{font-size:10px;color:var(--grey);text-align:center;margin-top:12px;line-height:1.5;}
+.login-tabs{display:flex;border-bottom:1px solid var(--rule);}
+.login-tab{flex:1;padding:14px;text-align:center;cursor:pointer;font-size:13px;font-weight:600;color:var(--grey);border-bottom:2px solid transparent;transition:all .15s;}
+.login-tab.active{color:var(--blue);border-bottom-color:var(--blue);background:#FAFCFF;}
+.login-panel{padding:24px 30px;}
+.login-lane-hdr{font-size:10px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.login-role-grid{display:grid;gap:8px;margin-bottom:16px;}
+.login-role-grid.cols-2{grid-template-columns:1fr 1fr;}
+.login-role-grid.cols-3{grid-template-columns:1fr 1fr 1fr;}
+.login-role{border:1px solid var(--rule);border-radius:6px;padding:10px 12px;cursor:pointer;transition:all .12s;}
+.login-role:hover{border-color:var(--blue);background:var(--blue-lt);}
+.login-role-name{font-size:13px;font-weight:600;color:var(--ink);}
+.login-role-desc{font-size:10px;color:var(--grey);margin-top:2px;}
+.login-role.coco{border-color:#E0F2F1;background:#F7FDFC;}
+.login-role.coco:hover{border-color:var(--teal);}
+.login-role.coco .login-role-name{color:var(--teal);}
+.login-role.iso{border-color:#E1F5FE;background:#F8FDFF;}
+.login-role.iso:hover{border-color:var(--enrich);}
+.login-role.iso .login-role-name{color:var(--enrich);}
+.login-role.ib{border-color:#E1F5FE;background:#F8FDFF;}
+.login-role.ib:hover{border-color:var(--enrich);}
+.login-role.ib .login-role-name{color:var(--enrich);}
+.login-sep{display:flex;align-items:center;gap:10px;margin:16px 0;color:var(--grey);font-size:11px;}
+.login-sep::before,.login-sep::after{content:'';flex:1;height:1px;background:var(--rule);}
+
+/* APP */
+.app{display:none;flex-direction:column;height:100vh;}
+.app.active{display:flex;}
+.topbar{height:46px;background:var(--navy);border-bottom:1px solid var(--ink3);display:flex;align-items:center;padding:0 14px;gap:14px;flex-shrink:0;}
+.brand{font-weight:700;font-size:13px;color:#fff;white-space:nowrap;}
+.brand span{color:#7AB3E8;}
+.divpipe{width:1px;height:20px;background:var(--ink3);}
+.persona-switch{display:flex;align-items:center;gap:6px;background:var(--ink2);border-radius:6px;padding:3px;}
+.psw-label{font-size:8px;color:#5A7A96;text-transform:uppercase;letter-spacing:.08em;padding:0 4px;}
+.psw-btn{padding:4px 11px;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;border:none;background:transparent;color:#7A9AB8;transition:all .12s;font-family:var(--font);}
+.psw-btn.active{background:var(--blue);color:#fff;}
+.vtabs{display:flex;gap:2px;flex:1;}
+.vtab{display:flex;align-items:center;gap:6px;padding:0 13px;height:46px;font-size:11px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;transition:all .12s;color:#A8C4DC;white-space:nowrap;}
+.vtab:hover{color:#fff;background:rgba(255,255,255,.06);}
+.vtab.active{color:#fff;border-bottom-color:#fff;}
+.vtab .vdot{width:8px;height:8px;border-radius:2px;}
+.vtab-sub{font-size:9px;opacity:.7;}
+.phase-switch{display:flex;gap:3px;background:var(--ink2);border-radius:5px;padding:3px;}
+.ph-btn{padding:3px 11px;border-radius:3px;font-size:10px;font-weight:600;cursor:pointer;border:none;background:transparent;color:#7A9AB8;transition:all .12s;font-family:var(--font);}
+.ph-btn.active{background:var(--ink3);color:#fff;}
+.user-pill{display:flex;align-items:center;gap:6px;background:var(--ink3);border-radius:14px;padding:3px 10px 3px 4px;}
+.avatar{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;}
+.user-name{font-size:10px;color:#fff;font-weight:500;}
+.user-role{font-size:9px;color:#7AB3E8;}
+
+/* CYCLE BAR */
+.cycle-bar{background:var(--ink2);padding:0 16px;height:44px;display:flex;align-items:center;gap:14px;flex-shrink:0;border-bottom:1px solid #1A3A56;}
+.cycle-toggle{display:flex;gap:0;background:var(--navy);border-radius:7px;padding:3px;border:1px solid #1A3A56;}
+.cyc-btn{padding:4px 14px;border-radius:5px;font-size:11px;font-weight:600;border:none;background:transparent;color:#7A9AB8;display:flex;align-items:center;gap:6px;cursor:pointer;font-family:var(--font);}
+.cyc-btn.active{background:var(--blue);color:#fff;}
+.cyc-btn:disabled{opacity:.38;cursor:not-allowed;}
+.cyc-badge{font-size:8px;padding:1px 5px;border-radius:7px;background:rgba(255,255,255,.18);}
+.cycle-info{font-size:10px;color:#9DBDDB;}
+.cutoff-pill{margin-left:auto;display:flex;align-items:center;gap:8px;background:#7C2D12;border:1px solid #9A4318;border-radius:6px;padding:3px 12px;}
+.cutoff-mono{font-family:var(--mono,monospace);font-size:10px;color:#FBC99A;}
+.cutoff-lbl{font-size:9px;color:#E8A877;text-transform:uppercase;letter-spacing:.05em;}
+
+/* SCREEN TABS */
+.screen-tabs{background:var(--surface);border-bottom:2px solid var(--rule);display:flex;padding:0 16px;gap:2px;flex-shrink:0;box-shadow:var(--sh);}
+.stab{display:flex;align-items:center;gap:6px;padding:9px 14px;font-size:12px;font-weight:500;color:var(--grey);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .12s;white-space:nowrap;}
+.stab:hover{color:var(--ink);}
+.stab.active{color:var(--blue);border-bottom-color:var(--blue);}
+.stab-badge{font-size:9px;padding:1px 6px;border-radius:8px;font-weight:700;}
+.sb-open{background:var(--amber-lt);color:var(--amber);}
+.sb-lock{background:var(--green-lt);color:var(--green);}
+
+/* FILTER BAR */
+/* ══ WORKSPACE: collapsible left filter rail + main content ══ */
+.workspace{flex:1;display:flex;overflow:hidden;min-height:0;}
+.sidebar{width:236px;flex-shrink:0;background:linear-gradient(180deg,#0B1D33 0%,#0D2540 100%);border-right:1px solid #16324f;display:flex;flex-direction:column;overflow:hidden;transition:width .18s cubic-bezier(.4,0,.2,1);}
+.sidebar.collapsed{width:44px;}
+.sidebar-head{height:42px;flex-shrink:0;display:flex;align-items:center;gap:8px;padding:0 12px;border-bottom:1px solid #16324f;}
+.sidebar-head .sb-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7FA8CC;white-space:nowrap;overflow:hidden;flex:1;}
+.sb-collapse-btn{width:24px;height:24px;flex-shrink:0;border:none;border-radius:5px;background:rgba(255,255,255,.06);color:#9FC0DD;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:background .12s;}
+.sb-collapse-btn:hover{background:rgba(255,255,255,.14);}
+.sidebar-body{flex:1;overflow-y:auto;overflow-x:hidden;padding:6px 0 20px;}
+.sidebar-body::-webkit-scrollbar{width:5px;}
+.sidebar-body::-webkit-scrollbar-thumb{background:#1E4266;border-radius:3px;}
+.sidebar.collapsed .sidebar-body,.sidebar.collapsed .sb-title{display:none;}
+.sb-collapsed-icons{display:none;flex-direction:column;align-items:center;gap:14px;padding:14px 0;}
+.sidebar.collapsed .sb-collapsed-icons{display:flex;}
+.sb-collapsed-icons .ci{color:#5F86AB;font-size:15px;cursor:pointer;}
+.sb-group{border-bottom:1px solid rgba(255,255,255,.05);padding:2px 0;}
+.sb-group-hd{display:flex;align-items:center;gap:6px;padding:9px 14px 7px;cursor:pointer;user-select:none;}
+.sb-group-hd .ca{font-size:9px;color:#5F86AB;transition:transform .15s;}
+.sb-group.closed .ca{transform:rotate(-90deg);}
+.sb-group-hd .lbl{font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#6E96BC;flex:1;}
+.sb-group-hd .val{font-size:9px;color:#4E7297;font-weight:500;white-space:nowrap;}
+.sb-group-body{padding:2px 12px 12px;}
+.sb-group.closed .sb-group-body{display:none;}
+.sb-chips{display:flex;flex-wrap:wrap;gap:5px;}
+.sb-chip{padding:4px 10px;border-radius:13px;font-size:10.5px;font-weight:500;border:1px solid #274b6e;background:rgba(255,255,255,.03);color:#A9C6E0;cursor:pointer;transition:all .12s;white-space:nowrap;}
+.sb-chip:hover{border-color:#3D6690;color:#DCEAF6;}
+.sb-chip.on{background:#2B6CB8;border-color:#2B6CB8;color:#fff;font-weight:600;}
+.sb-chip.on-R{background:#2E7D32;border-color:#2E7D32;color:#fff;}
+.sb-chip.on-S{background:#C77700;border-color:#C77700;color:#fff;}
+.sb-chip.on-D{background:#C62828;border-color:#C62828;color:#fff;}
+.sb-select{width:100%;height:30px;padding:0 8px;border:1px solid #274b6e;border-radius:5px;background:#0F2C49;color:#CFE2F1;font-size:11px;font-family:var(--font);}
+.sb-select:focus{outline:none;border-color:#3D82C4;}
+.sb-search{width:100%;height:30px;padding:0 10px;border:1px solid #274b6e;border-radius:5px;background:#0F2C49;color:#CFE2F1;font-size:11px;font-family:var(--font);}
+.sb-search::placeholder{color:#5A7FA3;}
+.sb-search:focus{outline:none;border-color:#3D82C4;}
+.sb-clear{margin:10px 14px 0;padding:7px;border:1px solid #274b6e;border-radius:5px;background:rgba(255,255,255,.04);color:#9FC0DD;font-size:10.5px;font-weight:600;cursor:pointer;text-align:center;transition:background .12s;}
+.sb-clear:hover{background:rgba(255,255,255,.1);}
+.main-content{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+
+/* Top strip inside each screen: search + view toggle + count (table-shaping controls) */
+.filterbar{background:var(--s2);border-bottom:1px solid var(--rule);padding:7px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;}
+.fil{display:flex;flex-direction:column;gap:3px;}
+.fil label{font-size:8px;color:var(--grey);text-transform:uppercase;letter-spacing:.06em;font-weight:600;}
+.fil select,.fil input[type=text]{height:28px;padding:0 8px;border:1.5px solid var(--rule);border-radius:4px;background:#fff;font-size:11.5px;font-family:var(--font);color:var(--ink);min-width:110px;}
+.fil select:focus,.fil input:focus{outline:none;border-color:var(--blue);}
+.fil-search input{padding-left:8px;min-width:220px;}
+.fil-divider{width:1px;height:28px;background:var(--rule);margin:0 3px;}
+.seg-chips{display:flex;gap:4px;align-items:center;}
+.seg-chip{padding:5px 10px;border-radius:12px;font-size:10px;font-weight:600;border:1.5px solid var(--rule);background:#fff;color:var(--grey);cursor:pointer;transition:all .12s;}
+.seg-chip.on-all{background:var(--ink2);color:#fff;border-color:transparent;}
+.seg-chip.on-R{background:#1E6B35;color:#fff;border-color:transparent;}
+.seg-chip.on-S{background:#C77700;color:#fff;border-color:transparent;}
+.seg-chip.on-D{background:#B71C1C;color:#fff;border-color:transparent;}
+.fil-clear{height:28px;padding:0 10px;border:1.5px solid var(--rule);border-radius:4px;background:#fff;font-size:11px;color:var(--grey);cursor:pointer;}
+.active-filter-pills{display:flex;gap:5px;flex-wrap:wrap;align-items:center;}
+.af-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:11px;font-size:10px;font-weight:500;background:var(--blue-lt);color:var(--blue);border:1px solid #BBD6F5;}
+.af-pill .x{cursor:pointer;font-weight:700;opacity:.6;}
+.af-pill .x:hover{opacity:1;}
+.result-count{font-size:10px;color:var(--grey);margin-left:auto;white-space:nowrap;}
+.result-count strong{color:var(--ink);font-family:var(--mono);}
+
+/* PAGE HEADER */
+.content{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.page-hdr{background:linear-gradient(180deg,#fff,#FBFCFE);border-bottom:1px solid var(--rule);padding:11px 18px;display:flex;align-items:center;gap:12px;flex-shrink:0;box-shadow:0 1px 2px rgba(13,27,42,.04);}
+.page-title{font-size:15.5px;font-weight:700;letter-spacing:-.2px;}
+.page-sub{font-size:11px;color:var(--grey);margin-top:2px;}
+.page-hdr-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.phase-badge{padding:2px 8px;border-radius:3px;font-size:9px;font-weight:700;letter-spacing:.04em;background:var(--amber-lt);color:var(--amber);border:1px solid #FED7AA;}
+
+/* SUB-VERT NAV */
+.sv-nav{display:flex;gap:8px;padding:9px 16px;background:var(--s2);border-bottom:1px solid var(--rule);flex-shrink:0;overflow-x:auto;align-items:center;}
+.sv-label{font-size:9px;color:var(--grey);text-transform:uppercase;letter-spacing:.06em;font-weight:600;white-space:nowrap;}
+.sv-chip{padding:5px 14px;border-radius:16px;font-size:11px;font-weight:500;cursor:pointer;border:1.5px solid var(--rule);background:var(--surface);color:var(--grey);white-space:nowrap;transition:all .12s;}
+.sv-chip:hover{border-color:var(--blue);color:var(--blue);}
+.sv-chip.active{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:600;}
+
+/* NOTICE */
+.notice{margin:8px 16px 0;padding:7px 12px;border-radius:var(--r);font-size:11px;display:flex;align-items:center;gap:8px;border-left:3px solid;flex-shrink:0;}
+.notice.warn{background:var(--amber-lt);border-color:var(--amber);color:var(--amber);}
+.notice.info{background:var(--blue-lt);border-color:var(--blue);color:var(--blue);}
+.notice.lock{background:var(--green-lt);border-color:var(--green);color:var(--green);}
+.notice.readonly{background:#FFF8E1;border-color:#F9A825;color:#6B4A12;}
+.notice.reminder-urgent{background:#FEECEC;border-color:#B71C1C;color:#7A0E0E;}
+.notice.reminder-info{background:#F5F5F5;border-color:#9E9E9E;color:#555;}
+.notice strong{font-weight:600;}
+
+/* GRID */
+.grid-scroll{flex:1;overflow:auto;padding:12px 18px 18px;background:var(--bg);}
+.grid-scroll::-webkit-scrollbar{width:8px;height:8px;}
+.grid-scroll::-webkit-scrollbar-thumb{background:#C3CFDB;border-radius:4px;}
+.grid-scroll::-webkit-scrollbar-thumb:hover{background:#A9B9C9;}
+
+/* ── STICKY FIRST 3 COLS ── Phase 0 freeze panes */
+.ptable{border-collapse:collapse;font-size:11px;background:var(--surface);border-radius:6px;box-shadow:0 1px 4px rgba(13,27,42,.07);width:100%;}
+.ptable .cg{text-align:center;font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 6px;color:#fff;}
+.ptable .cg-fert{background:var(--ink);}
+.ptable .cg-dealer{background:#37474F;}
+.ptable .cg-ref{background:#455A64;}
+.ptable .cg-readonly{background:#546E7A;}
+.ptable .cg-csm{background:#00838F;}
+.ptable .cg-enrich{background:var(--enrich);}
+.ptable .cg-inp{background:var(--blue);}
+.ptable .cg-fut{background:var(--ink2);}
+.ptable .cg-p1{background:#90A4AE;font-size:8px;}
+.ptable .cg-netting{background:#0A4A2E;}
+.ptable .cg-is{background:#7C2D12;}
+
+.ptable th{position:sticky;top:0;z-index:10;padding:5px 6px;text-align:right;font-size:9px;font-weight:600;color:var(--ink3);border-bottom:2px solid var(--rule);background:var(--s2);white-space:nowrap;letter-spacing:.03em;text-transform:uppercase;}
+.ptable th.left{text-align:left;}
+.ptable th.th-p1{background:var(--grey-lt)!important;color:#B0BEC5!important;}
+
+/* Freeze left columns */
+.ptable th.sticky-col,.ptable td.sticky-col{position:sticky;left:0;z-index:5;background:var(--surface);}
+.ptable th.sticky-col{z-index:15;background:var(--s2);}
+.ptable th.sticky-col2{left:90px;}
+.ptable th.sticky-col3{left:260px;}
+.ptable td.sticky-col2{left:90px;}
+.ptable td.sticky-col3{left:260px;}
+.ptable td.sticky-col,.ptable td.sticky-col2,.ptable td.sticky-col3{box-shadow:2px 0 4px rgba(0,0,0,.06);}
+
+.ptable td{padding:5px 6px;border-bottom:1px solid var(--rule-lt);vertical-align:middle;}
+.ptable tr:hover td{background:#F5F9FE;}
+.ptable tr:hover td.sticky-col,.ptable tr:hover td.sticky-col2,.ptable tr:hover td.sticky-col3{background:#EEF4FC;}
+.ptable tr.subtotal td{background:var(--s2);font-weight:600;}
+.ptable tr.added td{background:var(--enrich-lt);}
+
+.fert-code{font-family:var(--mono);font-size:10px;color:var(--blue);}
+.fert-desc{font-size:10px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.seg{display:inline-block;padding:1px 5px;border-radius:2px;font-size:8px;font-weight:700;}
+.seg-R{background:var(--run-lt);color:var(--run);}
+.seg-S{background:var(--slog-lt);color:var(--slog);}
+.seg-D{background:var(--dag-lt);color:var(--dag);}
+.ref-val{text-align:right;font-family:var(--mono);color:#4A6880;}
+.ro-val{text-align:right;font-family:var(--mono);color:#546E7A;background:#FAFBFC;}
+.csm-val{text-align:right;font-family:var(--mono);color:#00838F;}
+.calc-val{text-align:right;font-family:var(--mono);font-weight:500;}
+
+.inp{width:54px;padding:3px 5px;border:1px solid var(--rule);border-radius:2px;font-family:var(--mono);font-size:10px;text-align:right;color:var(--ink);background:var(--surface);}
+.inp:focus{outline:none;border-color:var(--blue);background:var(--blue-lt);}
+.inp.enrich{border-color:#B3E5FC;background:#F5FCFF;}
+.inp.w1{border-color:#FFCC80;}
+.inp.w1:focus{border-color:var(--amber);background:var(--amber-lt);}
+.inp.iso-ov{border-color:var(--blue);background:#EFF6FF;width:60px;}
+.inp.ss{border-color:#2E7D32;background:#F0FFF4;width:54px;}
+.inp[readonly]{background:var(--s2);color:var(--grey);cursor:not-allowed;border-color:var(--rule-lt);}
+.inp.carried{border-left:3px solid #90CAF9;}
+.var-badge{display:inline-block;font-size:8px;font-family:var(--mono);font-weight:600;padding:0 3px;border-radius:3px;margin-left:1px;vertical-align:middle;}
+.var-badge.pos{color:#1B5E20;background:#E8F5E9;}
+.var-badge.neg{color:#B71C1C;background:#FEECEC;}
+
+/* ══ WORKBOOK DESIGN SYSTEM (Claude Design merge) — additive classes only, does not touch
+   the shared .cg-* classes above (those are still used by COCO) or any row/aggregation logic. ══ */
+.wb-th{text-align:center;font:700 9px/1.3 Inter,sans-serif;letter-spacing:.1em;text-transform:uppercase;padding:7px 6px;}
+.wb-th-neutral{background:#F7F9FB;color:#5B6B7C;}
+.wb-th-teal{background:#F1F7F6;color:#00695C;}
+.wb-th-readonly{background:#F2F4F6;color:#5B6B7C;}
+.wb-th-edit{background:#E6F0FB;color:#1565C0;border-top:2px solid #1565C0;}
+.wb-th-fert{background:#0D1B2A;color:#fff;}
+.wb-pill{display:inline-block;font:700 8px/1 'JetBrains Mono',monospace;letter-spacing:.04em;padding:2px 6px;border-radius:8px;margin-left:6px;vertical-align:middle;text-transform:none;}
+.wb-pill-edit{background:#1565C0;color:#fff;}
+.wb-pill-readonly{background:transparent;border:1px solid #DDE2E7;color:#78909C;}
+/* Legend bar — explains editable/read-only/carried/aging colors once, above the grid */
+.wb-legend{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:7px 16px;background:#FAFBFC;border-bottom:1px solid var(--rule-lt);font:500 10px/1 Inter,sans-serif;color:#5B6B7C;}
+.wb-legend .wl-item{display:flex;align-items:center;gap:5px;}
+.wb-legend .wl-swatch{display:inline-block;width:10px;height:10px;border-radius:2px;}
+/* Carry-forward badge — small ↻ pill next to the input, replaces plain tooltip-only affordance */
+.wb-carry-badge{display:inline-block;font:700 8px/1 'JetBrains Mono',monospace;color:#1565C0;background:#E3EEFA;border:1px solid #C5DCF3;border-radius:8px;padding:1px 4px;margin-right:3px;vertical-align:middle;cursor:default;}
+/* Sticky grand-total column on the right, mirrors the sticky identity columns on the left */
+.ptable th.sticky-col-r,.ptable td.sticky-col-r{position:sticky;right:0;z-index:5;background:#EAF0F6;border-left:2px solid #0D1B2A;}
+.ptable th.sticky-col-r{z-index:15;}
+/* Graduated aging bands — lighter step between 60-90D and 90-180D than the flat 2-tone split before */
+.wb-age-ok{color:#2E7D32;}
+.wb-age-60{background:#FFF7EC;color:#C25E00;}
+.wb-age-180{background:#FFEFD9;color:#B05A00;}
+.wb-age-over{background:#FBDDDD;border:1px solid #E9B9B9;color:#C62828;font-weight:700;}
+/* Refined input focus state to match the tinted design language */
+.inp:focus{outline:2px solid #1565C0;border-color:#1565C0!important;background:#fff!important;}
+/* GROUP BY pill buttons */
+.wb-gb-pill{height:28px;padding:0 12px;border-radius:14px;font:600 10px/1 Inter,sans-serif;cursor:pointer;border:1.5px solid var(--rule);background:#fff;color:var(--grey);}
+.wb-gb-pill.active{border-color:#1565C0;background:#1565C0;color:#fff;}
+.var-badge.zero{display:none;}
+
+.td-p1{background:repeating-linear-gradient(45deg,transparent,transparent 4px,rgba(0,0,0,.02) 4px,rgba(0,0,0,.02) 8px);}
+.p1-ph{font-size:8px;color:#B0BEC5;font-style:italic;white-space:nowrap;}
+.delta{display:inline-block;font-family:var(--mono);font-size:9px;padding:1px 4px;border-radius:2px;}
+.d-up{background:var(--red-lt);color:var(--red);}
+.d-dn{background:var(--green-lt);color:var(--green);}
+.d-fl{background:#E8EDF2;color:#3A4A5A;}
+.sub-status{display:inline-block;padding:1px 6px;border-radius:8px;font-size:8px;font-weight:600;}
+.ss-in{background:var(--green-lt);color:var(--green);}
+.ss-pend{background:var(--amber-lt);color:var(--amber);}
+
+/* OWNERSHIP BANNER (IB) */
+.ownership-bar{background:var(--ink2);border-bottom:1px solid var(--ink3);padding:5px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.own-label{font-size:9px;color:#7A9AB8;text-transform:uppercase;letter-spacing:.06em;}
+.own-stage{display:flex;align-items:center;gap:6px;}
+.own-pill{padding:3px 10px;border-radius:10px;font-size:10px;font-weight:700;}
+.own-active{background:var(--teal);color:#fff;}
+.own-done{background:#1A3A2A;color:#6DBFAB;}
+.own-pend{background:var(--ink3);color:#5A7A96;}
+.own-arrow{color:var(--ink3);font-size:12px;}
+.own-window{font-size:10px;color:#FBC99A;background:#7C2D12;border-radius:4px;padding:2px 8px;margin-left:auto;font-family:var(--mono);}
+
+/* SUM BAR */
+.sum-bar{background:var(--surface);border-top:1px solid var(--rule);padding:6px 16px;display:flex;align-items:center;gap:18px;flex-shrink:0;box-shadow:0 -1px 3px rgba(13,27,42,.06);}
+.si{display:flex;flex-direction:column;gap:1px;}
+.si-label{font-size:8px;color:var(--grey);text-transform:uppercase;letter-spacing:.06em;}
+.si-val{font-family:var(--mono);font-size:14px;font-weight:500;}
+.si-val.ok{color:var(--teal);}
+.si-val.warn{color:var(--amber);}
+.sb-divider{width:1px;height:28px;background:var(--rule);}
+.sb-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+
+/* ZONE SYSTEM — numbered section headers for Summary */
+.zone{padding:0 18px 0;}
+.zone-hdr{display:flex;align-items:center;gap:10px;padding:18px 0 10px;}
+.zone-hdr:first-child{padding-top:14px;}
+.zone-label{font:700 10px/1 'JetBrains Mono',var(--mono),monospace;letter-spacing:.16em;color:#78909C;text-transform:uppercase;white-space:nowrap;}
+.zone-rule{flex:1;height:1px;background:#DCE4EB;}
+
+/* KPI ROW — asymmetric 12-col grid for Summary */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:11px;padding:14px 18px;flex-shrink:0;}
+.kpi-row.zoned{grid-template-columns:repeat(12,1fr);padding:0;gap:12px;}
+.kpi-row.zoned .kpi-span-5{grid-column:span 5;}
+.kpi-row.zoned .kpi-span-4{grid-column:span 4;}
+.kpi-row.zoned .kpi-span-3{grid-column:span 3;}
+.kpi-row.zoned .kpi-span-6{grid-column:span 6;}
+.kpi-row-secondary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:0;}
+
+.kpi{position:relative;background:#fff;border:1px solid #DDE5EC;border-radius:4px;padding:18px 20px;box-shadow:0 1px 2px rgba(13,27,42,.05);overflow:hidden;transition:box-shadow .15s;}
+.kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:0;background:transparent;}
+.kpi:hover{box-shadow:0 3px 10px rgba(13,27,42,.08);}
+.kpi.kpi-primary{border-left:3px solid #1565C0;}
+.kpi.kpi-accent-teal{border-left:3px solid #00695C;}
+.kpi.kpi-accent-amber{border-left:3px solid #F57C00;}
+
+/* Segmented bar charts inside KPI cards */
+.seg-bar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:#EEF2F5;margin:8px 0 4px;}
+.seg-bar .seg{height:100%;transition:width .3s;}
+.seg-bar .seg:first-child{border-radius:5px 0 0 5px;}
+.seg-bar .seg:last-child{border-radius:0 5px 5px 0;}
+.seg-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;}
+.seg-legend-item{font-size:9px;color:var(--grey);display:flex;align-items:center;gap:3px;}
+.seg-legend-dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
+
+/* Mini sparkline bars for accuracy card */
+.spark-bars{display:flex;align-items:flex-end;gap:3px;height:28px;margin:6px 0 2px;}
+.spark-bar{width:10px;border-radius:2px 2px 0 0;transition:height .3s;}
+
+/* Attention band — flagged dealers (matched to Claude Design reference) */
+.attention-band{margin:0 18px;padding:14px 18px;border-radius:4px;border:1px solid #F5DCBE;border-left:3px solid #F57C00;background:#FFF8F0;display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+.attention-band .ab-flag{font-size:16px;color:#F57C00;}
+.attention-band .ab-title{font:700 15px/1 Inter,sans-serif;color:#0D1B2A;}
+.attention-band .ab-sub{font:500 12px/1 Inter,sans-serif;color:#8A6A44;}
+.attention-band .ab-detail{display:flex;gap:8px;flex-wrap:wrap;}
+.attention-band .ab-dealer{display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid #EBD8C0;border-radius:3px;padding:6px 10px;font:500 12px/1 Inter,sans-serif;color:#0D1B2A;white-space:nowrap;}
+.attention-band .ab-pct{font:600 11px/1 'JetBrains Mono',var(--mono),monospace;}
+.attention-band .ab-pct.over{color:#C62828;}
+.attention-band .ab-pct.under{color:#F57C00;}
+.attention-band .ab-link{margin-left:auto;font:600 12px/1 Inter,sans-serif;color:#C25E00;cursor:pointer;white-space:nowrap;}
+#wbTable.hide-dealer-grp .grp-dealer{display:none;}
+#wbTable.hide-csm-grp .grp-csm{display:none;}
+.grp-collapse-btn{cursor:pointer;font-size:9px;opacity:.8;margin-left:6px;padding:0 4px;border:1px solid rgba(255,255,255,.5);border-radius:3px;}
+.grp-collapse-btn:hover{opacity:1;background:rgba(255,255,255,.15);}
+.exp-toggle{user-select:none;}
+.kpi-label{font:700 10px/1 Inter,sans-serif;letter-spacing:.13em;color:#5B6B7C;text-transform:uppercase;}
+.kpi-val{font:600 21px/1 'JetBrains Mono',var(--mono),monospace;margin-top:8px;letter-spacing:-.03em;color:#0D1B2A;font-variant-numeric:tabular-nums;}
+.kpi-val.ok{color:#2E7D32;}
+.kpi-val.warn{color:#F57C00;}
+.kpi-sub{font:500 11px/1.4 Inter,sans-serif;color:#78909C;margin-top:8px;}
+/* Delta badge pill — matching reference */
+.delta-pill{display:inline-flex;align-items:center;gap:5px;font:600 12px/1 'JetBrains Mono',var(--mono),monospace;padding:6px 9px;border-radius:3px;margin-top:10px;}
+.delta-pill.neg{color:#C62828;background:#FDECEC;border:1px solid #F6D2D2;}
+.delta-pill.pos{color:#2E7D32;background:#EDF6EE;border:1px solid #CFE6D2;}
+.delta-pill.zero{color:#5B6B7C;background:#F7F9FB;border:1px solid #DDE5EC;}
+
+/* SCREEN SWITCHING */
+.screen{display:none;}
+.screen.active{display:flex;flex-direction:column;flex:1;overflow:hidden;}
+.summary-scroll{flex:1;overflow-y:auto;overflow-x:hidden;}
+
+/* MTO */
+.mto-subnav{display:flex;gap:2px;padding:8px 16px 0;background:#fff;border-bottom:1px solid var(--rule);}
+.mto-tab{padding:8px 16px;border-radius:7px 7px 0 0;font-size:12px;font-weight:600;color:var(--grey);background:var(--s2);border:1px solid var(--rule);border-bottom:none;display:flex;align-items:center;gap:7px;cursor:pointer;}
+.mto-tab .mdot{width:8px;height:8px;border-radius:50%;}
+.mto-tab.active-ib{background:#fff;color:#00695C;border-top:2.5px solid #00695C;}
+.mto-tab.active-is{background:#fff;color:#7C2D12;border-top:2.5px solid #7C2D12;}
+.mto-tab.active-eps{background:#fff;color:#5D4037;border-top:2.5px solid #5D4037;}
+
+/* IS read-only badge */
+.is-readonly-banner{background:#FFF8E1;border-bottom:2px solid #F9A825;padding:6px 16px;font-size:11px;color:#6B4A12;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.is-readonly-icon{font-size:14px;}
+
+/* S&OP 1B */
+.b1-notice{display:none;margin:0 16px;padding:7px 12px;border-radius:4px;font-size:11px;background:#FFF4E0;border-left:3px solid #B7791F;color:#6B4A12;flex-shrink:0;}
+
+/* COCO */
+.coco-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+
+/* MODALS */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(13,27,42,.5);z-index:100;align-items:center;justify-content:center;}
+.modal-bg.active{display:flex;}
+.modal{background:var(--surface);border-radius:10px;width:520px;max-height:70vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;}
+.modal-hdr{padding:16px 20px;border-bottom:1px solid var(--rule);display:flex;align-items:center;}
+.modal-hdr h3{font-size:15px;font-weight:700;}
+.modal-close{margin-left:auto;cursor:pointer;color:var(--grey);font-size:18px;background:none;border:none;}
+.modal-search{padding:12px 20px;border-bottom:1px solid var(--rule);}
+.modal-search input{width:100%;height:36px;padding:0 12px;border:1.5px solid var(--rule);border-radius:var(--r);font-size:12px;font-family:var(--font);}
+.modal-list{overflow-y:auto;padding:8px 0;}
+.modal-item{display:flex;align-items:center;gap:10px;padding:8px 20px;cursor:pointer;}
+.modal-item:hover{background:var(--s2);}
+.modal-ftr{padding:12px 20px;border-top:1px solid var(--rule);display:flex;justify-content:flex-end;gap:8px;}
+
+/* BTNS */
+.btn{height:30px;padding:0 13px;border-radius:var(--r);font-size:12px;font-weight:500;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:5px;font-family:var(--font);transition:all .12s;white-space:nowrap;}
+.btn-primary{background:var(--blue);color:#fff;}
+.btn-secondary{background:var(--surface);color:var(--ink2);border:1px solid var(--rule);}
+.btn-secondary:hover{background:var(--s2);}
+.btn-success{background:var(--green);color:#fff;}
+.btn-copy{background:var(--enrich);color:#fff;}
+.btn-add{background:var(--surface);color:var(--enrich);border:1px solid var(--enrich);}
+.btn-sm{height:26px;padding:0 10px;font-size:11px;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+</style>
+<style>
+/* ══ ISO CONSOLIDATION — additive classes only ══ */
+.chan-tabs{display:flex;gap:6px;padding:8px 16px;background:var(--s2);border-bottom:1px solid var(--rule);flex-shrink:0;align-items:center;}
+.chan-label{font-size:9px;color:var(--grey);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-right:4px;}
+.chan-tab{padding:6px 16px;border-radius:16px;font-size:11.5px;font-weight:600;cursor:pointer;border:1.5px solid var(--rule);background:var(--surface);color:var(--grey);transition:all .12s;display:flex;align-items:center;gap:6px;}
+.chan-tab:hover{border-color:var(--blue);color:var(--blue);}
+.chan-tab .cnt{font-family:var(--mono);font-size:9px;opacity:.75;}
+.chan-tab.active.pvt{background:#1565C0;border-color:#1565C0;color:#fff;}
+.chan-tab.active.ib{background:#0277BD;border-color:#0277BD;color:#fff;}
+.chan-tab.active.is{background:#7C2D12;border-color:#7C2D12;color:#fff;}
+.chan-tab.active.npi{background:#6A1B9A;border-color:#6A1B9A;color:#fff;}
+.sa-tag{display:inline-block;padding:1px 6px;border-radius:8px;font-size:8px;font-weight:700;letter-spacing:.03em;}
+.sa-Private{background:#E3EEFF;color:#1565C0;}
+.sa-IB{background:#E1F5FE;color:#0277BD;}
+.sa-IS{background:#FBE9E7;color:#7C2D12;}
+.sa-NPI{background:#F3E5F5;color:#6A1B9A;}
+.sb-divider{width:1px;height:26px;background:var(--rule);}
+.sb-right{margin-left:auto;}
+.si-val.warn{color:var(--amber);}
+.sum-tbl{border-collapse:collapse;font-size:11.5px;background:var(--surface);box-shadow:0 1px 4px rgba(13,27,42,.07);border-radius:6px;overflow:hidden;}
+.sum-tbl th{padding:6px 10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;background:var(--s2);color:var(--ink3);border-bottom:2px solid var(--rule);text-align:right;white-space:nowrap;}
+.sum-tbl th.left{text-align:left;}
+.sum-tbl th.mg{color:#fff;text-align:center;font-size:9px;}
+.sum-tbl td{padding:6px 10px;text-align:right;font-family:var(--mono);border-bottom:1px solid var(--rule-lt);}
+.sum-tbl td.left{text-align:left;font-family:var(--font);font-weight:600;}
+.sum-tbl tr.grand td{background:#0B2545;color:#fff;font-weight:700;border-bottom:none;}
+.sum-tbl tr.grand td.left{color:#fff;}
+.sum-tbl tr:hover td{background:#F5F9FE;}
+.sum-tbl tr.grand:hover td{background:#0B2545;}
+.sum-tbl td.tot{background:#EAF0F6;font-weight:700;}
+.sum-tbl td.ovr{background:#E8F5E9;font-weight:700;color:#1B5E20;}
+.sum-tbl td.zero{color:#B0BEC5;}
+.inp-rem{width:100%;min-width:110px;padding:3px 5px;border:1px solid var(--rule);border-radius:2px;font-size:10px;color:var(--ink);background:var(--surface);font-family:var(--font);}
+.inp-rem:focus{outline:2px solid #1565C0;border-color:#1565C0;background:#fff;}
+.ref-badge{display:inline-block;background:#C77700;color:#fff;font-size:9px;font-weight:700;border-radius:3px;padding:1px 5px;margin-left:5px;letter-spacing:.03em;}
+.mbom-y{color:#0B7A3B;font-weight:600;}
+.mbom-n{color:#B3261E;font-weight:600;}
+.ptable tr.refrow td{background:#FFF8E1;}
+.gap-note{margin:0 18px 10px;padding:8px 12px;border-radius:4px;font-size:11px;background:#FFF8E1;border-left:3px solid #F9A825;color:#6B4A12;}
+.mini-kpi{display:flex;gap:0;margin:12px 18px 4px;flex-wrap:wrap;}
+.mk{flex:1;min-width:130px;background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:10px 14px;margin-right:10px;box-shadow:var(--sh);}
+.mk-lbl{font-size:8.5px;color:var(--grey);text-transform:uppercase;letter-spacing:.06em;font-weight:700;}
+.mk-val{font-family:var(--mono);font-size:19px;font-weight:600;margin-top:3px;}
+.mk-sub{font-size:9.5px;color:var(--grey);margin-top:1px;}
+</style>
+<!--[if gte mso 9]><xml>
+<mso:CustomDocumentProperties>
+<mso:xd_Signature msdt:dt="string"></mso:xd_Signature>
+<mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Editor msdt:dt="string">Mohd. Zakariya</mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Editor>
+<mso:Order msdt:dt="string">42400.0000000000</mso:Order>
+<mso:xd_ProgID msdt:dt="string"></mso:xd_ProgID>
+<mso:_ExtendedDescription msdt:dt="string"></mso:_ExtendedDescription>
+<mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Author msdt:dt="string">Mohd. Zakariya</mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Author>
+<mso:ComplianceAssetId msdt:dt="string"></mso:ComplianceAssetId>
+<mso:TemplateUrl msdt:dt="string"></mso:TemplateUrl>
+<mso:ContentTypeId msdt:dt="string">0x010100915D1156AF89E94CB4E0E819A4FFFAAD</mso:ContentTypeId>
+<mso:TriggerFlowInfo msdt:dt="string"></mso:TriggerFlowInfo>
+<mso:_SourceUrl msdt:dt="string"></mso:_SourceUrl>
+<mso:_SharedFileIndex msdt:dt="string"></mso:_SharedFileIndex>
+<mso:MediaLengthInSeconds msdt:dt="string"></mso:MediaLengthInSeconds>
+<mso:MediaServiceImageTags msdt:dt="string"></mso:MediaServiceImageTags>
+<mso:lcf76f155ced4ddcb4097134ff3c332f msdt:dt="string"></mso:lcf76f155ced4ddcb4097134ff3c332f>
+</mso:CustomDocumentProperties>
+</xml><![endif]-->
+</head><body>
+
+<!-- ══ LOGIN ══ -->
+<div id="loginScreen">
+  <div class="login-wrap" style="flex-direction:column;align-items:center;">
+    <div style="text-align:center;margin-bottom:20px;position:relative;z-index:1;">
+      <div class="login-logo">VECV<span>plan</span> <span style="color:#7AB3E8;font-size:13px;font-weight:600;">&middot; ISO</span></div>
+      <div style="font-size:11px;color:#A8C4DC;margin-top:4px;">ISO Consolidation Workbench &middot; 4-channel moderation &rarr; single Production Plan</div>
+      <div style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:3px 10px;">
+        <span style="font-size:10px;color:#7AB3E8">S&OP cycle</span>
+        <span style="font-size:10px;color:#fff;font-weight:600">Jul 2026</span>
+        <span style="width:1px;height:12px;background:rgba(255,255,255,.2)"></span>
+        <span style="font-size:10px;color:#FBC99A">Private &middot; IB &middot; IS &middot; NPI &rarr; Production Plan &rarr; PPC</span>
+      </div>
+    </div>
+    <div class="login-card">
+      <div class="login-panel">
+        <div style="font-size:12px;color:var(--grey);margin-bottom:16px;">Sign in through VECVNet SSO. ISO / Central Planning moderates all four demand channels here, then consolidates them into a single national Production Plan that hands off to PPC.</div>
+        <div class="login-lane-hdr">ISO / Central Planning</div>
+        <div class="login-role-grid cols-2">
+          <div class="login-role iso" onclick="login()"><div class="login-role-name">ISO — Consolidation</div><div class="login-role-desc">Moderate 4 channels &middot; publish Production Plan</div></div>
+        </div>
+        <button class="login-btn" style="background:var(--navy);margin-top:18px;" onclick="login()">Sign in with VECVNet (SSO)</button>
+        <div class="login-note">Need the private dealer / CSM / RSM / VH workbench, COCO, IB, IS or NPI instead? <a href="VECVplan-Demand-Planning-Workbench-Phase0.html" style="color:var(--blue)">Go to the main workbench &rarr;</a></div>
+      </div>
+    </div>
+    <div style="margin-top:16px;font-size:10px;color:rgba(168,196,220,.5);position:relative;z-index:1;">Phase 0 · MVP · Replacing Kinaxis</div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div class="app" id="app">
+  <div class="topbar">
+    <div class="brand">VECV<span>plan</span> <span style="color:var(--enrich);font-size:11px;font-weight:600;">ISO</span></div>
+    <div class="divpipe"></div>
+    <div style="font-size:10.5px;color:var(--grey)">National Consolidation · ISO / Central Planning</div>
+    <div style="flex:1"></div>
+    <div class="user-pill">
+      <div class="avatar" style="background:#01579B">RK</div>
+      <div><div class="user-name">R. Krishnan</div><div class="user-role">ISO · Central Planning</div></div>
+    </div>
+    <button class="btn" onclick="location.href='VECVplan-Demand-Planning-Workbench-Phase0.html'" style="height:28px;padding:0 12px;font-size:11px;background:rgba(255,255,255,.08);color:#A8C4DC;border:1px solid rgba(255,255,255,.15);" title="Private dealer / CSM / RSM / VH workbench">&larr; Main workbench</button>
+    <button class="btn" onclick="logout()" style="height:28px;padding:0 12px;font-size:11px;background:rgba(255,255,255,.08);color:#A8C4DC;border:1px solid rgba(255,255,255,.15);">⎋ Sign out</button>
+  </div>
+
+  <div class="cycle-bar">
+    <div class="cycle-toggle">
+      <button class="cyc-btn active" id="cyc1" onclick="setCycle('1A')">S&OP-1A <span class="cyc-badge">Main Cycle</span></button>
+      <button class="cyc-btn" id="cyc2" onclick="setCycle('1B')">S&OP-1B <span class="cyc-badge">Revision</span></button>
+    </div>
+    <span class="cycle-info" id="cycleInfo">Main planning cycle · all four channels moderated before Production Plan release</span>
+    <div class="cutoff-pill"><span class="cutoff-lbl">PPC handoff</span><span class="cutoff-mono">22 Jul · 23:59</span></div>
+  </div>
+
+  <div class="screen-tabs">
+    <div class="stab active" id="tab-mod" onclick="switchScreen('mod')">Channel Moderation <span class="stab-badge sb-open">Editable</span></div>
+    <div class="stab" id="tab-fert" onclick="switchScreen('fert')">Production Plan by FERT <span class="stab-badge" style="background:#E3EEFF;color:#1565C0">Derived</span></div>
+    <div class="stab" id="tab-summary" onclick="switchScreen('summary')">Production Plan Summary <span class="stab-badge" style="background:#E8F5E9;color:#1B5E20">PPC handoff</span></div>
+    <div class="stab" id="tab-kpi" onclick="switchScreen('kpi')">Summary &amp; KPIs <span class="stab-badge" style="background:#F3E5F5;color:#6A1B9A">Analytics</span></div>
+  </div>
+
+  <div class="workspace">
+    <aside class="sidebar" id="appSidebar">
+      <div class="sidebar-head">
+        <span class="sb-title">Filters</span>
+        <button class="sb-collapse-btn" onclick="toggleSidebar()" title="Collapse filters">‹</button>
+      </div>
+      <div class="sb-collapsed-icons" onclick="toggleSidebar()"><span class="ci" title="Expand filters">⚟</span></div>
+      <div class="sidebar-body" id="sidebarBody"></div>
+    </aside>
+
+    <div class="main-content">
+
+      <div class="screen active" id="screen-mod">
+        <div class="page-hdr">
+          <div><div class="page-title" id="modTitle">ISO — Channel Moderation</div><div class="page-sub" id="modSub">Jul 2026 · M1 weekly (W1–W4) + M2/M3 monthly</div></div>
+          <div class="page-hdr-right">
+            <span class="phase-badge">Phase 0 · MVP</span>
+            <button class="btn btn-secondary" id="myToggleBtn" onclick="toggleMyPlanning()" title="Model Year planning — opens the MY split columns after Total">▸ Model Year</button>
+            <button class="btn btn-add" id="isoAddFertBtn" onclick="openIsoAddFert()" title="ISO backstop — add a FERT after the IB entry windows have closed">+ Add FERT</button>
+            <button class="btn btn-secondary" id="modCopyBtn" onclick="copyChannelForward()" title="Discard manual edits and re-derive the Production Requirement from the incoming plan">↺ Reset to incoming plan</button>
+          </div>
+        </div>
+        <div class="chan-tabs">
+          <span class="chan-label">Channel</span>
+          <div class="chan-tab pvt active" id="ct-Private" onclick="setChannel('Private')">Private <span class="cnt" id="cnt-Private"></span></div>
+          <div class="chan-tab ib" id="ct-IB" onclick="setChannel('IB')">IB <span class="cnt" id="cnt-IB"></span></div>
+          <div class="chan-tab is" id="ct-IS" onclick="setChannel('IS')">IS <span class="cnt" id="cnt-IS"></span></div>
+          <div class="chan-tab npi" id="ct-NPI" onclick="setChannel('NPI')">NPI <span class="cnt" id="cnt-NPI"></span></div>
+          <span style="margin-left:auto;font-size:10px;color:var(--grey)" id="modScope"></span>
+        </div>
+        <div id="modNotice" style="padding:8px 16px 0;"></div>
+        <div class="grid-scroll"><table class="ptable" id="modTable" style="min-width:1100px"><thead id="modHead"></thead><tbody id="modBody"></tbody></table></div>
+        <div class="sum-bar" id="modSumBar"></div>
+      </div>
+
+      <div class="screen" id="screen-fert">
+        <div class="page-hdr">
+          <div><div class="page-title" id="fertTitle">Production Plan by FERT</div><div class="page-sub" id="fertSub">One line per FERT × destination × Sales Area · Sales Area tag preserved on every row</div></div>
+          <div class="page-hdr-right"><span class="phase-badge">Phase 0 · MVP</span>
+            <button class="btn btn-success" id="fertReleaseBtn" onclick="releaseToPpc()">Release to PPC ↑</button></div>
+        </div>
+        <!-- EPS is a PARALLEL production plan, not a fifth Sales Area. It never mixes into the
+             main plan's rows — the two tabs are two separate outputs. -->
+        <div class="chan-tabs">
+          <span class="chan-label">Plan</span>
+          <div class="chan-tab pvt active" id="pt-main" onclick="setPlanTab('main')">All Channels <span class="cnt" id="cnt-planmain"></span></div>
+          <div class="chan-tab npi" id="pt-eps" onclick="setPlanTab('eps')">EPS <span class="cnt" id="cnt-planeps"></span></div>
+          <span style="margin-left:auto;font-size:10px;color:var(--grey)" id="planTabScope"></span>
+        </div>
+        <div id="fertNotice" style="padding:8px 16px 0;"></div>
+        <div class="grid-scroll"><table class="ptable" id="fertTable" style="min-width:1250px"><thead id="fertHead"></thead><tbody id="fertBody"></tbody></table></div>
+        <div class="sum-bar" id="fertSumBar"></div>
+      </div>
+
+      <div class="screen" id="screen-kpi">
+        <div class="page-hdr">
+          <div><div class="page-title">Summary &amp; KPIs</div><div class="page-sub">National view across all four channels &middot; plan health, ABP tracking and stock aging</div></div>
+          <div class="page-hdr-right"><span class="phase-badge">Phase 0 &middot; MVP</span></div>
+        </div>
+        <div class="grid-scroll" id="kpiBody"></div>
+      </div>
+
+      <div class="screen" id="screen-summary">
+        <div class="page-hdr">
+          <div><div class="page-title">Production Plan Summary</div><div class="page-sub">Vertical × Channel · aggregated live from the by-FERT plan · this is the PPC handoff view</div></div>
+          <div class="page-hdr-right"><span class="phase-badge">Phase 0 · MVP</span>
+          <button class="btn btn-success" onclick="releaseToPpc()">Release to PPC ↑</button></div>
+        </div>
+        <div class="mini-kpi" id="sumKpis"></div>
+        <div id="sumNotice" style="padding:0 18px 4px;"></div>
+        <div class="grid-scroll" style="padding-top:4px"><table class="sum-tbl" id="sumTable" style="min-width:1000px"><thead id="sumHead"></thead><tbody id="sumBody"></tbody></table>
+          <div class="gap-note" style="margin-top:14px" id="sumGap"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<!-- ══ ISO POST-CUTOFF FERT ADDITION ══
+     Workshop 19 Aug 2026 (Rajkumar): "cutoff date is over, then global head also missed to add
+     this new foot code. If he's saying can we add, then our sales planning team, ISO team is the
+     person who can add new foot codes." This is ISO's backstop after the IB chain's own windows
+     (Country 12th, Regional 13th, Global 15th) have closed. -->
+<div class="modal-bg" id="isoAddFertModal">
+  <div class="modal">
+    <div class="modal-hdr"><h3>Add FERT after cut-off</h3><button class="modal-close" onclick="closeIsoAddFert()">&times;</button></div>
+    <div style="padding:10px 20px;background:#FFF8E1;border-bottom:1px solid var(--rule);font-size:11px;color:#6B4A12">
+      <strong>ISO backstop.</strong> The IB entry windows have closed (Country 12th &middot; Regional 13th &middot; Global 15th). ISO / Sales Planning can still introduce a FERT so late demand is not lost from this cycle. The addition is logged against ISO.
+    </div>
+    <div style="padding:12px 20px;border-bottom:1px solid var(--rule);display:flex;gap:10px;align-items:flex-end">
+      <div class="fil" style="flex:1"><label>Channel</label><select id="isoAddChannel" class="sb-select" style="background:#fff;color:var(--ink);border-color:var(--rule);height:34px" onchange="renderIsoAddList('')"><option value="IB">IB</option><option value="IS">IS</option></select></div>
+      <div class="fil" style="flex:1"><label id="isoAddScopeLbl">Country</label><select id="isoAddScope" class="sb-select" style="background:#fff;color:var(--ink);border-color:var(--rule);height:34px"></select></div>
+    </div>
+    <div class="modal-search"><input type="text" placeholder="Search FERT code or description…" oninput="renderIsoAddList(this.value.toLowerCase())"></div>
+    <div class="modal-list" id="isoAddList"></div>
+    <div class="modal-ftr">
+      <button class="btn btn-secondary" onclick="closeIsoAddFert()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmIsoAddFert()">Add selected</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════════
+//  VECVplan — ISO CONSOLIDATION WORKBENCH (Phase 0)
+//
+//  Grounded on the real Kinaxis exports (VE Network Vehicle Planning / VE Production
+//  Planning, June 2026 S&OP1 + S&OP2). Those files show ISO moderating FOUR structurally
+//  distinct demand channels, each with its own sheet and its own grain:
+//
+//    Private  — "Demand Netting (S&OP1)"          Vertical + FERT
+//    IB       — "IB Demand Netting & Moderation"  Country  + Vertical + FERT + Model Year
+//    IS       — "IS Demand Netting & Moderation"  Customer + Region   + FERT + Model Year
+//    NPI      — "Fert Addition"                   FERT + Model Year (current/next) + RGP
+//
+//  ...which then consolidate into ONE production plan, published two ways:
+//    "Production Plan by FERT"    — line items, Sales Area tag retained per row
+//    "Production Plan Summary"    — Vertical × {Pvt, IS, IB, NPI, RGP/WIP, Total, CL}
+//
+//  COCO is deliberately NOT a channel here. COCO indent is visible to VH on the main
+//  workbench (the read-only "COCO VH Indent" column group) and VH factors it into the
+//  number they submit — so by the time ISO sees it, COCO is already inside Private.
+//  This matches the source files exactly: Sales Area values are PRIVATE / IB / IS /
+//  NPI_PROJECT, with no COCO value anywhere.
+//
+//  Months follow the rest of the VECVplan suite (M1 = Jul 26, M2 = Aug, M3 = Sep) rather
+//  than the June-2026 cycle in the sample exports, so this file lines up with the main
+//  workbench, COCO, IB, IS and NPI screens.
+// ════════════════════════════════════════════════════════════════════════════
+
+// ── Verticals. Kept as a data object (not hardcoded table rows) specifically so SUB5T can
+//    be promoted from an LMD sub-vertical to a peer vertical later as a data change. The
+//    real Production Plan Summary reports LMD / SUB5T / HD / BUS / SCV as peers; the rest
+//    of the VECVplan suite models Sub-5T inside LMD. Open client question — parked.
+const VERTS=[
+  {key:"LMD",name:"LMD",color:"#1565C0"},
+  {key:"HD", name:"HD", color:"#6A1B9A"},
+  {key:"Bus",name:"Bus",color:"#00695C"},
+  {key:"SCV",name:"SCV",color:"#C2185B"},
+];
+// ══ PRODUCTION PLAN SUMMARY TAXONOMY ══
+// Grounded on "Summary of S&OP1A Sept26" in the real VEF workbook. The released summary is NOT a
+// Vertical x Channel matrix — it is a hierarchy of plan lines with subtotals, and the channels
+// (IS / IB / NPI) sit as rows at the bottom rather than as columns. Rows marked total:true are
+// computed from the leaves above them; PLAN is the final released figure.
+const SUM_ROWS=[
+  {key:"5-18 Ton",           label:"5-18 Ton"},
+  {key:"Sub 5 ton",          label:"Sub 5 ton"},
+  {key:"LMD Total",          label:"LMD Total",  total:["5-18 Ton","Sub 5 ton"]},
+  {key:"HD - MAV & TT",      label:"HD - MAV & TT"},
+  {key:"HD- 4x2",            label:"HD- 4x2"},
+  {key:"HD Pro 6000 Tipper", label:"HD Pro 6000 Tipper"},
+  {key:"HD Pro 8000 Tipper", label:"HD Pro 8000 Tipper"},
+  {key:"HD Total",           label:"HD Total",   total:["HD - MAV & TT","HD- 4x2","HD Pro 6000 Tipper","HD Pro 8000 Tipper"]},
+  {key:"LMD Built up Bus",   label:"LMD Built up Bus"},
+  {key:"LMD Mkt Cwc",        label:"LMD Mkt Cwc"},
+  {key:"HD Built up Bus",    label:"HD Built up Bus"},
+  {key:"HD Mkt Cwc",         label:"HD Mkt Cwc"},
+  {key:"LMD EV Bus",         label:"LMD EV Bus"},
+  {key:"HD EV Bus",          label:"HD EV Bus"},
+  {key:"Bus Total",          label:"Bus Total",  total:["LMD Built up Bus","LMD Mkt Cwc","HD Built up Bus","HD Mkt Cwc","LMD EV Bus","HD EV Bus"]},
+  {key:"Pro X Total",        label:"Pro X Total"},
+  {key:"IS",                 label:"IS",  chan:true},
+  {key:"IB",                 label:"IB",  chan:true},
+  {key:"NPI Vehicles",       label:"NPI Vehicles", chan:true},
+  {key:"NPI Pro X",          label:"NPI Pro X",    chan:true},
+];
+const SUM_GRAND=["LMD Total","HD Total","Bus Total","Pro X Total","IS","IB","NPI Vehicles","NPI Pro X"];
+const CHANNELS=["Private","IB","IS","NPI"];
+
+// ══ PRIVATE ══ Vertical + FERT. Sales Plan (w1-w4/m2/m3) is VH's submitted, COCO-inclusive
+// figure — read-only to ISO. openFg/stockNorm are the netting reference.
+const ISO_PRIVATE=[
+  // Private / PVT. Country is "India" and the week-wise spread is genuine (unlike IB/IS, which
+  // land wholly in W1), matching the PVT rows in the real S&OP1A Sep26 plan. sumRow is the
+  // Production Plan Summary line this FERT rolls into.
+  {vert:"LMD",sumRow:"5-18 Ton",code:"V4130CAF",desc:"Pro 2110 H HSD 20FT BSVI NGB AC",seg:"R",my:"MY26",product:"Pro 2110",fuel:"DIESEL",engine:"5-17.5 Ton - E 494",engineRev:"E494_BS6_DSL",spl:"",acnac:"AC",openFg:4, w1:24,w2:23,w3:23,w4:22,m2:88,m3:82,abp:100,avg6m:88,st60:4,st60_90:2,st90_180:1,st180:1,vhPrio:6,sop1Plan:92,opnStock:14,netRedFG:14,netAddFG:0,remarks:""},
+  {vert:"LMD",sumRow:"5-18 Ton",code:"V4030DZL",desc:"Pro 2110 L CBC 22FT BSVI NGB AC",seg:"R",my:"MY26",product:"Pro 2110",fuel:"DIESEL",engine:"5-17.5 Ton - E 494",engineRev:"E494_BS6_DSL",spl:"",acnac:"AC",openFg:17,w1:19,w2:18,w3:18,w4:18,m2:70,m3:65,abp:72,avg6m:70,st60:17,st60_90:0,st90_180:0,st180:0,vhPrio:0,sop1Plan:70,opnStock:20,netRedFG:20,netAddFG:3,remarks:""},
+  {vert:"LMD",sumRow:"5-18 Ton",code:"V5530TKR",desc:"Pro 2059XP Plus F HSD EW 14FT BSVI AC",seg:"R",my:"MY26",product:"Pro 2059XP",fuel:"DIESEL",engine:"5-17.5 Ton - E 474",engineRev:"E474_BS6_DSL",spl:"",acnac:"AC",openFg:1, w1:9, w2:8, w3:8, w4:8, m2:35,m3:32,abp:38,avg6m:33,st60:1,st60_90:0,st90_180:0,st180:0,vhPrio:2,sop1Plan:35,opnStock:6,netRedFG:6,netAddFG:0,remarks:""},
+  {vert:"LMD",sumRow:"5-18 Ton",code:"V4025EXP",desc:"Pro 2095XPT D FBT BSVI LY PRM",seg:"S",my:"MY26",product:"Pro 2095XPT",fuel:"DIESEL",engine:"5-17.5 Ton - E 474",engineRev:"E474_BS6_DSL",spl:"FBT",acnac:"NAC",openFg:5, w1:8, w2:8, w3:7, w4:7, m2:28,m3:26,abp:26,avg6m:30,st60:3,st60_90:1,st90_180:1,st180:0,vhPrio:6,sop1Plan:28,opnStock:4,netRedFG:4,netAddFG:2,remarks:"Body-build lead time"},
+  {vert:"LMD",sumRow:"5-18 Ton",code:"V3515SUB",desc:"Pro 2095XP F HSD 16FT BSVI AC NGB",seg:"R",my:"MY26",product:"Pro 2095XP",fuel:"DIESEL",engine:"5-17.5 Ton - E 474",engineRev:"E474_BS6_DSL",spl:"",acnac:"AC",openFg:8, w1:10,w2:10,w3:9, w4:9, m2:38,m3:35,abp:42,avg6m:36,st60:6,st60_90:1,st90_180:1,st180:0,vhPrio:0,sop1Plan:40,opnStock:9,netRedFG:9,netAddFG:0,remarks:""},
+  {vert:"LMD",sumRow:"Sub 5 ton",code:"V2015SUB",desc:"Pro 1055 NG 4.9T BSVI NAC",seg:"R",my:"MY26",product:"Pro 1055",fuel:"CNG",engine:"Sub 5T - E 384",engineRev:"E384_BS6_CNG",spl:"",acnac:"NAC",openFg:3, w1:5, w2:5, w3:4, w4:4, m2:18,m3:16,abp:20,avg6m:17,st60:3,st60_90:0,st90_180:0,st180:0,vhPrio:0,sop1Plan:18,opnStock:2,netRedFG:2,netAddFG:0,remarks:""},
+  {vert:"HD", sumRow:"HD- 4x2",  code:"H4940MAV",desc:"HD 4940 MAV 4x2 BSVI",seg:"R",my:"MY26",product:"Pro 4940",fuel:"DIESEL",engine:"MDE5_BS6_DSL",engineRev:"MDE5_BS6_DSL",spl:"",acnac:"NAC",openFg:5, w1:9, w2:8, w3:8, w4:8, m2:30,m3:28,abp:34,avg6m:31,st60:4,st60_90:1,st90_180:0,st180:0,vhPrio:3,sop1Plan:30,opnStock:5,netRedFG:5,netAddFG:1,remarks:""},
+  {vert:"HD", sumRow:"HD Pro 6000 Tipper",code:"H6030TIP",desc:"HD 6030 Tipper BSVI",seg:"S",my:"MY26",product:"Pro 6000",fuel:"DIESEL",engine:"MDE5_BS6_DSL",engineRev:"MDE5_BS6_DSL",spl:"Tipper",acnac:"NAC",openFg:3, w1:5, w2:5, w3:4, w4:4, m2:18,m3:16,abp:16,avg6m:19,st60:2,st60_90:1,st90_180:0,st180:0,vhPrio:0,sop1Plan:18,opnStock:3,netRedFG:3,netAddFG:0,remarks:""},
+  {vert:"HD", sumRow:"HD Pro 8000 Tipper",code:"H8028TIP",desc:"Pro 8028 6x4 Tipper BSVI",seg:"S",my:"MY26",product:"Pro 8028 FBT",fuel:"DIESEL",engine:"MDE8_BS6_DSL",engineRev:"MDE8_BS6_DSL",spl:"Tipper",acnac:"NAC",openFg:1, w1:2, w2:3, w3:7, w4:7, m2:55,m3:50,abp:22,avg6m:18,st60:1,st60_90:0,st90_180:0,st180:0,vhPrio:0,sop1Plan:20,opnStock:1,netRedFG:1,netAddFG:4,remarks:""},
+  {vert:"HD", sumRow:"HD - MAV & TT",code:"H6040MAV",desc:"PRO 6040 E BSVI CBC MAV",seg:"D",my:"MY26",product:"Pro 6040",fuel:"DIESEL",engine:"MDE5_BS6_DSL",engineRev:"MDE5_BS6_DSL",spl:"",acnac:"AC",openFg:2, w1:2, w2:3, w3:7, w4:7, m2:55,m3:50,abp:24,avg6m:17,st60:1,st60_90:1,st90_180:0,st180:0,vhPrio:0,sop1Plan:19,opnStock:2,netRedFG:2,netAddFG:0,remarks:""},
+  // "LMD Bus" — a vertical value present in the real plan but absent from the workbench's VERTS.
+  {vert:"LMD Bus",sumRow:"LMD Built up Bus",code:"B3010LSF",desc:"Skl Pro 3010 L Stf CNG BSVI",seg:"S",my:"MY26",product:"Skyline Pro NAC",fuel:"CNG",engine:"BS6-CNG",engineRev:"E494",spl:"Staff",acnac:"NAC",openFg:2, w1:6, w2:6, w3:5, w4:5, m2:22,m3:20,abp:24,avg6m:20,st60:2,st60_90:0,st90_180:0,st180:0,vhPrio:2,sop1Plan:22,opnStock:2,netRedFG:2,netAddFG:0,remarks:""},
+  {vert:"LMD Bus",sumRow:"LMD Mkt Cwc",code:"B2090KHV",desc:"2090 K HVAC PB (31+CD+1)",seg:"D",my:"MY26",product:"Starline",fuel:"DIESEL",engine:"E474",engineRev:"E474",spl:"Cowl",acnac:"AC",openFg:0, w1:3, w2:3, w3:2, w4:2, m2:11,m3:10,abp:9,avg6m:11,st60:0,st60_90:0,st90_180:0,st180:0,vhPrio:0,sop1Plan:11,opnStock:0,netRedFG:0,netAddFG:2,remarks:"Cowl to market body-builder"},
+  {vert:"Bus",sumRow:"LMD EV Bus",code:"B3215LMD",desc:"Bus LMD 32-Seater CNG BSVI AC",seg:"R",my:"MY26",product:"Skyline Pro",fuel:"CNG",engine:"BS6-CNG",engineRev:"E494",spl:"",acnac:"AC",openFg:8, w1:4, w2:4, w3:3, w4:3, m2:14,m3:12,abp:12,avg6m:15,st60:5,st60_90:2,st90_180:1,st180:0,vhPrio:2,sop1Plan:14,opnStock:8,netRedFG:8,netAddFG:0,remarks:""},
+  {vert:"SCV",sumRow:"Sub 5 ton",code:"S1075SCV",desc:"Pro 1055 SCV 1.5T BSVI",seg:"R",my:"MY26",product:"Pro 1055",fuel:"DIESEL",engine:"Sub 5T - E 384",engineRev:"E384_BS6_DSL",spl:"",acnac:"NAC",openFg:6, w1:12,w2:12,w3:11,w4:11,m2:44,m3:40,abp:50,avg6m:42,st60:4,st60_90:1,st90_180:1,st180:0,vhPrio:0,sop1Plan:46,opnStock:6,netRedFG:6,netAddFG:0,remarks:""},
+];
+
+const ISO_IB=[
+  {vert:"LMD",sumRow:"IB",country:"Bangladesh", code:"85200676",desc:"Pro3015 M SLP CBC BS3 TY PRM CKD EXP",seg:"R",my:"MY26",product:"Pro 3015",fuel:"DIESEL",engine:"5-17.5 Ton - E 474",engineRev:"E474_BS3_DSL",spl:"CKD",acnac:"NAC",netOrd:30,hold:0,opnStock:4,curStock:6, prevCommit:0, req:20,sop1a:18,override:20,m2:10,m3:15,remarks:""},
+  {vert:"LMD",sumRow:"IB",country:"Bangladesh", code:"85209275",desc:"Pro 3015 J CBC BS3 NABS TY PRM CKD EXP",seg:"R",my:"MY26",product:"Pro 3015",fuel:"DIESEL",engine:"5-17.5 Ton - E 474",engineRev:"E474_BS3_DSL",spl:"CKD",acnac:"NAC",netOrd:40,hold:0,opnStock:2,curStock:5, prevCommit:0, req:30,sop1a:30,override:30,m2:20,m3:20,remarks:""},
+  {vert:"LMD",sumRow:"IB",country:"Bangladesh", code:"85209632",desc:"Pro3015 M SLP CBC RHD BS3 EXP",seg:"S",my:"MY26",product:"Pro 3015",fuel:"DIESEL",engine:"5-17.5 Ton - E 474",engineRev:"E474_BS3_DSL",spl:"",acnac:"NAC",netOrd:12,hold:12,opnStock:0,curStock:0,prevCommit:0, req:0, sop1a:0,override:0, m2:10,m3:10,remarks:"On hold — customer deferred"},
+  {vert:"LMD",sumRow:"IB",country:"Zambia",     code:"85203906",desc:"Pro3015 J SLP HSD PS BS3 EXP",seg:"S",my:"MY26",product:"Pro 3015",fuel:"DIESEL",engine:"5-17.5 Ton - E 474",engineRev:"E474_BS3_DSL",spl:"",acnac:"NAC",netOrd:4, hold:0,opnStock:1,curStock:1, prevCommit:0, req:2, sop1a:2,override:2, m2:1, m3:1,remarks:""},
+  {vert:"LMD",sumRow:"IB",country:"Uganda",     code:"85203906",desc:"Pro3015 J SLP HSD PS BS3 EXP",seg:"S",my:"MY26",product:"Pro 3015",fuel:"DIESEL",engine:"5-17.5 Ton - E 474",engineRev:"E474_BS3_DSL",spl:"",acnac:"NAC",netOrd:6, hold:0,opnStock:6,curStock:6, prevCommit:0, req:0, sop1a:3,override:0, m2:4, m3:0,remarks:"Fully covered by stock"},
+  {vert:"LMD",sumRow:"IB",country:"South Africa",code:"84109653",desc:"Pro 2090 J E3 AB ABS EXP",seg:"R",my:"MY25",product:"Pro 2090",fuel:"DIESEL",engine:"5-17.5 Ton - E 474",engineRev:"E474_BS3_DSL",spl:"",acnac:"NAC",netOrd:14,hold:0,opnStock:2,curStock:3, prevCommit:0, req:10,sop1a:12,override:10,m2:0, m3:0,remarks:""},
+  {vert:"HD", sumRow:"IB",country:"Nepal",      code:"91408025",desc:"Pro 6028XPT G BSVI DWPRM 11X20 16BB SE",seg:"S",my:"MY26",product:"Pro 6028XPT",fuel:"DIESEL",engine:"MDE8_BS6_DSL",engineRev:"MDE8_BS6_DSL",spl:"",acnac:"NAC",netOrd:9, hold:0,opnStock:0,curStock:1, prevCommit:2, req:7, sop1a:7,override:6, m2:5, m3:4,remarks:""},
+  {vert:"Bus",sumRow:"IB",country:"Sri Lanka",  code:"96051543",desc:"Skl Pro 3011L Stf 3L Dd BSVI EXP",seg:"R",my:"MY26",product:"Skyline Pro",fuel:"DIESEL",engine:"E494",engineRev:"E494_BS6_DSL",spl:"Staff",acnac:"NAC",netOrd:18,hold:0,opnStock:3,curStock:4, prevCommit:0, req:15,sop1a:12,override:15,m2:8, m3:6,remarks:""},
+];
+
+// IS. NOTE: in the released plan the Country column carries the CUSTOMER on IS rows
+// ("Wardha Police", "ITBP (8)"), not a country — custName is what surfaces there.
+const ISO_IS=[
+  {vert:"LMD",sumRow:"IS",custCode:"0001350321",custName:"The Commissioner",region:"IS South1",code:"94703496",desc:"Pro2075 D CBC 12FT AB BSVI AC DW 5S PRM#",seg:"R",my:"MY26",product:"Pro 2000",fuel:"DIESEL",engine:"5-17.5 Ton - E 474",engineRev:"E474_BS6_DSL",spl:"",acnac:"AC",demand:60,opnStock:0,prevCommit:0,sop1a:60,override:60,m2:0, m3:0,remarks:""},
+  {vert:"LMD",sumRow:"IS",custCode:"0001350321",custName:"The Commissioner",region:"IS South1",code:"94903498",desc:"Pro2095 E CBC 14FT BSVI AC AC POR PRM#",seg:"R",my:"MY26",product:"Pro 2000",fuel:"DIESEL",engine:"5-17.5 Ton - E 474",engineRev:"E474_BS6_DSL",spl:"",acnac:"AC",demand:88,opnStock:0,prevCommit:0,sop1a:80,override:88,m2:0, m3:0,remarks:""},
+  {vert:"LMD",sumRow:"IS",custCode:"0001350688",custName:"Sr. Manager, Mail Motor Service",region:"IS West",code:"92052842",desc:"Pro2095XP G MSC BSVI AC 5S POR RX#",seg:"S",my:"MY26",product:"Pro 2095XP",fuel:"DIESEL",engine:"5-17.5 Ton - E 474",engineRev:"E474_BS6_DSL",spl:"MSC",acnac:"AC",demand:6, opnStock:0,prevCommit:0,sop1a:6,override:6, m2:6, m3:0,remarks:""},
+  {vert:"LMD",sumRow:"IS",custCode:"0001350812",custName:"Directorate General of Border",region:"IS North",code:"99753255",desc:"Pro2114XP H20FT BSVI RB 7S WTMS AC#",seg:"S",my:"MY26",product:"Pro 2119",fuel:"DIESEL",engine:"E494_BS6_DSL",engineRev:"E494_BS6_DSL",spl:"WTMS",acnac:"AC",demand:5, opnStock:0,prevCommit:0,sop1a:5,override:5, m2:5, m3:0,remarks:""},
+  {vert:"LMD",sumRow:"IS",custCode:"0001350047",custName:"S.P. Central Stores, PHQ",region:"IS North2",code:"94900443",desc:"Pro2095 F 16FT WTANK BSVI AC NGB 5S WTL",seg:"S",my:"MY26",product:"Pro 2000",fuel:"DIESEL",engine:"5-17.5 Ton - E 474",engineRev:"E474_BS6_DSL",spl:"WTank",acnac:"AC",demand:1, opnStock:0,prevCommit:0,sop1a:1,override:1, m2:0, m3:0,remarks:""},
+  {vert:"HD", sumRow:"IS",custCode:"0001347365",custName:"TPS Infrastructure Ltd.",region:"IS West",code:"93205040",desc:"Pro6019XPT F BSVIDW 11X20 8.5B UTEBPRM",seg:"D",my:"MY26",product:"Pro 6000",fuel:"DIESEL",engine:"MDE5_BS6_DSL",engineRev:"MDE5_BS6_DSL",spl:"",acnac:"NAC",demand:2, opnStock:0,prevCommit:0,sop1a:2,override:2, m2:2, m3:0,remarks:""},
+  {vert:"LMD Bus",sumRow:"IS",custCode:"0001344268",custName:"Union of India through DIG",region:"IS South1",code:"96051543",desc:"Skl Pro 3011L Stf 3L Dd BSVI",seg:"R",my:"MY26",product:"Skyline Pro NAC",fuel:"DIESEL",engine:"E494",engineRev:"E494_BS6_DSL",spl:"Staff",acnac:"NAC",demand:10,opnStock:4,prevCommit:0,sop1a:10,override:6, m2:10,m3:10,remarks:""},
+  {vert:"LMD Bus",sumRow:"IS",custCode:"0001349109",custName:"ITBP (8)",region:"IS North",code:"95256806",desc:"2090 K HVAC PB (31+CD+1)",seg:"S",my:"MY26",product:"Starline",fuel:"DIESEL",engine:"E474",engineRev:"E474",spl:"HVAC",acnac:"AC",demand:8, opnStock:0,prevCommit:0,sop1a:4,override:8, m2:0, m3:0,remarks:""},
+];
+
+const ISO_NPI=[
+  {vert:"HD", sumRow:"NPI Vehicles",code:"99108363",desc:"Pro3019 S 32FT CWC BSVI CNG NGB 6S PRM",cat:"HD",eng:"E694",need:"Project",mkt:"Seeding",mktQty:0,proj:"Pro 3019",seg:"S",myCur:"MY26",myNext:"MY27",product:"Pro 3019",fuel:"CNG",engine:"E494_BS6_CNG",engineRev:"E494_BS6_CNG",spl:"CWC",acnac:"NAC",stage:"C-Build",fertStatus:"Released",ebom:"Y",mbom:"Y",ref:"",w1:1,w2:0,w3:0,w4:0,rgp:0,m2:1,m3:0,remarks:""},
+  {vert:"HD", sumRow:"NPI Vehicles",code:"91408030",desc:"Pro 6028XPT G BSVI DW PRM 11X20 CBC",cat:"HD",eng:"MDE8",need:"Project",mkt:"Seeding",mktQty:0,proj:"Pro 6028",seg:"S",myCur:"MY26",myNext:"MY27",product:"Pro 6028 FBT",fuel:"DIESEL",engine:"MDE8_BS6_DSL",engineRev:"MDE8_BS6_DSL",spl:"",acnac:"NAC",stage:"C-Build",fertStatus:"Released",ebom:"Y",mbom:"Y",ref:"",w1:1,w2:1,w3:0,w4:0,rgp:0,m2:1,m3:1,remarks:""},
+  {vert:"HD", sumRow:"NPI Vehicles",code:"91508112",desc:"Pro 8028 6x4 Tipper BSVI",cat:"HD",eng:"MDE10",need:"Project",mkt:"Seeding",mktQty:0,proj:"Pro 8028",seg:"S",myCur:"MY26",myNext:"MY27",product:"Pro 8028 FBT",fuel:"DIESEL",engine:"MDE8_BS6_DSL",engineRev:"MDE8_BS6_DSL",spl:"Tipper",acnac:"NAC",stage:"C-Build",fertStatus:"Released",ebom:"Y",mbom:"N",ref:"",w1:1,w2:1,w3:0,w4:0,rgp:0,m2:1,m3:1,remarks:"MBOM not released"},
+  {vert:"Bus",sumRow:"NPI Pro X",   code:"93502210",desc:"Skyline Pro 12M AC BSVI Staff",cat:"Bus",eng:"E497",need:"Project",mkt:"Seeding",mktQty:0,proj:"Skyline Pro",seg:"R",myCur:"MY26",myNext:"MY27",product:"Skyline Pro",fuel:"DIESEL",engine:"E494_BS6_DSL",engineRev:"E494_BS6_DSL",spl:"Staff",acnac:"AC",stage:"C-Build",fertStatus:"Released",ebom:"Y",mbom:"Y",ref:"",w1:0,w2:1,w3:1,w4:0,rgp:2,m2:2,m3:2,remarks:""},
+  {vert:"LMD",sumRow:"NPI Vehicles",code:"",        desc:"Pro2049 D BSVI 14FT CBC (FERT pending)",cat:"LMD",eng:"E494",need:"Project",mkt:"",mktQty:0,proj:"Pro 2049",seg:"R",myCur:"MY26",myNext:"MY27",product:"Pro 2049",fuel:"DIESEL",engine:"E494_BS6_DSL",engineRev:"E494_BS6_DSL",spl:"",acnac:"NAC",stage:"Proto",  fertStatus:"Pending",ebom:"Y",mbom:"N",ref:"REF-2049-14FT",w1:2,w2:1,w3:0,w4:0,rgp:0,m2:3,m3:2,remarks:"Reference FERT — PPC to swap on release"},
+  {vert:"Bus",sumRow:"NPI Pro X",   code:"",        desc:"Starline 9M CNG BSVI Staff (no EBOM yet)",cat:"Bus",eng:"E497",need:"Regulation",mkt:"",mktQty:0,proj:"Starline",seg:"S",myCur:"MY26",myNext:"MY27",product:"Starline",fuel:"CNG",engine:"BS6-CNG",engineRev:"E494",spl:"Staff",acnac:"NAC",stage:"Concept",fertStatus:"Pending",ebom:"N",mbom:"N",ref:"",w1:0,w2:0,w3:1,w4:1,rgp:0,m2:2,m3:2,remarks:"EBOM not released"},
+];
+
+// ══ MODERATION STATE ══ ISO's edits sit in an overlay keyed by row, never mutating the
+// source channel data — so a re-copy from the incoming plan is always possible, and the
+// "what did ISO change" audit is a diff of overlay vs source.
+const MOD_STATE={};
+function rowKey(ch,d,i){
+  if(ch==='IB')return 'IB|'+d.country+'|'+d.code;
+  if(ch==='IS')return 'IS|'+d.custCode+'|'+d.code;
+  if(ch==='NPI')return 'NPI|'+(d.code||d.ref||('row'+i));
+  return 'Private|'+d.code;
+}
+function stateFor(k,init){ if(!MOD_STATE[k])MOD_STATE[k]=Object.assign({copied:false,prio:0,pw1:0,pw2:0,pw3:0,pw4:0,rgp:0,override:null},init||{}); return MOD_STATE[k]; }
+
+// ── UI state ──
+let activeCycle='1A',activeScreen='mod',activeChannel='Private',sidebarCollapsed=false;
+let fVert=new Set(),fSeg=new Set(),fChan=new Set(),fSearch='';
+// Production-plan filters. Every one of these is a column on the released VEF form, so ISO can
+// slice its own handoff the same way PPC will read it. Engine is included because the source
+// workbook carries three separate engine-wise summary sheets — it is a first-class dimension.
+let fProduct=new Set(),fFuel=new Set(),fEngine=new Set(),fEngineRev=new Set(),fSpl=new Set(),fAcnac=new Set(),fCountry=new Set(),fFert=new Set(),fUrgentOnly=false;
+
+function login(){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').classList.add('active');
+  buildSidebar(); renderAll();
+}
+function logout(){
+  document.getElementById('app').classList.remove('active');
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+}
+function setCycle(c){
+  // 1A and 1B are structurally different sheets, so switching re-derives the Production
+  // Requirement for the new cycle rather than carrying 1A's numbers into 1B's netted layout.
+  if(c!==activeCycle){ ISO_PRIVATE.forEach((f,i)=>{ delete MOD_STATE[rowKey('Private',f,i)]; }); }
+  activeCycle=c;
+  document.getElementById('cyc1').classList.toggle('active',c==='1A');
+  document.getElementById('cyc2').classList.toggle('active',c==='1B');
+  renderByFert();
+  document.getElementById('cycleInfo').textContent = c==='1A'
+    ? 'Main planning cycle · all four channels moderated before Production Plan release'
+    : 'Revision cycle · ISO-only re-moderation against the locked S&OP-1A baseline';
+  renderAll();
+}
+function switchScreen(s){
+  activeScreen=s;
+  ['mod','fert','summary','kpi'].forEach(k=>{
+    document.getElementById('tab-'+k).classList.toggle('active',k===s);
+    document.getElementById('screen-'+k).classList.toggle('active',k===s);
+  });
+  renderAll();
+}
+function setChannel(c){
+  activeChannel=c;
+  CHANNELS.forEach(k=>document.getElementById('ct-'+k).classList.toggle('active',k===c));
+  renderModeration();
+}
+function toggleSidebar(){
+  sidebarCollapsed=!sidebarCollapsed;
+  document.getElementById('appSidebar').classList.toggle('collapsed',sidebarCollapsed);
+}
+function renderAll(){ renderModeration(); renderByFert(); renderSummary(); renderKpis(); }
+
+// ── Sidebar (same chip/group pattern as the IB / IS / NPI workbenches) ──
+const sbGroupState={};
+function toggleSbGroup(k){ sbGroupState[k]=sbGroupState[k]==='closed'?'open':'closed'; buildSidebar(); }
+function chip(label,active,onclick){ return '<button class="sb-chip'+(active?' on':'')+'" onclick="'+onclick+'">'+label+'</button>'; }
+function sbGroup(key,label,val,body){
+  const closed=sbGroupState[key]==='closed';
+  return '<div class="sb-group'+(closed?' closed':'')+'"><div class="sb-group-hd" onclick="toggleSbGroup(\''+key+'\')"><span class="ca">▼</span><span class="lbl">'+label+'</span><span class="val">'+(val||'')+'</span></div><div class="sb-group-body">'+body+'</div></div>';
+}
+function toggleSetFilter(which,v){
+  const s={vert:fVert,seg:fSeg,chan:fChan}[which];
+  if(v==='__all__')s.clear(); else if(s.has(v))s.delete(v); else s.add(v);
+  buildSidebar(); renderAll();
+}
+function toggleUrgent(){ fUrgentOnly=!fUrgentOnly; buildSidebar(); renderAll(); }
+function buildSidebar(){
+  let h='';
+  h+=sbGroup('vert','Vertical',fVert.size?[...fVert].join(', '):'All',
+    '<div class="sb-chips">'+chip('All',fVert.size===0,"toggleSetFilter('vert','__all__')")+VERTS.map(v=>chip(v.name,fVert.has(v.name),"toggleSetFilter('vert','"+v.name+"')")).join('')+'</div>');
+  h+=sbGroup('chan','Sales Area / Channel',fChan.size?[...fChan].join(', '):'All',
+    '<div class="sb-chips">'+chip('All',fChan.size===0,"toggleSetFilter('chan','__all__')")+CHANNELS.map(c=>chip(c,fChan.has(c),"toggleSetFilter('chan','"+c+"')")).join('')+'</div>'
+    +'<div style="font-size:9px;color:#5F86AB;margin-top:8px;line-height:1.45">Applies to the Production Plan screens. COCO is not a channel &mdash; it is already inside Private when VH submits.</div>');
+  h+=sbGroup('seg','Demand Segment',fSeg.size?[...fSeg].join(', '):'All',
+    '<div class="sb-chips">'+chip('All',fSeg.size===0,"toggleSetFilter('seg','__all__')")+['R','S','D'].map(s=>chip({R:'Runner',S:'Repeater',D:'Stranger'}[s],fSeg.has(s),"toggleSetFilter('seg','"+s+"')")).join('')+'</div>');
+  const setFor={product:'fProduct',fuel:'fFuel',engine:'fEngine',enginerev:'fEngineRev',spl:'fSpl',acnac:'fAcnac',country:'fCountry',fert:'fFert'};
+  const mk=(key,label,field,vals)=>{
+    const s=eval(setFor[key]);
+    return sbGroup(key,label,s.size?(s.size+' selected'):'All',
+      '<div class="sb-chips">'+chip('All',s.size===0,"toggleValFilter('"+key+"','__all__')")+
+      vals.map(v=>chip(String(v).length>22?String(v).slice(0,20)+'…':v,s.has(v),"toggleValFilter('"+key+"',\""+String(v).replace(/"/g,'')+"\")")).join('')+'</div>');
+  };
+  h+=mk('product','Product','product',distinct('product'));
+  h+=mk('fert','FERT Code','code',distinct('code'));
+  h+=mk('country','Country / Customer','country',distinctDest());
+  h+=mk('fuel','Fuel','fuel',distinct('fuel'));
+  h+=mk('engine','Engine','engine',distinct('engine'));
+  h+=mk('enginerev','Engine CNG/Diesel Rev','engineRev',distinct('engineRev'));
+  h+=mk('spl','Special Application','spl',distinct('spl'));
+  h+=mk('acnac','AC / NAC','acnac',distinct('acnac'));
+  h+=sbGroup('urgent','Priority / Urgent',fUrgentOnly?'Urgent only':'All',
+    '<div class="sb-chips">'+chip('All',!fUrgentOnly,'toggleUrgent()')+chip('Urgent only',fUrgentOnly,'toggleUrgent()')+'</div>'
+    +'<div style="font-size:9px;color:#5F86AB;margin-top:8px;line-height:1.45">Lines carrying an S&OP1A priority quantity — the FERT-level source of the summary\'s Urgent vehicles column.</div>');
+  h+=sbGroup('search','Search FERT / Description',fSearch?'"'+fSearch+'"':'',
+    '<input type="text" class="sb-search" placeholder="Code or description…" value="'+fSearch+'" oninput="fSearch=this.value;renderAll();">');
+  h+='<div class="sb-clear" onclick="clearAllFilters()">✕ Clear all filters</div>';
+  document.getElementById('sidebarBody').innerHTML=h;
+}
+function toggleValFilter(key,v){
+  const m={product:fProduct,fuel:fFuel,engine:fEngine,enginerev:fEngineRev,spl:fSpl,acnac:fAcnac,country:fCountry,fert:fFert};
+  const s=m[key]; if(!s)return;
+  if(v==='__all__')s.clear(); else if(s.has(v))s.delete(v); else s.add(v);
+  buildSidebar(); renderAll();
+}
+function clearAllFilters(){
+  fVert=new Set();fSeg=new Set();fChan=new Set();fSearch='';fUrgentOnly=false;
+  [fProduct,fFuel,fEngine,fEngineRev,fSpl,fAcnac,fCountry,fFert].forEach(s=>s.clear());
+  buildSidebar(); renderAll();
+}
+function passFilter(d,ch){
+  if(fVert.size&&!fVert.has(d.vert))return false;
+  if(fSeg.size&&!fSeg.has(d.seg))return false;
+  if(ch&&fChan.size&&!fChan.has(ch))return false;
+  if(fProduct.size&&!fProduct.has(d.product||''))return false;
+  if(fFuel.size&&!fFuel.has(d.fuel||''))return false;
+  if(fEngine.size&&!fEngine.has(d.engine||''))return false;
+  if(fEngineRev.size&&!fEngineRev.has(d.engineRev||''))return false;
+  if(fSpl.size&&!fSpl.has(d.spl||''))return false;
+  if(fAcnac.size&&!fAcnac.has(d.acnac||''))return false;
+  if(fFert.size&&!fFert.has(d.code||''))return false;
+  if(fCountry.size){
+    const dest=d.country||d.custName||'India';
+    if(!fCountry.has(dest))return false;
+  }
+  if(fUrgentOnly&&!(d.prio>0||d.vhPrio>0))return false;
+  if(fSearch){
+    const q=fSearch.toLowerCase();
+    if(!((d.code||'').toLowerCase().includes(q)||(d.desc||'').toLowerCase().includes(q)))return false;
+  }
+  return true;
+}
+// Distinct values across all four channel datasets — the filter lists are data-driven so a new
+// engine or product appears automatically rather than needing a hardcoded list.
+function allSourceRows(){ return [].concat(ISO_PRIVATE,ISO_IB,ISO_IS,ISO_NPI); }
+function distinct(field){
+  return [...new Set(allSourceRows().map(d=>d[field]).filter(v=>v!==undefined&&v!==null&&v!==''))].sort();
+}
+function distinctDest(){
+  return [...new Set(allSourceRows().map(d=>d.country||d.custName||'India').filter(Boolean))].sort();
+}
+function segTag(s){ return '<span class="seg seg-'+s+'">'+s+'</span>'; }
+function channelRows(ch){
+  const src={Private:ISO_PRIVATE,IB:ISO_IB,IS:ISO_IS,NPI:ISO_NPI}[ch];
+  return src.filter(d=>passFilter(d,null));
+}
+
+// ════════════ SCREEN 1 · CHANNEL MODERATION ════════════
+// Each channel keeps the moderation shape of its own source sheet rather than being
+// forced into one generic grid — that structural difference is real, not cosmetic.
+const CHAN_NOTICE={
+  Private:'<strong>Private &mdash; Demand Netting.</strong> Sales Plan is VH’s submitted indent and is read-only here. It is already COCO-inclusive: COCO indent is visible to VH on the main workbench and factored into what they submit, so ISO receives one Private figure. Copy it into the Production Requirement, then moderate week-wise against FG on-hand and stock norm.',
+  IB:'<strong>IB &mdash; Demand Netting &amp; Moderation.</strong> Keyed Country &middot; Vertical &middot; FERT &middot; Model Year &mdash; one grain finer than Private. Req is netted (Orders &minus; Hold &minus; Opening Stock &minus; prior-month Commit); Override is ISO’s moderated figure and is what reaches the Production Plan.',
+  IS:'<strong>IS &mdash; Demand Netting &amp; Moderation.</strong> Keyed Customer &middot; Region &middot; FERT. Net Qty is computed (Demand &minus; Opening Stock &minus; prior-month Commit) using the same formula as the standalone IS workbench; Override is ISO’s moderated figure.',
+  NPI:'<strong>NPI &mdash; FERT Addition.</strong> New FERTs and model-year transitions. A line with no released FERT code cannot enter the Production Plan (that plan is keyed on FERT Code) &mdash; those rows are moderated here but held out, and flagged on the Summary screen.'
+};
+// The released S&OP1 sheet shows the Production Requirement already equal to the Sales Plan,
+// with no status column anywhere — so the requirement is pre-filled on arrival and ISO moderates
+// it. In 1B it arrives netted instead. Either way there is no "copied / not copied" step.
+function privInit(f){
+  if(activeCycle==='1B'){
+    const n=privNetted(f), share=n.wk||1;
+    const sc=v=>Math.round(v*n.reqNet/share);
+    let a=sc(f.w1),b=sc(f.w2),c=sc(f.w3);
+    return {copied:true,prio:f.vhPrio||0,pw1:a,pw2:b,pw3:c,pw4:Math.max(0,n.reqNet-a-b-c),rgp:0};
+  }
+  return {copied:true,prio:f.vhPrio||0,pw1:f.w1,pw2:f.w2,pw3:f.w3,pw4:f.w4,rgp:0};
+}
+function isoStockNorm(f){
+  // Phase 0 placeholder, carried over unchanged from the main workbench's ISO screen —
+  // the real norm-setting source column isn't in scope until confirmed with the client.
+  return Math.round((f.w1+f.w2+f.w3+f.w4)*0.15);
+}
+function ibReq(d){ return Math.max(0,(d.netOrd||0)-(d.hold||0)-(d.opnStock||0)-(d.prevCommit||0)); }
+function isNetQty(d){ return Math.max(0,(d.demand||0)-(d.opnStock||0)-(d.prevCommit||0)); }
+// ══ PLAN VARIATION ══ Workshop 19 Aug 2026.
+// Rajkumar's netting sheet carries the figure already RELEASED to PPC in S&OP-1A (his column G)
+// alongside the current override, and computes the delta (his column O, "plan variation — what
+// was the S&OP 1A and what is the S&OP 2"). The 1A figure is a frozen, released value, not a
+// live recomputation: once ISO publishes on the ~19th it does not move, and 1B is measured
+// against it. Phase 0 carries it as stored data per row; Phase 1 should populate it from the
+// actual 1A release snapshot rather than seeded values.
+function planVar(released,current){ return (current||0)-(released||0); }
+function varBadge(v){
+  if(!v)return '<span style="color:#B0BEC5">0</span>';
+  const up=v>0;
+  return `<span class="var-badge ${up?'pos':'neg'}" style="font-size:9.5px;padding:1px 5px">${up?'+':''}${v}</span>`;
+}
+function ovr(k,fallback){ const s=stateFor(k); return s.override===null?fallback:s.override; }
+function setOverride(k,v){ stateFor(k).override=Number(v)||0; renderAll(); }
+function setProd(k,f,v){ stateFor(k)[f]=Number(v)||0; renderAll(); }
+
+function renderModeration(){
+  CHANNELS.forEach(c=>{ const el=document.getElementById('cnt-'+c); if(el)el.textContent=channelRows(c).length; });
+  const rows=channelRows(activeChannel);
+  document.getElementById('modNotice').innerHTML='<div class="notice info" style="margin:0">'+CHAN_NOTICE[activeChannel]+'</div>';
+  document.getElementById('modTitle').textContent='ISO — '+activeChannel+' Moderation';
+  document.getElementById('modCopyBtn').style.display=(activeChannel==='Private')?'':'none';
+  document.getElementById('isoAddFertBtn').style.display=(activeChannel==='IB'||activeChannel==='IS')?'':'none';
+  const mb=document.getElementById('myToggleBtn');
+  mb.style.display=(activeChannel==='Private')?'':'none';
+  mb.textContent=(myPlanning?'✓ ':'▸ ')+'Model Year';
+  mb.className='btn '+(myPlanning?'btn-copy':'btn-secondary');
+  document.getElementById('modScope').textContent=rows.length+' line(s) in scope';
+  const head=document.getElementById('modHead'),body=document.getElementById('modBody');
+  const F={Private:mvPrivate,IB:mvIB,IS:mvIS,NPI:mvNPI}[activeChannel];
+  F(rows,head,body);
+}
+
+// ── Private ── mirrors the main workbench's ISO screen mechanics exactly (copy-forward,
+// then week-wise moderation), so ISO sees one behaviour in both places.
+function mvPrivate(rows,head,body){
+  return (activeCycle==='1B')?mvPrivate1B(rows,head,body):mvPrivate1A(rows,head,body);
+}
+
+// ══ S&OP-1A ══ 23-column released layout ("Demand Netting (S&OP1)") plus MY.
+// In the real S&OP1 sheet the Production Requirement is a STRAIGHT COPY of the Sales Plan —
+// verified column by column (W1-W4 63/70/34/14 on both sides, Stock Norm / 1st Prio / RGP all
+// zero). There is no netting in 1A and no "copied / not copied" state: the requirement simply
+// arrives pre-filled and ISO moderates it. Hence no Status column and no FG On-hand (opening
+// stock only appears in the S&OP2 sheet).
+// Note the sheet carries TWO projection pairs — one against the Sales Plan and one against the
+// Production Requirement — so both are reproduced.
+function mvPrivate1A(rows,head,body){
+  document.getElementById('modSub').textContent='Jun 2026 · S&OP-1A · Vertical + FERT · Production Requirement pre-filled from VH’s sales plan';
+  head.innerHTML='<tr>'+
+    '<th colspan="6" class="wb-th wb-th-fert left">FERT</th>'+
+    '<th colspan="1" class="wb-th wb-th-neutral">Reference</th>'+
+    '<th colspan="7" class="wb-th wb-th-readonly">Sales Plan for Jun (from VH)<span class="wb-pill wb-pill-readonly">READ-ONLY</span></th>'+
+    '<th colspan="8" class="wb-th wb-th-edit">Production Req for Jun<span class="wb-pill wb-pill-edit">YOU EDIT</span></th>'+
+    myGrp()+
+    '<th colspan="2" class="wb-th wb-th-neutral">Projection</th></tr>'+
+    '<tr><th class="left">Vertical</th><th class="left">Code</th><th class="left">Description</th><th>Segment</th><th>Sales Area</th><th>MY</th>'+
+    '<th>Stock Norm</th>'+
+    '<th>W1</th><th>W2</th><th>W3</th><th>W4</th><th>Total</th><th>Jul</th><th>Aug</th>'+
+    '<th style="background:#EFF6FF">1st Prio</th>'+
+    '<th style="background:#EFF6FF">W1</th><th style="background:#EFF6FF">W2</th><th style="background:#EFF6FF">W3</th><th style="background:#EFF6FF">W4</th>'+
+    '<th style="background:#EFF6FF">Total</th><th style="background:#EFF6FF">RGP</th><th style="background:#E8F5E9">Total</th>'+
+    myHead()+
+    '<th>Jul</th><th>Aug</th></tr>';
+  let h='',tSP=0,tPr=0,tRGP=0,tPrio=0;
+  if(!rows.length){h='<tr><td colspan="'+(24+myN())+'" style="text-align:center;padding:24px;color:var(--grey)">No Private lines match these filters.</td></tr>';}
+  rows.forEach((f,i)=>{
+    const k=rowKey('Private',f,i),st=stateFor(k,privInit(f)),sp=f.w1+f.w2+f.w3+f.w4;
+    const pm=st.pw1+st.pw2+st.pw3+st.pw4, pt=pm+(st.rgp||0);
+    tSP+=sp;tPr+=pm;tRGP+=(st.rgp||0);tPrio+=(st.prio||0);
+    const inp=(fld,v)=>'<td style="background:#EFF6FF"><input class="inp" type="number" value="'+v+'" onchange="setProd(\''+k+'\',\''+fld+'\',this.value)"></td>';
+    h+='<tr style="background:'+(i%2===0?'#fff':'#F8FAFC')+'">'+
+      '<td style="font-size:10px;font-weight:600">'+f.vert+'</td>'+
+      '<td><span class="fert-code">'+f.code+'</span></td>'+
+      '<td><span class="fert-desc" title="'+f.desc+'">'+f.desc+'</span></td>'+
+      '<td style="text-align:center">'+segTag(f.seg)+'</td>'+
+      '<td style="text-align:center"><span class="sa-tag sa-Private">Private</span></td>'+
+      '<td style="text-align:center;font-size:9px;color:var(--grey)">'+f.my+'</td>'+
+      '<td class="ref-val">'+isoStockNorm(f)+'</td>'+
+      '<td class="ro-val">'+f.w1+'</td><td class="ro-val">'+f.w2+'</td><td class="ro-val">'+f.w3+'</td><td class="ro-val">'+f.w4+'</td>'+
+      '<td class="ro-val" style="font-weight:600">'+sp+'</td><td class="ro-val">'+f.m2+'</td><td class="ro-val">'+f.m3+'</td>'+
+      inp('prio',st.prio)+inp('pw1',st.pw1)+inp('pw2',st.pw2)+inp('pw3',st.pw3)+inp('pw4',st.pw4)+
+      '<td class="calc-val" style="background:#EFF6FF;font-weight:600">'+pm+'</td>'+
+      inp('rgp',st.rgp)+
+      '<td class="calc-val" style="background:#E8F5E9;font-weight:700;color:var(--blue)">'+pt+'</td>'+
+      myCells('PVT|'+f.code,pt)+
+      '<td class="ro-val">'+f.m2+'</td><td class="ro-val">'+f.m3+'</td></tr>';
+  });
+  body.innerHTML=h;
+  sumBar('modSumBar',[['Sales Plan (Jun)',tSP,''],['1st Priority',tPrio,''],['Production Req',tPr,'ok'],['RGP',tRGP,'warn']],rows.length+' Private lines · S&OP-1A · COCO already inside these figures');
+}
+
+// ══ S&OP-1B ══ 38-column released layout ("Demand Netting (S&OP2)").
+// Structurally a different sheet from 1A, not the same sheet in another state. It carries the
+// S&OP1 release for comparison, the opening stock, the explicit netting block, and the variance
+// analytics. Netting proven against the source file's own totals:
+//     Weekly Sales 231 − Net reduction from FG 142 + Net addition from FG 20 = Production Req 109
+// and Change Due to Net Off = −(142 − 20) = −122. "Required Qty — Stock" is zero on all 650 rows
+// in the source (stocking norms are defined but not followed today), so it is shown and carried
+// at zero rather than dropped.
+function privNetted(f){
+  const wk=f.w1+f.w2+f.w3+f.w4;
+  const reqSales=Math.max(0,wk-(f.netRedFG||0)+(f.netAddFG||0));
+  return {wk,reqSales,reqStock:0,reqNet:reqSales};
+}
+function mvPrivate1B(rows,head,body){
+  document.getElementById('modSub').textContent='Jun 2026 · S&OP-1B · netted against opening FG stock · measured against the S&OP-1A release';
+  head.innerHTML='<tr>'+
+    '<th colspan="6" class="wb-th wb-th-fert left">FERT</th>'+
+    '<th colspan="3" class="wb-th" style="background:#FFF8E1;color:#8A5A00">S&OP1 Release</th>'+
+    '<th colspan="2" class="wb-th wb-th-neutral">Stock</th>'+
+    '<th colspan="5" class="wb-th wb-th-readonly">Weekly Sales for Jun<span class="wb-pill wb-pill-readonly">READ-ONLY</span></th>'+
+    '<th colspan="3" class="wb-th wb-th-teal">Required Qty</th>'+
+    '<th colspan="2" class="wb-th wb-th-neutral">Sales Projection S&OP2</th>'+
+    '<th colspan="8" class="wb-th wb-th-edit">Production Req for Jun<span class="wb-pill wb-pill-edit">YOU EDIT</span></th>'+
+    myGrp()+
+    '<th colspan="2" class="wb-th wb-th-neutral">Projection S&OP2</th>'+
+    '<th colspan="3" class="wb-th" style="background:#F3ECFB;color:#6A1B9A">Gap vs S&OP1</th>'+
+    '<th colspan="2" class="wb-th" style="background:#E8F5E9;color:#1B5E20">Net Off from FG</th>'+
+    '<th colspan="3" class="wb-th" style="background:#E8F5E9;color:#1B5E20">Change Due to Net Off</th></tr>'+
+    '<tr><th class="left">Vertical</th><th class="left">Code</th><th class="left">Description</th><th>Segment</th><th>Sales Area</th><th>MY</th>'+
+    '<th style="background:#FFF8E1">Plan</th><th style="background:#FFF8E1">Jul</th><th style="background:#FFF8E1">Aug</th>'+
+    '<th>Norm</th><th title="Opening finished-goods stock at the 1st of the month">Opn Stock</th>'+
+    '<th>W1</th><th>W2</th><th>W3</th><th>W4</th><th>Total</th>'+
+    '<th>Sales</th><th title="Stocking norm contribution — defined but zero today">Stock</th><th style="font-weight:700">Net</th>'+
+    '<th>Jul</th><th>Aug</th>'+
+    '<th style="background:#EFF6FF">1st Prio</th><th style="background:#EFF6FF">W1</th><th style="background:#EFF6FF">W2</th><th style="background:#EFF6FF">W3</th><th style="background:#EFF6FF">W4</th>'+
+    '<th style="background:#EFF6FF">Total</th><th style="background:#EFF6FF">RGP</th><th style="background:#E8F5E9">Total</th>'+
+    myHead()+
+    '<th>Jul</th><th>Aug</th>'+
+    '<th style="background:#F3ECFB">Gap</th><th style="background:#F3ECFB">% Change</th><th style="background:#F3ECFB">Wt. Avg%</th>'+
+    '<th style="background:#E8F5E9">Reduction</th><th style="background:#E8F5E9">Addition</th>'+
+    '<th style="background:#E8F5E9">Qty</th><th style="background:#E8F5E9">% Change</th><th style="background:#E8F5E9">Wt. Avg%</th></tr>';
+  let h='';
+  const T={wk:0,req:0,pm:0,rgp:0,red:0,add:0,gap:0,sop1:0,opn:0};
+  if(!rows.length){h='<tr><td colspan="'+(39+myN())+'" style="text-align:center;padding:24px;color:var(--grey)">No Private lines match these filters.</td></tr>';}
+  const grandWk=rows.reduce((a,f)=>a+f.w1+f.w2+f.w3+f.w4,0)||1;
+  rows.forEach((f,i)=>{
+    const k=rowKey('Private',f,i),st=stateFor(k,privInit(f));
+    const n=privNetted(f);
+    const pm=st.pw1+st.pw2+st.pw3+st.pw4, pt=pm+(st.rgp||0);
+    const gap=pm-(f.sop1Plan||0);
+    const pctChg=(f.sop1Plan||0)?(pm/(f.sop1Plan||1)):0;
+    const wtAvg=n.wk/grandWk;
+    const chgQty=-( (f.netRedFG||0)-(f.netAddFG||0) );
+    T.wk+=n.wk;T.req+=n.reqNet;T.pm+=pm;T.rgp+=(st.rgp||0);T.red+=(f.netRedFG||0);T.add+=(f.netAddFG||0);T.gap+=gap;T.sop1+=(f.sop1Plan||0);T.opn+=(f.opnStock||0);
+    const inp=(fld,v)=>'<td style="background:#EFF6FF"><input class="inp" type="number" value="'+v+'" onchange="setProd(\''+k+'\',\''+fld+'\',this.value)"></td>';
+    h+='<tr style="background:'+(i%2===0?'#fff':'#F8FAFC')+'">'+
+      '<td style="font-size:10px;font-weight:600">'+f.vert+'</td>'+
+      '<td><span class="fert-code">'+f.code+'</span></td>'+
+      '<td><span class="fert-desc" title="'+f.desc+'">'+f.desc+'</span></td>'+
+      '<td style="text-align:center">'+segTag(f.seg)+'</td>'+
+      '<td style="text-align:center"><span class="sa-tag sa-Private">Private</span></td>'+
+      '<td style="text-align:center;font-size:9px;color:var(--grey)">'+f.my+'</td>'+
+      '<td class="ro-val" style="background:#FFFDF5">'+(f.sop1Plan||0)+'</td>'+
+      '<td class="ro-val" style="background:#FFFDF5">'+f.m2+'</td><td class="ro-val" style="background:#FFFDF5">'+f.m3+'</td>'+
+      '<td class="ref-val">'+isoStockNorm(f)+'</td><td class="ref-val" style="color:var(--teal);font-weight:500">'+(f.opnStock||0)+'</td>'+
+      '<td class="ro-val">'+f.w1+'</td><td class="ro-val">'+f.w2+'</td><td class="ro-val">'+f.w3+'</td><td class="ro-val">'+f.w4+'</td>'+
+      '<td class="ro-val" style="font-weight:600">'+n.wk+'</td>'+
+      '<td class="calc-val">'+n.reqSales+'</td><td class="calc-val zero" style="color:#B0BEC5">'+n.reqStock+'</td>'+
+      '<td class="calc-val" style="font-weight:700">'+n.reqNet+'</td>'+
+      '<td class="ro-val">'+f.m2+'</td><td class="ro-val">'+f.m3+'</td>'+
+      inp('prio',st.prio)+inp('pw1',st.pw1)+inp('pw2',st.pw2)+inp('pw3',st.pw3)+inp('pw4',st.pw4)+
+      '<td class="calc-val" style="background:#EFF6FF;font-weight:600">'+pm+'</td>'+
+      inp('rgp',st.rgp)+
+      '<td class="calc-val" style="background:#E8F5E9;font-weight:700;color:var(--blue)">'+pt+'</td>'+
+      myCells('PVT|'+f.code,pt)+
+      '<td class="ro-val">'+f.m2+'</td><td class="ro-val">'+f.m3+'</td>'+
+      '<td style="background:#FBF7FE;text-align:right">'+varBadge(gap)+'</td>'+
+      '<td class="calc-val" style="background:#FBF7FE">'+pctChg.toFixed(2)+'</td>'+
+      '<td class="calc-val" style="background:#FBF7FE">'+(wtAvg*100).toFixed(2)+'%</td>'+
+      '<td class="calc-val" style="background:#F4FBF5;color:#B71C1C">'+(f.netRedFG||0)+'</td>'+
+      '<td class="calc-val" style="background:#F4FBF5;color:#1B5E20">'+(f.netAddFG||0)+'</td>'+
+      '<td class="calc-val" style="background:#F4FBF5;font-weight:700;color:'+(chgQty<0?'#B71C1C':'#1B5E20')+'">'+chgQty+'</td>'+
+      '<td class="calc-val" style="background:#F4FBF5">'+pctChg.toFixed(2)+'</td>'+
+      '<td class="calc-val" style="background:#F4FBF5">'+(wtAvg*100).toFixed(2)+'%</td></tr>';
+  });
+  body.innerHTML=h;
+  const netChg=-(T.red-T.add);
+  sumBar('modSumBar',[['Weekly Sales',T.wk,''],['Net off FG',netChg,'warn'],['Production Req',T.pm,'ok'],['Gap vs S&OP1',(T.gap>0?'+':'')+T.gap,T.gap?'warn':'']],
+    rows.length+' Private lines · S&OP-1B · '+T.wk+' − '+T.red+' + '+T.add+' = '+(T.wk-T.red+T.add)+' netted');
+}
+
+// ── IB ── Country + FERT + Model Year, with the Hold IB exclusion the source sheet carries.
+function mvIB(rows,head,body){
+  document.getElementById('modSub').textContent='Jul 2026 · Country + Vertical + FERT + Model Year · Req netted, Override editable';
+  head.innerHTML='<tr>'+
+    '<th colspan="2" class="wb-th wb-th-neutral left">Destination</th>'+
+    '<th colspan="4" class="wb-th wb-th-fert left">FERT</th>'+
+    '<th colspan="5" class="wb-th wb-th-readonly">Netting Inputs<span class="wb-pill wb-pill-readonly">READ-ONLY</span></th>'+
+    '<th colspan="2" class="wb-th wb-th-edit">Moderation<span class="wb-pill wb-pill-edit">YOU EDIT</span></th>'+
+    '<th colspan="2" class="wb-th" style="background:#FFF8E1;color:#8A5A00">vs. S&OP-1A Release</th>'+
+    '<th colspan="2" class="wb-th wb-th-neutral">Projection</th></tr>'+
+    '<tr><th class="left">Country</th><th class="left">Vertical</th>'+
+    '<th class="left">Code</th><th class="left">Description</th><th>Seg</th><th>MY</th>'+
+    '<th>Netting Orders</th><th>Hold IB</th>'+
+    '<th title="Opening Stock — finished-goods position as at the 1st of the month">Opn Stock <span style="color:#90A4AE">&#9432;</span></th>'+
+    '<th title="Current Stock — position as of today. Differs from Opening because vehicles have been built and orders shipped since the 1st.">Cur Stock <span style="color:#90A4AE">&#9432;</span></th>'+
+    '<th>Prior Commit</th>'+
+    '<th style="background:#F7F9FB">Req (netted)</th><th style="background:#EFF6FF">Override</th>'+
+    '<th style="background:#F7F9FB" title="Quantity already released to PPC in the S&OP-1A cycle">S&OP-1A Rel.</th>'+
+    '<th style="background:#FFF8E1" title="Override minus the S&OP-1A released figure — what changed since the last release to PPC">Plan Var.</th>'+
+    '<th>M2 · Aug</th><th>M3 · Sep</th></tr>';
+  let h='',tReq=0,tOv=0,tHold=0,t1A=0;
+  if(!rows.length){h='<tr><td colspan="17" style="text-align:center;padding:24px;color:var(--grey)">No IB lines match these filters.</td></tr>';}
+  rows.forEach((d,i)=>{
+    const k=rowKey('IB',d,i),req=ibReq(d),o=ovr(k,d.override);
+    tReq+=req;tOv+=o;tHold+=(d.hold||0);t1A+=(d.sop1a||0);
+    const held=(d.hold||0)>0;
+    h+='<tr style="background:'+(held?'#FFF8E1':(i%2===0?'#fff':'#F8FAFC'))+'">'+
+      '<td style="font-size:10px;font-weight:600">'+d.country+'</td>'+
+      '<td style="font-size:10px;color:var(--grey)">'+d.vert+'</td>'+
+      '<td><span class="fert-code">'+d.code+'</span>'+isoAddedBadge(d)+'</td>'+
+      '<td><span class="fert-desc" title="'+d.desc+'">'+d.desc+'</span></td>'+
+      '<td style="text-align:center">'+segTag(d.seg)+'</td>'+
+      '<td style="text-align:center;font-size:9px;color:var(--grey)">'+d.my+'</td>'+
+      '<td class="ro-val">'+d.netOrd+'</td>'+
+      '<td class="ro-val" style="'+(held?'color:#B71C1C;font-weight:700':'')+'">'+d.hold+'</td>'+
+      '<td class="ro-val">'+d.opnStock+'</td><td class="ro-val">'+d.curStock+'</td><td class="ro-val">'+d.prevCommit+'</td>'+
+      '<td class="calc-val" style="background:#F7F9FB;font-weight:600">'+req+'</td>'+
+      '<td style="background:#EFF6FF"><input class="inp iso-ov" type="number" value="'+o+'" onchange="setOverride(\''+k+'\',this.value)"></td>'+
+      '<td class="ro-val" style="background:#F7F9FB">'+(d.sop1a||0)+'</td>'+
+      '<td style="background:#FFF8E1;text-align:right">'+varBadge(planVar(d.sop1a,o))+'</td>'+
+      '<td class="ro-val">'+d.m2+'</td><td class="ro-val">'+d.m3+'</td></tr>';
+  });
+  body.innerHTML=h;
+  sumBar('modSumBar',[['Req (netted)',tReq,''],['Override → Plan',tOv,'ok'],['S&OP-1A Released',t1A,''],['Plan Variation',(tOv-t1A>0?'+':'')+(tOv-t1A),(tOv-t1A)?'warn':''],['Held (excluded)',tHold,'warn']],rows.length+' IB lines · Country-level grain');
+}
+
+// ── IS ── Customer + Region + FERT, same net-off formula as the standalone IS workbench.
+function mvIS(rows,head,body){
+  document.getElementById('modSub').textContent='Jul 2026 · Customer + Region + FERT · Net Qty computed, Override editable';
+  head.innerHTML='<tr>'+
+    '<th colspan="3" class="wb-th wb-th-neutral left">Customer</th>'+
+    '<th colspan="3" class="wb-th wb-th-fert left">FERT</th>'+
+    '<th colspan="4" class="wb-th wb-th-readonly">Netting Inputs<span class="wb-pill wb-pill-readonly">READ-ONLY</span></th>'+
+    '<th colspan="1" class="wb-th wb-th-edit">Moderation<span class="wb-pill wb-pill-edit">YOU EDIT</span></th>'+
+    '<th colspan="2" class="wb-th" style="background:#FFF8E1;color:#8A5A00">vs. S&OP-1A Release</th>'+
+    '<th colspan="2" class="wb-th wb-th-neutral">Projection</th></tr>'+
+    '<tr><th class="left">Cust Code</th><th class="left">Customer</th><th class="left">Region</th>'+
+    '<th class="left">Code</th><th class="left">Description</th><th>MY</th>'+
+    '<th>Demand</th>'+
+    '<th title="Opening Stock — finished-goods position as at the 1st of the month">Opn Stock <span style="color:#90A4AE">&#9432;</span></th>'+
+    '<th>Prior Commit</th><th style="background:#F7F9FB">Net Qty</th>'+
+    '<th style="background:#EFF6FF">Override</th>'+
+    '<th style="background:#F7F9FB" title="Quantity already released to PPC in the S&OP-1A cycle">S&OP-1A Rel.</th>'+
+    '<th style="background:#FFF8E1" title="Override minus the S&OP-1A released figure — what changed since the last release to PPC">Plan Var.</th>'+
+    '<th>M2 · Aug</th><th>M3 · Sep</th></tr>';
+  let h='',tDem=0,tNet=0,tOv=0,t1A=0;
+  if(!rows.length){h='<tr><td colspan="15" style="text-align:center;padding:24px;color:var(--grey)">No IS lines match these filters.</td></tr>';}
+  rows.forEach((d,i)=>{
+    const k=rowKey('IS',d,i),net=isNetQty(d),o=ovr(k,d.override);
+    tDem+=d.demand;tNet+=net;tOv+=o;t1A+=(d.sop1a||0);
+    h+='<tr style="background:'+(i%2===0?'#fff':'#F8FAFC')+'">'+
+      '<td style="font-family:var(--mono);font-size:10px;color:var(--blue)">'+d.custCode+'</td>'+
+      '<td style="font-size:10px;font-weight:500">'+d.custName+'</td>'+
+      '<td style="font-size:9px;text-align:center;color:var(--grey)">'+d.region+'</td>'+
+      '<td><span class="fert-code">'+d.code+'</span>'+isoAddedBadge(d)+'</td>'+
+      '<td><span class="fert-desc" title="'+d.desc+'">'+d.desc+'</span></td>'+
+      '<td style="text-align:center;font-size:9px;color:var(--grey)">'+d.my+'</td>'+
+      '<td class="ro-val">'+d.demand+'</td><td class="ro-val">'+d.opnStock+'</td><td class="ro-val">'+d.prevCommit+'</td>'+
+      '<td class="calc-val" style="background:#F7F9FB;font-weight:600">'+net+'</td>'+
+      '<td style="background:#EFF6FF"><input class="inp iso-ov" type="number" value="'+o+'" onchange="setOverride(\''+k+'\',this.value)"></td>'+
+      '<td class="ro-val" style="background:#F7F9FB">'+(d.sop1a||0)+'</td>'+
+      '<td style="background:#FFF8E1;text-align:right">'+varBadge(planVar(d.sop1a,o))+'</td>'+
+      '<td class="ro-val">'+d.m2+'</td><td class="ro-val">'+d.m3+'</td></tr>';
+  });
+  body.innerHTML=h;
+  sumBar('modSumBar',[['Gross Demand',tDem,''],['Net Qty',tNet,''],['Override → Plan',tOv,'ok'],['S&OP-1A Released',t1A,''],['Plan Variation',(tOv-t1A>0?'+':'')+(tOv-t1A),(tOv-t1A)?'warn':'']],rows.length+' IS lines · Customer-level grain');
+}
+
+// ── NPI ── FERT Addition. The fertStatus gate is the point of this screen.
+function mvNPI(rows,head,body){
+  // Mirrors the standalone NPI Workbench column for column. NPI reaches ISO already moderated —
+  // Sanjay, 2 Sep: "He will upload the files, so we don't have to do any moderation, no changes,
+  // nothing — that will go as it is." So every cell here is READ-ONLY; editing lives on the NPI
+  // workbench, owned by the NPI team.
+  //
+  // Reference rows use the standalone's rule — MBOM not released — rather than a separate status
+  // field, so the two screens cannot drift on what counts as a reference FERT.
+  document.getElementById('modSub').textContent='Read-only · uploaded by the NPI team · reference-FERT lines cannot enter the production plan';
+  const isRef=d=>d.mbom==='N';
+  head.innerHTML='<tr>'+
+    '<th colspan="5" class="wb-th wb-th-fert left">Project / FERT</th>'+
+    '<th colspan="3" class="wb-th wb-th-neutral">BOM Status</th>'+
+    '<th colspan="7" class="wb-th wb-th-readonly">Plan<span class="wb-pill wb-pill-readonly">READ-ONLY</span></th>'+
+    '<th colspan="5" class="wb-th wb-th-neutral left">Programme</th></tr>'+
+    '<tr><th class="left">Category</th><th class="left">Project</th><th class="left">Engine</th>'+
+    '<th class="left">FERT</th><th class="left">FERT Description</th>'+
+    '<th>EBOM</th><th>MBOM</th><th class="left">Reference FERT Code</th>'+
+    '<th>W1</th><th>W2</th><th>W3</th><th>W4</th><th>Month Plan</th>'+
+    '<th>Oct 26</th><th>Nov 26</th>'+
+    '<th class="left">Build Stage</th><th class="left">Need</th><th class="left">Mkt Approval / Liquidation</th><th>Mkt Qty</th><th class="left">Remarks</th></tr>';
+  let h='',tM1=0,tHeld=0,nRef=0;
+  if(!rows.length){h='<tr><td colspan="20" style="text-align:center;padding:24px;color:var(--grey)">No NPI lines match these filters.</td></tr>';}
+  rows.forEach((d,i)=>{
+    const ref=isRef(d), month=d.w1+d.w2+d.w3+d.w4;
+    // A line with no released FERT code cannot enter the production plan — that plan is keyed on
+    // FERT Code. Those quantities are counted separately as held.
+    if(!d.code) tHeld+=month; else tM1+=month;
+    if(ref)nRef++;
+    h+='<tr class="'+(ref?'refrow':'')+'" style="background:'+(ref?'#FFF8E1':(i%2===0?'#fff':'#F8FAFC'))+'">'+
+      '<td style="font-size:10px;font-weight:600">'+(d.cat||d.vert||'')+'</td>'+
+      '<td style="font-size:10px">'+d.proj+'</td>'+
+      '<td style="font-size:10px;color:var(--grey)">'+(d.eng||'')+'</td>'+
+      '<td>'+(d.code?'<span class="fert-code">'+d.code+'</span>':'<span class="p1-ph">&mdash;</span>')+'</td>'+
+      '<td><span class="fert-desc" title="'+d.desc+'">'+d.desc+'</span>'+(ref?'<span class="ref-badge">REF</span>':'')+'</td>'+
+      '<td style="text-align:center" class="'+(d.ebom==='Y'?'mbom-y':'mbom-n')+'">'+d.ebom+'</td>'+
+      '<td style="text-align:center" class="'+(d.mbom==='Y'?'mbom-y':'mbom-n')+'">'+d.mbom+'</td>'+
+      '<td style="font-family:var(--mono);font-size:10px;color:#C77700">'+(ref?(d.ref||'<span class="p1-ph">not set</span>'):'<span class="p1-ph">n/a</span>')+'</td>'+
+      '<td class="ro-val">'+d.w1+'</td><td class="ro-val">'+d.w2+'</td><td class="ro-val">'+d.w3+'</td><td class="ro-val">'+d.w4+'</td>'+
+      '<td class="calc-val" style="font-weight:600">'+month+'</td>'+
+      '<td class="ro-val">'+d.m2+'</td><td class="ro-val">'+d.m3+'</td>'+
+      '<td style="font-size:10px"><span class="stab-badge" style="background:#F3E5F5;color:#6A1B9A">'+d.stage+'</span></td>'+
+      '<td style="font-size:10px;color:var(--grey)">'+(d.need||'')+'</td>'+
+      '<td style="font-size:10px;color:var(--grey)">'+(d.mkt||'&mdash;')+'</td>'+
+      '<td class="ro-val">'+(d.mktQty||0)+'</td>'+
+      '<td style="font-size:9px;color:var(--grey);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+(d.remarks||'')+'">'+(d.remarks||'')+'</td></tr>';
+  });
+  body.innerHTML=h;
+  sumBar('modSumBar',[['Into Plan',tM1,'ok'],['Held — no FERT',tHeld,'warn'],['Reference lines',nRef,'warn']],
+    rows.length+' NPI lines · read-only · uploaded by the NPI team');
+}
+
+// ══ ISO POST-CUTOFF FERT ADDITION ══
+// Workshop 19 Aug 2026 (Rajkumar): "cutoff date is over, then global head also missed to add this
+// new foot code. If he's saying can we add, then our sales planning team, ISO team is the person
+// who can add new foot codes." ISO's backstop once the IB windows (Country 12th · Regional 13th ·
+// Global 15th) have closed.
+const ISO_ADDABLE=[
+  {code:"85605599",desc:"Pro1095XP H CBC BS3 AB PS TY 4.7 PRM EXP",vert:"LMD",seg:"S"},
+  {code:"93509671",desc:"Pro3019 J SLPHSD 20FT BSVI NGB 7S WTL EXP",vert:"HD",seg:"D"},
+  {code:"91909006",desc:"Pro6019XPT F BSVIDW 11X20 8.5B UTEBPRM",vert:"HD",seg:"D"},
+  {code:"94758561",desc:"PRO 2075F PRI VAN 4G BSVI ABS NB#",vert:"Bus",seg:"S"},
+  {code:"92200941",desc:"Pro 2059XP M SLP CBC BSVI SRSS WTL RX",vert:"LMD",seg:"R"},
+];
+function isoAddScopes(ch){
+  return ch==='IB'
+    ? [...new Set(ISO_IB.map(d=>d.country))]
+    : [...new Set(ISO_IS.map(d=>d.custCode+' — '+d.custName))];
+}
+function openIsoAddFert(){
+  const ch=activeChannel==='IS'?'IS':'IB';
+  document.getElementById('isoAddChannel').value=ch;
+  renderIsoAddList('');
+  document.getElementById('isoAddFertModal').classList.add('active');
+}
+function closeIsoAddFert(){ document.getElementById('isoAddFertModal').classList.remove('active'); }
+function renderIsoAddList(q){
+  const ch=document.getElementById('isoAddChannel').value;
+  document.getElementById('isoAddScopeLbl').textContent=ch==='IB'?'Country':'Customer';
+  const sc=document.getElementById('isoAddScope'), scopes=isoAddScopes(ch);
+  if(sc.dataset.ch!==ch){ sc.innerHTML=scopes.map(v=>`<option value="${v}">${v}</option>`).join(''); sc.dataset.ch=ch; }
+  const items=ISO_ADDABLE.filter(f=>!q||f.code.toLowerCase().includes(q)||f.desc.toLowerCase().includes(q));
+  document.getElementById('isoAddList').innerHTML=items.length?items.map(f=>
+    `<label class="modal-item"><input type="checkbox" value="${f.code}"><div><div class="fert-code">${f.code}</div><div style="font-size:11px;color:var(--ink)">${f.desc}</div></div><span class="seg seg-${f.seg}" style="margin-left:auto">${f.seg}</span></label>`
+  ).join(''):'<div style="padding:20px;text-align:center;color:var(--grey);font-size:11px">No matching FERT in the catalogue.</div>';
+}
+function confirmIsoAddFert(){
+  const checked=[...document.querySelectorAll('#isoAddList input:checked')];
+  if(!checked.length){ closeIsoAddFert(); return; }
+  const ch=document.getElementById('isoAddChannel').value, scope=document.getElementById('isoAddScope').value;
+  checked.forEach(cb=>{
+    const f=ISO_ADDABLE.find(x=>x.code===cb.value); if(!f)return;
+    if(ch==='IB'){
+      ISO_IB.push({vert:f.vert,sumRow:'IB',country:scope,code:f.code,desc:f.desc,seg:f.seg,my:"MY26",
+        product:'',fuel:'',engine:'',engineRev:'',spl:'',acnac:'',
+        netOrd:0,hold:0,opnStock:0,curStock:0,prevCommit:0,req:0,sop1a:0,override:0,m2:0,m3:0,remarks:'',
+        isAdded:true,addedBy:'ISO / Sales Planning'});
+    } else {
+      const [cc,cn]=scope.split(' — ');
+      ISO_IS.push({vert:f.vert,sumRow:'IS',custCode:cc,custName:cn||cc,region:'—',code:f.code,desc:f.desc,seg:f.seg,my:"MY26",
+        product:'',fuel:'',engine:'',engineRev:'',spl:'',acnac:'',
+        demand:0,opnStock:0,prevCommit:0,sop1a:0,override:0,m2:0,m3:0,remarks:'',
+        isAdded:true,addedBy:'ISO / Sales Planning'});
+    }
+  });
+  closeIsoAddFert(); setChannel(ch); renderAll();
+  alert(`Added ${checked.length} FERT(s) to ${ch} for ${scope}.\n\nAdded after cut-off by ISO / Sales Planning — logged against ISO, and enters this cycle's Production Plan once moderated.`);
+}
+function isoAddedBadge(d){
+  return d.isAdded?`<span class="wb-carry-badge" style="background:#FFF8E1;border-color:#F0D8A8;color:#8A5A00;margin-left:4px" title="Added after cut-off by ${d.addedBy}">+ ISO</span>`:'';
+}
+
+function sumBar(id,items,note){
+  const el=document.getElementById(id); if(!el)return;
+  el.innerHTML=items.map(it=>'<div class="si"><div class="si-label">'+it[0]+'</div><div class="si-val '+(it[2]||'')+'">'+it[1]+'</div></div>').join('<div class="sb-divider"></div>')
+    +'<div class="sb-right"><span style="font-size:10px;color:var(--grey)">'+note+'</span></div>';
+}
+// Re-derive rather than "copy forward": in 1A that is the Sales Plan verbatim, in 1B the netted
+// requirement. Discards ISO's manual edits for the lines in scope.
+function copyChannelForward(){
+  const rows=channelRows('Private');
+  rows.forEach((f,i)=>{ MOD_STATE[rowKey('Private',f,i)]=privInit(f); });
+  alert('Reset '+rows.length+' Private line(s) to the incoming '+(activeCycle==='1B'?'netted requirement':'sales plan')+'. Any manual moderation on those lines has been discarded.');
+  renderAll();
+}
+
+// ════════════ THE CONSOLIDATION LAYER ════════════
+// buildPlanRows() is the single source of truth for both Production Plan screens.
+// The Summary is a rollup OF this — never computed independently — so the two cannot drift.
+// Every row keeps its salesArea tag, exactly as the real "Production Plan by FERT" sheet does.
+function buildPlanRows(){
+  const out=[];
+  const push=r=>{ r.m1=r.w1+r.w2+r.w3+r.w4; r.plan=r.m1+(r.rgp||0); out.push(r); };
+  // S&OP-1B carries the previous release alongside the current one: the 1A production plan and
+  // the 1A priority quantity, so 1B reads as a revision rather than a fresh plan (VEF-008 cols
+  // 12-14). sop1aPlan comes from whichever field each channel stores its released figure in.
+  const attrs=d=>({product:d.product||'',fuel:d.fuel||'',engine:d.engine||'',engineRev:d.engineRev||'',
+                   spl:d.spl||'',acnac:d.acnac||'',remarks:d.remarks||'',sumRow:d.sumRow||'',
+                   sop1aPlan:(d.sop1Plan!==undefined?d.sop1Plan:(d.sop1a!==undefined?d.sop1a:0)),
+                   prio1a:(d.vhPrio!==undefined?d.vhPrio:0)});
+
+  // Private — only lines ISO has copied forward are committed to the plan.
+  ISO_PRIVATE.forEach((f,i)=>{
+    const st=stateFor(rowKey('Private',f,i),privInit(f));
+    push(Object.assign({vert:f.vert,code:f.code,desc:f.desc,seg:f.seg,country:'India',salesArea:'Private',my:f.my,
+      prio:st.prio,w1:st.pw1,w2:st.pw2,w3:st.pw3,w4:st.pw4,rgp:st.rgp||0,
+      m2:f.m2,m3:f.m3,src:'VH indent (COCO-inclusive)'},attrs(f)));
+  });
+
+  // IB — Country-level. Export volumes are dispatch-driven and land in W1, matching the real sheet.
+  ISO_IB.forEach((d,i)=>{
+    const q=ovr(rowKey('IB',d,i),d.override); if(q<=0)return;
+    push(Object.assign({vert:d.vert,code:d.code,desc:d.desc,seg:d.seg,country:d.country,salesArea:'IB',my:d.my,
+      prio:0,w1:q,w2:0,w3:0,w4:0,rgp:0,m2:d.m2,m3:d.m3,src:'IB override'},attrs(d)));
+  });
+
+  // IS — customer lines collapse to FERT level for production. NOTE the Country column carries the
+  // CUSTOMER on IS rows in the released plan, not a country.
+  const isAgg={};
+  ISO_IS.forEach((d,i)=>{
+    const q=ovr(rowKey('IS',d,i),d.override); if(q<=0)return;
+    const k=d.vert+'|'+d.code+'|'+d.custCode;
+    if(!isAgg[k])isAgg[k]=Object.assign({vert:d.vert,code:d.code,desc:d.desc,seg:d.seg,country:d.custName,salesArea:'IS',my:d.my,
+      prio:0,w1:0,w2:0,w3:0,w4:0,rgp:0,m2:0,m3:0,src:'IS override'},attrs(d));
+    isAgg[k].w1+=q; isAgg[k].m2+=d.m2; isAgg[k].m3+=d.m3;
+  });
+  Object.values(isAgg).forEach(push);
+
+  // NPI — the FERT Addition gate. No released FERT code, no plan line.
+  ISO_NPI.forEach((d,i)=>{
+    if(d.fertStatus!=='Released'||!d.code)return;
+    const st=stateFor(rowKey('NPI',d,i),{copied:true,pw1:d.w1,pw2:d.w2,pw3:d.w3,pw4:d.w4,rgp:d.rgp});
+    push(Object.assign({vert:d.vert,code:d.code,desc:d.desc,seg:d.seg,country:'India',salesArea:'NPI',my:d.myCur,
+      prio:0,w1:st.pw1,w2:st.pw2,w3:st.pw3,w4:st.pw4,rgp:st.rgp||0,m2:d.m2,m3:d.m3,src:'NPI FERT addition'},attrs(d)));
+  });
+  return out;
+}
+function heldNpiLines(){ return ISO_NPI.filter(d=>d.fertStatus!=='Released'||!d.code); }
+// Remarks are edited on the plan itself (the released form carries free text like "Opening RGP"
+// or "2 Buses Tender Inspection"). Plan rows are derived on every render, so the text is held
+// against a stable key rather than on the transient row object.
+const PLAN_REMARKS={};
+function planKey(r){ return r.salesArea+'|'+r.code+'|'+(r.country||''); }
+function planRemark(r){ const k=planKey(r); return (k in PLAN_REMARKS)?PLAN_REMARKS[k]:(r.remarks||''); }
+function setPlanRemark(k,v){ PLAN_REMARKS[k]=v; }
+function planFiltered(){ return buildPlanRows().filter(r=>passFilter(r,r.salesArea)); }
+
+// ════════════ SCREEN 2 · PRODUCTION PLAN BY FERT ════════════
+// Column set follows the released VEF form ("S&OP1A Prod Plan for Sep26", ISO Format No VEF-...).
+// The Attributes band (Fuel / Engine / Engine Rev / Spl Appln / AC-NAC) is collapsible because it
+// pushes the grid past 20 columns and is only needed when slicing by engine or application.
+// ══ EPS ══ Confirmed as a SEPARATE production plan tab, not a fifth Sales Area value: the EPS
+// plan and the Private/IB/IS/NPI plan are two parallel outputs. The column set below mirrors the
+// VEF form until the EPS sheet arrives; the source sheet and EPS's moderation route are still
+// open, so this renders as a defined-but-empty plan rather than invented rows.
+// EPS rows are taken from the engine-wise summary sheets in the S&OP1A Sep26 workbook, which are
+// the only place EPS appears. In "S&OP2 -Summary engine wise WO O" the structure is explicit:
+//     row 24  Total        13125   (all vehicle verticals + IS + IB)
+//     row 25  EPS Engine     890   split E483 250 · E494 342 · E683 68 · E694 230
+//     row 26  Axle            98
+//     row 27  Grand Total  14113   = 13125 + 890 + 98
+// EPS therefore sits BELOW the vehicle total and adds into a grand total — it is engines and
+// axles sold as units, not complete vehicles. That is why the grain here is engine model rather
+// than FERT, and why this plan cannot merge into the vehicle plan's Sales Area column.
+// Week splits are apportioned to the released monthly totals; the EPS source sheet is still to
+// come and will confirm the true weekly shape and any additional columns.
+const ISO_EPS=[
+  {cat:"Engine",model:"E483",family:"5-17.5 Ton",fuel:"CNG",   appl:"Powertrain — OE supply",prio:0,w1:70,w2:60,w3:60,w4:60,rgp:0,m2:260,m3:255,remarks:""},
+  {cat:"Engine",model:"E494",family:"5-17.5 Ton",fuel:"DIESEL",appl:"Powertrain — OE supply",prio:40,w1:90,w2:86,w3:84,w4:82,rgp:0,m2:350,m3:345,remarks:"Largest EPS family"},
+  {cat:"Engine",model:"E683",family:"HD",        fuel:"DIESEL",appl:"Powertrain — OE supply",prio:0,w1:20,w2:16,w3:16,w4:16,rgp:0,m2:70, m3:70, remarks:""},
+  {cat:"Engine",model:"E694",family:"HD",        fuel:"DIESEL",appl:"Powertrain — OE supply",prio:0,w1:60,w2:58,w3:56,w4:56,rgp:0,m2:235,m3:230,remarks:""},
+  {cat:"Axle",  model:"Rear Axle",family:"HD",   fuel:"—",     appl:"Aggregate — OE supply",  prio:0,w1:26,w2:24,w3:24,w4:24,rgp:0,m2:100,m3:100,remarks:"Sits with EPS in the released summary"},
+];
+ISO_EPS.forEach(r=>{ r.m1=r.w1+r.w2+r.w3+r.w4; r.plan=r.m1+(r.rgp||0); r.salesArea='EPS'; });
+let planTab='main';
+function setPlanTab(t){
+  planTab=t;
+  ['main','eps'].forEach(k=>document.getElementById('pt-'+k).classList.toggle('active',k===t));
+  renderByFert();
+}
+function epsPlanRows(){
+  // EPS has no FERT/vertical/segment, so the vehicle filters mostly do not apply. Fuel, search
+  // and the urgent flag are the ones that carry over.
+  return ISO_EPS.filter(r=>{
+    if(fFuel.size&&!fFuel.has(r.fuel))return false;
+    if(fUrgentOnly&&!(r.prio>0))return false;
+    if(fSearch){ const q=fSearch.toLowerCase();
+      if(!((r.model||'').toLowerCase().includes(q)||(r.appl||'').toLowerCase().includes(q)))return false; }
+    return true;
+  });
+}
+
+function is1B(){ return activeCycle==='1B'; }
+
+// ════════════════════════════════════════════════════════════════════════════
+//  MODEL YEAR SPLIT
+//  Spec — ISO Consolidation reviews, 2–3 Sep 2026.
+//  Two columns sit AFTER the Total column: MY<current> and MY<next>.
+//    · MY<next>    is the ONLY editable field. The planner types the quantity that should count
+//                  against next model year.
+//    · MY<current> is derived, never typed into:  MY<current> = Total − MY<next>
+//      e.g. Total 100, enter 25 → MY2026 shows 75.  Total 5, enter 2 → MY2026 shows 3.
+//  Recalculation is live — there is no separate save step.
+//
+//  Model-year planning is a MODE, not a per-user view preference: the split is data that has to
+//  survive to PPC, so one planner cannot have it on while another has it off. Sanjay: "it should
+//  come with the selection... that time this column should get opened over here." It is therefore
+//  off by default and switched on for the model-year transition window (Nov/Dec).
+// ════════════════════════════════════════════════════════════════════════════
+const MY_CURRENT=2026, MY_NEXT=MY_CURRENT+1;
+let myPlanning=false;
+// ══ ISO READS VH'S SPLIT — it does not own one ══
+// Sanjay: the model-year split "will START from the intent from vertical head". VH decides how a
+// FERT divides between model years on the main workbench; ISO receives that decision. Making it
+// editable in both places would let ISO invent a split VH never made, and leave two screens able
+// to disagree about the same number. So these columns are READ-ONLY here.
+// VH_SUBMITTED_MY carries what VH sent, keyed on FERT code. In production this arrives with VH's
+// submission; in Phase 0 it is seeded so the flow is demonstrable end to end.
+const VH_SUBMITTED_MY={ V4130CAF:14, V4025EXP:6, H4940MAV:4, B3010LSF:3, S1075SCV:8 };
+function vhMyFor(code){ return VH_SUBMITTED_MY[code]||0; }
+function myNext(key,total){ const code=String(key).split('|').pop(); return Math.min(vhMyFor(code)||vhMyFor(String(key).split('|')[1]||''),total); }
+function myCurrent(key,total){ return Math.max(0,total-myNext(key,total)); }
+function toggleMyPlanning(){ myPlanning=!myPlanning; renderAll(); }
+// Both cells are calculated — nothing on this screen is typed into.
+function myCells(key,total,tint){
+  if(!myPlanning)return '';
+  const bg=tint||'#F6F2FB';
+  const nxt=myNext(key,total);
+  return '<td class="calc-val" style="background:'+bg+';font-weight:600" title="Total minus MY'+MY_NEXT+' — VH set the split">'+myCurrent(key,total)+'</td>'+
+         '<td class="calc-val" style="background:'+bg+';font-weight:600'+(nxt?';color:#6A1B9A':';color:#B0BEC5')+'" title="Submitted by Vertical Head on the indent workbook — read-only here">'+nxt+'</td>';
+}
+function myHead(){
+  return myPlanning?'<th style="background:#F6F2FB" title="Total minus MY'+MY_NEXT+'">MY'+MY_CURRENT+'</th><th style="background:#F6F2FB" title="As submitted by Vertical Head — read-only at ISO">MY'+MY_NEXT+' <span style="color:#6A1B9A">&#9432;</span></th>':'';
+}
+function myGrp(label){ return myPlanning?'<th colspan="2" class="wb-th" style="background:#F3ECFB;color:#6A1B9A">'+(label||'Model Year Split &middot; from VH')+'</th>':''; }
+function myN(){ return myPlanning?2:0; }
+let showPlanAttrs=false;
+function togglePlanAttrs(){ showPlanAttrs=!showPlanAttrs; renderByFert(); }
+const PLAN_GB=[{key:'none',label:'Flat'},{key:'salesArea',label:'By Sales Area'},{key:'vert',label:'By Vertical'},{key:'engine',label:'By Engine'},{key:'product',label:'By Product'}];
+let planGroupBy='none';
+function setPlanGroupBy(k){ planGroupBy=k; renderByFert(); }
+
+function planRowCells(r){
+  const a=showPlanAttrs?
+    `<td style="font-size:9px;color:var(--grey)">${r.fuel}</td>
+     <td style="font-size:9px;color:var(--grey)">${r.engine}</td>
+     <td style="font-size:9px;color:var(--grey)">${r.engineRev}</td>
+     <td style="font-size:9px;color:var(--grey);text-align:center">${r.spl||'—'}</td>
+     <td style="font-size:9px;text-align:center;font-weight:600;color:${r.acnac==='AC'?'#0277BD':'var(--grey)'}">${r.acnac||'—'}</td>`:'';
+  return `<td style="font-size:10px;font-weight:600">${r.vert}</td>
+    <td><span class="fert-code">${r.code}</span></td>
+    <td><span class="fert-desc" title="${r.desc}">${r.desc}</span></td>
+    <td style="font-size:10px;color:var(--ink2)">${r.product||'—'}</td>
+    <td style="font-size:10px;color:var(--grey)" title="${r.country}">${r.country}</td>
+    <td style="text-align:center"><span class="sa-tag sa-${r.salesArea}">${r.salesArea==='Private'?'PVT':r.salesArea}</span></td>
+    <td style="text-align:center;font-size:9px;color:var(--grey)">${r.my}</td>
+    <td style="text-align:center">${segTag(r.seg)}</td>
+    ${a}
+    ${is1B()?`<td class="ro-val" style="background:#FFFDF5">${r.prio1a||0}</td>`:''}
+    <td class="ro-val">${r.prio}</td>
+    ${is1B()?`<td class="ro-val" style="background:#FFFDF5">${r.sop1aPlan||0}</td>`:''}
+    <td class="ro-val">${r.w1}</td><td class="ro-val">${r.w2}</td><td class="ro-val">${r.w3}</td><td class="ro-val">${r.w4}</td>
+    <td class="calc-val" style="background:#EFF6FF;font-weight:600">${r.m1}</td>
+    <td class="ro-val" style="background:#F3ECFB">${r.rgp||0}</td>
+    <td class="calc-val" style="background:#E8F5E9;font-weight:700;color:var(--blue)">${r.plan}</td>
+    ${myCells(planKey(r),r.plan)}
+    <td class="ro-val">${r.m2}</td><td class="ro-val">${r.m3}</td>
+    <td><input class="inp-rem" type="text" value="${planRemark(r)}" placeholder="—" onchange="setPlanRemark('${planKey(r)}',this.value)"></td>
+    <td style="font-size:9px;color:var(--grey)">${r.src}</td>`;
+}
+
+function renderByFert(){
+  const isEps=planTab==='eps';
+  document.getElementById('cnt-planmain').textContent=planFiltered().length;
+  document.getElementById('cnt-planeps').textContent=epsPlanRows().length;
+  document.getElementById('fertTitle').textContent=isEps?'Production Plan by FERT — EPS':'Production Plan by FERT — All Channels';
+  document.getElementById('fertSub').textContent=isEps
+    ?'EPS · separate plan, released to PPC independently of the Private / IB / IS / NPI plan'
+    :'Private · IB · IS · NPI — one line per FERT × destination × Sales Area';
+  document.getElementById('planTabScope').textContent=isEps?'EPS plan':'Private · IB · IS · NPI';
+  if(isEps){ renderEpsPlan(); return; }
+  // S&OP-1B is a revision of a released plan, so it carries the 1A priority and the 1A production
+  // plan beside the current figures (VEF-008). 1A has neither — nothing has been released yet.
+  const b=is1B(), nB=b?2:0;
+  const CYC=b?'1B':'1A', MON=b?'Aug':'Sep';
+  const rows=planFiltered().sort((x,y)=>x.vert.localeCompare(y.vert)||x.salesArea.localeCompare(y.salesArea)||x.code.localeCompare(y.code));
+  const held=heldNpiLines().length;
+  const t={w1:0,w2:0,w3:0,w4:0,m1:0,rgp:0,plan:0,m2:0,m3:0,prio:0,prio1a:0,sop1aPlan:0};
+  rows.forEach(r=>['w1','w2','w3','w4','m1','rgp','plan','m2','m3','prio','prio1a','sop1aPlan'].forEach(k=>t[k]+=r[k]||0));
+
+  document.getElementById('fertNotice').innerHTML=
+    `<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+       <span style="font:700 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--grey)">Group by</span>
+       ${PLAN_GB.map(o=>`<button class="wb-gb-pill${planGroupBy===o.key?' active':''}" onclick="setPlanGroupBy('${o.key}')">${o.label}</button>`).join('')}
+       <span style="width:1px;height:22px;background:var(--rule)"></span>
+       <button class="wb-gb-pill${showPlanAttrs?' active':''}" onclick="togglePlanAttrs()">${showPlanAttrs?'▾':'▸'} Attributes</button>
+       <button class="wb-gb-pill${myPlanning?' active':''}" onclick="toggleMyPlanning()" title="Model Year planning — opens the MY${MY_CURRENT} / MY${MY_NEXT} split columns after Total. Used through the model-year transition window.">${myPlanning?'✓':'▸'} Model Year</button>
+       <span style="margin-left:auto;font-size:10px;color:var(--grey)">ISO Format No: VEF-008 &middot; S&OP-${CYC}</span>
+     </div>
+     <div class="notice info" style="margin:0"><strong>Released production plan.</strong> One line per FERT &times; destination &times; Sales Area, built live from the four moderation screens. Private lines appear once copied forward; on IS rows the destination column carries the <em>customer</em>, matching the released form${held?`; ${held} NPI line(s) are held out pending a released FERT code`:''}.</div>`;
+
+  const head=document.getElementById('fertHead'),body=document.getElementById('fertBody');
+  const attrHead=showPlanAttrs?'<th>Fuel</th><th>Engine</th><th>Engine Rev</th><th>Spl Appln</th><th>AC/NAC</th>':'';
+  const attrGrp=showPlanAttrs?'<th colspan="5" class="wb-th wb-th-neutral">Attributes</th>':'';
+  const nAttr=showPlanAttrs?5:0;
+  const prioHead=(b?'<th style="background:#FFFDF5">S&OP1A Priority Veh.</th>':'')+'<th>S&OP'+CYC+' Priority Veh.</th>';
+  const planRefHead=b?'<th style="background:#FFFDF5">S&OP1A Prod Plan</th>':'';
+  head.innerHTML=`<tr>
+    <th colspan="8" class="wb-th wb-th-fert left">Identity</th>
+    ${attrGrp}
+    <th colspan="${1+(b?1:0)}" class="wb-th wb-th-neutral">Priority</th>
+    ${b?'<th colspan="1" class="wb-th" style="background:#FFF8E1;color:#8A5A00">S&OP1A Release</th>':''}
+    <th colspan="6" class="wb-th wb-th-edit">S&OP${CYC} Production Plan &middot; ${MON} 26</th>
+    <th colspan="1" class="wb-th wb-th-teal">Total</th>
+    ${myGrp()}
+    <th colspan="2" class="wb-th wb-th-readonly">Projections</th>
+    <th colspan="2" class="wb-th wb-th-neutral">Notes</th></tr>
+    <tr><th class="left">Vertical</th><th class="left">FERT Code</th><th class="left">Description</th><th class="left">Product</th>
+    <th class="left">Country / Customer</th><th>Sales Area</th><th>MY</th><th>Segment</th>
+    ${attrHead}
+    ${prioHead}
+    ${planRefHead}
+    <th>WK1</th><th>WK2</th><th>WK3</th><th>WK4</th><th style="background:#EFF6FF">S&OP${CYC} Plan ${MON}</th><th style="background:#F3ECFB">RGP / Op WIP</th>
+    <th style="background:#E8F5E9">Total Plan of S&OP${CYC}</th>
+    ${myHead()}
+    <th>S&OP2${CYC.charAt(1)} Plan ${b?'Sep':'Oct'}</th><th>S&OP3${CYC.charAt(1)} Plan ${b?'Oct':'Nov'}</th>
+    <th class="left">Remarks</th><th class="left">Source</th></tr>
+    <tr class="subtotal"><td colspan="${8+nAttr}" style="font-weight:700;font-size:10px">Plan totals &mdash; ${rows.length} line(s)</td>
+    ${b?`<td class="ro-val" style="background:#FFFDF5"><strong>${t.prio1a}</strong></td>`:''}
+    <td class="ro-val"><strong>${t.prio}</strong></td>
+    ${b?`<td class="ro-val" style="background:#FFFDF5"><strong>${t.sop1aPlan}</strong></td>`:''}
+    <td class="ro-val"><strong>${t.w1}</strong></td><td class="ro-val"><strong>${t.w2}</strong></td>
+    <td class="ro-val"><strong>${t.w3}</strong></td><td class="ro-val"><strong>${t.w4}</strong></td>
+    <td style="background:#EFF6FF;text-align:right;font-family:var(--mono)"><strong>${t.m1}</strong></td>
+    <td style="background:#F3ECFB;text-align:right;font-family:var(--mono)"><strong>${t.rgp}</strong></td>
+    <td style="background:#D4EDDA;text-align:right;font-family:var(--mono);color:var(--blue)"><strong>${t.plan}</strong></td>
+    ${myPlanning?`<td class="calc-val" style="background:#F6F2FB"><strong>${rows.reduce((a,r)=>a+myCurrent(planKey(r),r.plan),0)}</strong></td><td class="calc-val" style="background:#F6F2FB"><strong>${rows.reduce((a,r)=>a+myNext(planKey(r),r.plan),0)}</strong></td>`:''}
+    <td class="ro-val"><strong>${t.m2}</strong></td><td class="ro-val"><strong>${t.m3}</strong></td>
+    <td colspan="2"></td></tr>`;
+
+  const NCOL=8+nAttr+nB+myN()+12;
+  let h='';
+  if(!rows.length){
+    h=`<tr><td colspan="${NCOL}" style="text-align:center;padding:28px;color:var(--grey)">No plan lines yet. Moderate a channel &mdash; and copy Private forward &mdash; to populate the production plan.</td></tr>`;
+  } else if(planGroupBy==='none'){
+    rows.forEach((r,i)=>{ h+=`<tr style="background:${i%2===0?'#fff':'#F8FAFC'}">${planRowCells(r)}</tr>`; });
+  } else {
+    const groups=new Map();
+    rows.forEach(r=>{ const k=r[planGroupBy]||'—'; if(!groups.has(k))groups.set(k,[]); groups.get(k).push(r); });
+    [...groups.entries()].sort((a,b)=>String(a[0]).localeCompare(String(b[0]))).forEach(([k,gr])=>{
+      const gm1=gr.reduce((a,r)=>a+r.m1,0), gpl=gr.reduce((a,r)=>a+r.plan,0), grg=gr.reduce((a,r)=>a+(r.rgp||0),0);
+      h+=`<tr style="background:#F0F8FF"><td colspan="${8+nAttr+nB+5}" style="font-weight:700">${k} <span style="color:var(--grey);font-weight:400;font-size:10px">&middot; ${gr.length} line${gr.length===1?'':'s'}</span></td>
+        <td style="background:#EFF6FF;text-align:right;font-family:var(--mono);font-weight:700">${gm1}</td>
+        <td style="background:#F3ECFB;text-align:right;font-family:var(--mono);font-weight:700">${grg}</td>
+        <td style="background:#D4EDDA;text-align:right;font-family:var(--mono);font-weight:700;color:var(--blue)">${gpl}</td>
+        <td colspan="${4+myN()}"></td></tr>`;
+      gr.forEach((r,i)=>{ h+=`<tr style="background:${i%2===0?'#fff':'#F8FAFC'}">${planRowCells(r)}</tr>`; });
+    });
+  }
+  body.innerHTML=h;
+  sumBar('fertSumBar',[['S&OP1A Plan',t.m1,''],['RGP / Op WIP',t.rgp,'warn'],['Total Plan',t.plan,'ok']],rows.length+' line(s) · Sales Area retained per row · VEF-0142');
+}
+
+// ════════════ SCREEN 3 · PRODUCTION PLAN SUMMARY ════════════
+// Rebuilt against "Summary of S&OP1A Sept26" in the released VEF workbook. Two structural facts
+// from that sheet drove this:
+//   1. Rows are a plan-line HIERARCHY with subtotals (LMD / HD / Bus / Pro X), not verticals.
+//   2. The channels (IS, IB, NPI) are ROWS at the bottom — not columns. An earlier June export
+//      used a Vertical x Channel matrix instead; this form carries the ISO format number, so it
+//      is treated as the authoritative PPC handoff.
+// "Additional demand" is a vertical-level top-up on the released plan (Total = Plan + Additional
+// — in the May sheet HD Trucks took +1300). "Urgent vehicles" is a CARVE-OUT of the plan, not an
+// addition: it never enters the Total, and rolls up from the FERT-level Priority column.
+const SUM_STATE={};           // vertical-level manual entry: additional demand
+function sumStateFor(k){ if(!SUM_STATE[k])SUM_STATE[k]={addl:0}; return SUM_STATE[k]; }
+function setAddl(k,v){ sumStateFor(k).addl=Number(v)||0; renderSummary(); }
+
+function buildSummary(){
+  const rows=planFiltered(), agg={};
+  SUM_ROWS.forEach(r=>agg[r.key]={plan:0,rgp:0,urgent:0,oct:0,nov:0});
+  rows.forEach(r=>{
+    const k=r.sumRow; if(!agg[k])return;
+    agg[k].plan   += r.m1;
+    agg[k].rgp    += (r.rgp||0);
+    agg[k].urgent += (r.prio||0);   // FERT-level S&OP1A Priority vehicles roll up here
+    agg[k].oct    += (r.m2||0);
+    agg[k].nov    += (r.m3||0);
+  });
+  // subtotal rows sum their declared children
+  SUM_ROWS.filter(r=>r.total).forEach(r=>{
+    r.total.forEach(child=>{
+      ['plan','rgp','urgent','oct','nov'].forEach(f=>agg[r.key][f]+=agg[child][f]);
+      agg[r.key].addlChildren=(agg[r.key].addlChildren||0)+sumStateFor(child).addl;
+    });
+  });
+  return agg;
+}
+function rowAddl(r,agg){ return r.total? (agg[r.key].addlChildren||0) : sumStateFor(r.key).addl; }
+function cellTotal(c){ return (c.plan||0)+(c.rgp||0); }   // kept for the reconciliation check
+
+// EPS plan. Same VEF column shape as the main plan so the two tabs read identically, but driven
+// off ISO_EPS. Until the EPS sheet and requirements land this is deliberately an empty plan with
+// the open questions stated, rather than fabricated rows that would look authoritative.
+function renderEpsPlan(){
+  const rows=epsPlanRows();
+  const t={prio:0,w1:0,w2:0,w3:0,w4:0,m1:0,rgp:0,plan:0,m2:0,m3:0};
+  rows.forEach(r=>Object.keys(t).forEach(k=>t[k]+=r[k]||0));
+  const eng=rows.filter(r=>r.cat==='Engine').reduce((a,r)=>a+r.m1,0);
+  const axl=rows.filter(r=>r.cat!=='Engine').reduce((a,r)=>a+r.m1,0);
+
+  document.getElementById('fertNotice').innerHTML=
+    `<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+       <span style="margin-left:auto;font-size:10px;color:var(--grey)">ISO Format No: VEF-0142 &middot; EPS</span>
+     </div>
+     <div class="notice warn" style="margin:0"><strong>EPS is planned in engines, not vehicles.</strong> In the released engine-wise summary EPS sits <em>below</em> the vehicle total and adds into a grand total (Total 13,125 + EPS Engine 890 + Axle 98 = 14,113), so the grain here is engine model rather than FERT and this plan cannot merge into the vehicle plan. Released to PPC separately. Figures below are apportioned from that summary &mdash; the EPS source sheet is still to come.</div>`;
+
+  const head=document.getElementById('fertHead'),body=document.getElementById('fertBody');
+  head.innerHTML=`<tr>
+    <th colspan="5" class="wb-th wb-th-fert left">Identity</th>
+    <th colspan="1" class="wb-th wb-th-neutral">Priority</th>
+    <th colspan="6" class="wb-th wb-th-edit">S&OP1A Production Plan &middot; Sep 26</th>
+    <th colspan="1" class="wb-th wb-th-teal">Total</th>
+    <th colspan="2" class="wb-th wb-th-readonly">Projections</th>
+    <th colspan="1" class="wb-th wb-th-neutral">Notes</th></tr>
+    <tr><th class="left">Category</th><th class="left">Engine / Aggregate</th><th class="left">Family</th><th>Fuel</th><th class="left">Application</th>
+    <th>S&OP1A Priority</th>
+    <th>WK1</th><th>WK2</th><th>WK3</th><th>WK4</th><th style="background:#EFF6FF">S&OP1A Plan Sep</th><th style="background:#F3ECFB">RGP / Op WIP</th>
+    <th style="background:#E8F5E9">Total Plan of S&OP1A</th>
+    <th>S&OP2A Plan Oct</th><th>S&OP3A Plan Nov</th>
+    <th class="left">Remarks</th></tr>
+    <tr class="subtotal"><td colspan="5" style="font-weight:700;font-size:10px">Plan totals &mdash; ${rows.length} line(s)</td>
+    <td class="ro-val"><strong>${t.prio}</strong></td>
+    <td class="ro-val"><strong>${t.w1}</strong></td><td class="ro-val"><strong>${t.w2}</strong></td>
+    <td class="ro-val"><strong>${t.w3}</strong></td><td class="ro-val"><strong>${t.w4}</strong></td>
+    <td style="background:#EFF6FF;text-align:right;font-family:var(--mono)"><strong>${t.m1}</strong></td>
+    <td style="background:#F3ECFB;text-align:right;font-family:var(--mono)"><strong>${t.rgp}</strong></td>
+    <td style="background:#D4EDDA;text-align:right;font-family:var(--mono);color:var(--blue)"><strong>${t.plan}</strong></td>
+    ${myPlanning?`<td class="calc-val" style="background:#F6F2FB"><strong>${rows.reduce((a,r)=>a+myCurrent(planKey(r),r.plan),0)}</strong></td><td class="calc-val" style="background:#F6F2FB"><strong>${rows.reduce((a,r)=>a+myNext(planKey(r),r.plan),0)}</strong></td>`:''}
+    <td class="ro-val"><strong>${t.m2}</strong></td><td class="ro-val"><strong>${t.m3}</strong></td><td></td></tr>`;
+
+  if(!rows.length){
+    body.innerHTML=`<tr><td colspan="16" style="text-align:center;padding:26px;color:var(--grey)">No EPS lines match these filters.</td></tr>`;
+  } else {
+    body.innerHTML=rows.map((r,i)=>`<tr style="background:${r.cat!=='Engine'?'#FFF8E1':(i%2===0?'#fff':'#F8FAFC')}">
+      <td><span class="sa-tag" style="background:${r.cat==='Engine'?'#F3E5F5':'#FFF3E0'};color:${r.cat==='Engine'?'#6A1B9A':'#E65100'}">${r.cat}</span></td>
+      <td style="font-family:var(--mono);font-size:10.5px;color:var(--blue);font-weight:600">${r.model}</td>
+      <td style="font-size:10px;color:var(--grey)">${r.family}</td>
+      <td style="font-size:9px;text-align:center;color:var(--grey)">${r.fuel}</td>
+      <td style="font-size:10px">${r.appl}</td>
+      <td class="ro-val">${r.prio}</td>
+      <td class="ro-val">${r.w1}</td><td class="ro-val">${r.w2}</td><td class="ro-val">${r.w3}</td><td class="ro-val">${r.w4}</td>
+      <td class="calc-val" style="background:#EFF6FF;font-weight:600">${r.m1}</td>
+      <td class="ro-val" style="background:#F3ECFB">${r.rgp||0}</td>
+      <td class="calc-val" style="background:#E8F5E9;font-weight:700;color:var(--blue)">${r.plan}</td>
+      <td class="ro-val">${r.m2}</td><td class="ro-val">${r.m3}</td>
+      <td style="font-size:9px;color:var(--grey)">${r.remarks||''}</td></tr>`).join('');
+  }
+  sumBar('fertSumBar',[['Engines',eng,''],['Aggregates / Axle',axl,'warn'],['Total EPS Plan',t.plan,'ok']],rows.length+' EPS line(s) · engine grain · released separately to PPC');
+}
+
+function renderSummary(){
+  const agg=buildSummary(), head=document.getElementById('sumHead'), body=document.getElementById('sumBody');
+  head.innerHTML=`<tr>
+      <th class="left" rowspan="2" style="vertical-align:bottom">Vertical</th>
+      <th class="mg" colspan="5" style="background:#0B2545">S&OP1A Prod Plan of Sep 26</th>
+      <th class="mg" colspan="2" style="background:#37474F">Projections</th></tr>
+    <tr><th>S&OP1A Prod Plan</th><th>For Opg RGP / WIP / IB Firm Orders</th><th>Additional demand</th>
+      <th>Total S&OP1A Demand</th><th>Urgent vehicles</th>
+      <th>S&OP2A plan for Oct</th><th>S&OP3A plan for Nov</th></tr>`;
+  let h='';
+  const grand={plan:0,rgp:0,addl:0,urgent:0,oct:0,nov:0};
+  SUM_ROWS.forEach(r=>{
+    const c=agg[r.key], addl=rowAddl(r,agg), total=c.plan+addl;
+    if(SUM_GRAND.includes(r.key)){
+      grand.plan+=c.plan; grand.rgp+=c.rgp; grand.addl+=addl; grand.urgent+=c.urgent; grand.oct+=c.oct; grand.nov+=c.nov;
+    }
+    const isTot=!!r.total, isChan=!!r.chan;
+    h+=`<tr style="${isTot?'background:#EAF0F6;font-weight:700':(isChan?'background:#FAFCFF':'')}">
+      <td class="left" style="${isTot?'font-weight:700':''}${isChan?'color:#0277BD':''}">${isTot?'':'&nbsp;&nbsp;'}${r.label}</td>
+      <td class="${c.plan?'':'zero'}">${c.plan}</td>
+      <td class="${c.rgp?'':'zero'}">${c.rgp}</td>
+      <td>${isTot?`<span style="font-family:var(--mono)">${addl}</span>`
+          :`<input class="inp" type="number" style="width:56px" value="${addl}" onchange="setAddl('${r.key}',this.value)">`}</td>
+      <td class="tot">${total}</td>
+      <td class="${c.urgent?'':'zero'}" style="color:${c.urgent?'#C2600A':''}">${c.urgent}</td>
+      <td class="${c.oct?'':'zero'}">${c.oct}</td>
+      <td class="${c.nov?'':'zero'}">${c.nov}</td></tr>`;
+  });
+  h+=`<tr class="grand"><td class="left">Total</td><td>${grand.plan}</td><td>${grand.rgp}</td><td>${grand.addl}</td>
+      <td>${grand.plan+grand.addl}</td><td>${grand.urgent}</td><td>${grand.oct}</td><td>${grand.nov}</td></tr>
+      <tr class="grand" style="background:#1565C0"><td class="left">PLAN</td><td>${grand.plan}</td><td>${grand.rgp}</td><td>${grand.addl}</td>
+      <td>${grand.plan+grand.addl}</td><td>${grand.urgent}</td><td>${grand.oct}</td><td>${grand.nov}</td></tr>`;
+  body.innerHTML=h;
+
+  const planRows=planFiltered();
+  document.getElementById('sumKpis').innerHTML=
+    kpi('S&OP1A Plan · Sep',grand.plan,'across '+planRows.length+' FERT lines','#0B2545')+
+    kpi('Total S&OP1A Demand',grand.plan+grand.addl,'incl. '+grand.addl+' additional','#1565C0')+
+    kpi('Urgent vehicles',grand.urgent,grand.plan?Math.round(grand.urgent/grand.plan*100)+'% of plan':'—','#C2600A')+
+    kpi('RGP / Op WIP',grand.rgp,'opening WIP carried in','#6A1B9A');
+
+  const held=heldNpiLines();
+  let gaps=[];
+  gaps.push('<strong>Private lines arrive pre-filled</strong> — in S&OP-1A the Production Requirement equals VH’s sales plan (as in the released sheet, where both sides are identical); in S&OP-1B it arrives netted against opening FG stock. There is no copy step, so no lines are ever silently missing from this plan.');
+  if(held.length)gaps.push('<strong>'+held.length+' NPI line(s) held out</strong> — no released FERT code, and the plan is keyed on FERT Code. They sit in FERT Addition until released: '+held.map(d=>d.proj+' ('+d.stage+')').join(', ')+'.');
+  gaps.push('<strong>Additional demand</strong> is a vertical-level top-up entered here, not a FERT-level figure — Total S&OP1A Demand = Plan + Additional. <strong>Urgent vehicles</strong> is a carve-out of the plan (it does not add to the Total) and rolls up from the FERT-level S&OP1A Priority column.');
+  gaps.push('<strong>Not in Phase 0:</strong> the BP-vs-Actual, GAP, Shortfall, Rush Order Non-Committed and Supply Committed columns seen on earlier months of this form. Those are PPC’s return feed and need an inbound integration that does not exist yet.');
+  gaps.push('<strong>EPS is not in this summary.</strong> EPS is a separate production plan tab, released to PPC independently. Whether the summary also splits into EPS / non-EPS &mdash; or excludes EPS entirely &mdash; is still to be confirmed, so its lines are held out rather than folded into Total and PLAN.');
+  gaps.push('<strong>SUB5T / vertical taxonomy</strong> — this hierarchy comes from the released form and is driven off SUM_ROWS, so adding or promoting a plan line is a data change.');
+  document.getElementById('sumGap').innerHTML='<div style="font-weight:700;margin-bottom:5px">Reconciliation notes</div><ul style="margin:0;padding-left:16px;line-height:1.65">'+gaps.map(g=>'<li>'+g+'</li>').join('')+'</ul>';
+  document.getElementById('sumNotice').innerHTML='<div class="notice info" style="margin:0"><strong>Aggregated live from the by-FERT plan</strong> — never computed independently, so the two production plan screens cannot drift. Channels appear as rows (IS / IB / NPI), matching the released form rather than a channel-column matrix. COCO is inside Private by the time VH submits.</div>';
+}
+function kpi(l,v,s,c){ return '<div class="mk"><div class="mk-lbl">'+l+'</div><div class="mk-val" style="color:'+c+'">'+v+'</div><div class="mk-sub">'+s+'</div></div>'; }
+
+// ════════════ SCREEN 4 · SUMMARY & KPIs ════════════
+// ISO previously reached the main workbench's Summary screen, which carried M1-vs-ABP, vs-6M-average
+// and stock aging. Removing the inline ISO persona from that file would have taken those with it, so
+// they are rebuilt here at national scope — plus three that only became possible once all four
+// channels landed in one place: 1A-vs-1B plan variance, channel mix, and week-1 concentration.
+// Everything is derived from the same buildPlanRows() the two production plan screens use, so this
+// tab cannot disagree with them.
+function kpiCard(label,value,sub,colour,tone){
+  return `<div class="mk" style="${tone?'border-left:3px solid '+colour:''}">
+    <div class="mk-lbl">${label}</div>
+    <div class="mk-val" style="color:${colour}">${value}</div>
+    <div class="mk-sub">${sub}</div></div>`;
+}
+function bar(pct,colour){
+  return `<div style="height:6px;background:#EDF1F5;border-radius:3px;overflow:hidden;margin-top:5px">
+    <div style="height:100%;width:${Math.min(100,pct)}%;background:${colour}"></div></div>`;
+}
+function renderKpis(){
+  const rows=planFiltered();
+  const host=document.getElementById('kpiBody');
+  if(!rows.length){ host.innerHTML='<div style="padding:40px;text-align:center;color:var(--grey)">No plan lines in scope.</div>'; return; }
+
+  const planTot=rows.reduce((a,r)=>a+r.m1,0);
+  const rgpTot =rows.reduce((a,r)=>a+(r.rgp||0),0);
+  // ABP and 6-month average are Private-side reference figures — the other channels are order-driven
+  // and have no annual business plan to measure against, so the comparison is scoped to Private.
+  const pvt=ISO_PRIVATE.filter(f=>passFilter(f,null));
+  const abpTot=pvt.reduce((a,f)=>a+(f.abp||0),0);
+  const avgTot=pvt.reduce((a,f)=>a+(f.avg6m||0),0);
+  const pvtPlan=rows.filter(r=>r.salesArea==='Private').reduce((a,r)=>a+r.m1,0);
+  const abpPct=abpTot?Math.round(pvtPlan/abpTot*100):null;
+  const avgPct=avgTot?Math.round(pvtPlan/avgTot*100):null;
+  const sop1aTot=rows.reduce((a,r)=>a+(r.sop1aPlan||0),0);
+  const variance=planTot-sop1aTot;
+  const varPct=sop1aTot?Math.round(variance/sop1aTot*100):0;
+
+  const aged={s60:0,s90:0,s180:0,over:0};
+  pvt.forEach(f=>{aged.s60+=f.st60||0;aged.s90+=f.st60_90||0;aged.s180+=f.st90_180||0;aged.over+=f.st180||0;});
+  const agedTot=aged.s60+aged.s90+aged.s180+aged.over;
+
+  const byChan={};CHANNELS.forEach(c=>byChan[c]=0);
+  rows.forEach(r=>byChan[r.salesArea]+=r.m1);
+  const w1=rows.reduce((a,r)=>a+r.w1,0);
+  const w1pct=planTot?Math.round(w1/planTot*100):0;
+
+  const abpCol=abpPct===null?'var(--grey)':abpPct>=100?'#1B5E20':abpPct>=90?'#C2600A':'#B71C1C';
+  const avgCol=avgPct===null?'var(--grey)':avgPct>=95?'#1B5E20':'#C2600A';
+  const varCol=variance===0?'var(--grey)':variance>0?'#1B5E20':'#B71C1C';
+  const w1Col =w1pct>=50?'#B71C1C':w1pct>=35?'#C2600A':'#1B5E20';
+  const overCol=aged.over>0?'#B71C1C':'#1B5E20';
+  const CH_COL={Private:'#1565C0',IB:'#0277BD',IS:'#7C2D12',NPI:'#6A1B9A'};
+
+  host.innerHTML=`
+  <div class="mini-kpi" style="margin:4px 0 14px">
+    ${kpiCard('M1 Plan vs ABP',abpPct===null?'—':abpPct+'%',
+       abpTot?(pvtPlan+' of '+abpTot+' ABP · Private only'):'No ABP data',abpCol,true)}
+    ${kpiCard('vs 6-Month Average',avgPct===null?'—':avgPct+'%',
+       avgTot?(pvtPlan+' vs '+avgTot+' avg offtake'):'—',avgCol,true)}
+    ${kpiCard('Plan Variance '+(is1B()?'1A → 1B':'vs S&OP-1A'),(variance>0?'+':'')+variance,
+       sop1aTot?(varPct>0?'+':'')+varPct+'% against '+sop1aTot+' released':'Nothing released yet',varCol,true)}
+    ${kpiCard('Aged Stock &gt; 180D',aged.over,
+       agedTot?Math.round(aged.over/agedTot*100)+'% of '+agedTot+' on hand':'No stock on hand',overCol,true)}
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+    <div style="background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:14px 16px;box-shadow:var(--sh)">
+      <div style="font:700 11px/1 Inter,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:var(--ink2);margin-bottom:12px">Channel Mix &middot; M1 Plan</div>
+      ${CHANNELS.map(c=>{const v=byChan[c],pct=planTot?Math.round(v/planTot*100):0;
+        return `<div style="margin-bottom:10px">
+          <div style="display:flex;font-size:11px"><span style="font-weight:600;color:${CH_COL[c]}">${c==='Private'?'Private (incl. COCO)':c}</span>
+          <span style="margin-left:auto;font-family:var(--mono)">${v}<span style="color:var(--grey);margin-left:6px">${pct}%</span></span></div>
+          ${bar(pct,CH_COL[c])}</div>`;}).join('')}
+      <div style="font-size:9.5px;color:var(--grey);margin-top:10px;line-height:1.5">COCO has no separate share — VH folds it into Private before submitting, matching the released plan where Sales Area carries no COCO value.</div>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:14px 16px;box-shadow:var(--sh)">
+      <div style="font:700 11px/1 Inter,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:var(--ink2);margin-bottom:12px">Week-1 Concentration</div>
+      <div style="display:flex;align-items:baseline;gap:8px"><span style="font-family:var(--mono);font-size:26px;font-weight:600;color:${w1Col}">${w1pct}%</span>
+        <span style="font-size:11px;color:var(--grey)">${w1} of ${planTot} units land in W1</span></div>
+      ${bar(w1pct,w1Col)}
+      <div style="font-size:9.5px;color:var(--grey);margin-top:10px;line-height:1.55">
+        IB and IS are dispatch-driven and post entirely to W1, so a high figure is expected — but PPC runs a three-day frozen fence, and a front-loaded month is what they push back on. Private spreads across the weeks.
+      </div>
+      <div style="margin-top:12px;border-top:1px solid var(--rule-lt);padding-top:10px">
+        <div style="font-size:10px;color:var(--grey);margin-bottom:6px">RGP / Op WIP carried into the plan</div>
+        <span style="font-family:var(--mono);font-size:17px;font-weight:600;color:#6A1B9A">${rgpTot}</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:14px 16px;box-shadow:var(--sh);margin-bottom:14px">
+    <div style="font:700 11px/1 Inter,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:var(--ink2);margin-bottom:10px">Stock Aging &middot; Private FG on hand</div>
+    <table class="sum-tbl" style="width:100%">
+      <thead><tr><th class="left">Band</th><th>Units</th><th>Share</th><th class="left" style="width:44%">&nbsp;</th></tr></thead>
+      <tbody>
+        ${[['&lt; 60 days',aged.s60,'#1B5E20'],['60&ndash;90 days',aged.s90,'#C2600A'],
+           ['90&ndash;180 days',aged.s180,'#B05A00'],['&gt; 180 days &mdash; action needed',aged.over,'#B71C1C']]
+          .map(([l,v,c])=>{const pct=agedTot?Math.round(v/agedTot*100):0;
+            return `<tr><td class="left">${l}</td><td>${v}</td><td>${pct}%</td><td>${bar(pct,c)}</td></tr>`;}).join('')}
+        <tr class="grand"><td class="left">Total on hand</td><td>${agedTot}</td><td>100%</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="gap-note" style="margin:0">
+    <div style="font-weight:700;margin-bottom:5px">How these are derived</div>
+    <ul style="margin:0;padding-left:16px;line-height:1.65">
+      <li><strong>ABP and 6-month average are Private-only.</strong> IB, IS and NPI are order- or project-driven and carry no annual business plan to measure against, so blending them would produce a meaningless percentage.</li>
+      <li><strong>Plan variance</strong> compares the current plan against the quantity already released in S&OP-1A. In 1A nothing has been released, so it reads against zero until the 1B revision opens.</li>
+      <li><strong>Everything is computed from the same plan rows</strong> as the two production plan screens — this tab cannot drift from the handoff.</li>
+      <li><strong>Not yet available:</strong> indent accuracy against actual offtake, which needs the retail feed, and PPC's committed-supply return feed for a demand-vs-commitment gap.</li>
+    </ul>
+  </div>`;
+}
+
+function releaseToPpc(){
+  // Tab-aware: EPS is released independently of the main plan. Whether PPC ultimately receives
+  // one file or two is still open — until confirmed, each tab releases its own plan.
+  if(activeScreen==='fert'&&planTab==='eps'){
+    const e=epsPlanRows();
+    alert(e.length?('Release the EPS production plan to PPC?\n\n'+e.length+' FERT line(s).\n\nPhase 0 prototype — this does not post to SAP.')
+                  :'The EPS plan has no lines yet. The EPS source sheet and requirements are still to come.');
+    return;
+  }
+  const rows=planFiltered(), held=heldNpiLines().length;
+
+  if(!rows.length){ alert('Nothing to release yet — moderate the channels and copy Private forward first.'); return; }
+  let msg='Release the '+activeCycle+' Production Plan to PPC?\n\n'+rows.length+' FERT line(s) · '+rows.reduce((a,r)=>a+r.plan,0)+' units across Private / IB / IS / NPI.\n\nEPS is released separately from its own tab.';
+
+  if(held)msg+='\n⚠ '+held+' NPI line(s) are held pending a released FERT code.';
+  msg+='\n\nPhase 0 prototype — this does not post to SAP.';
+  if(confirm(msg))alert('Production Plan released to PPC (prototype). The by-FERT plan and Summary are the handoff artefacts.');
+}
+
+// ── boot ──
+buildSidebar();
+</script>
+</body>
+</html>

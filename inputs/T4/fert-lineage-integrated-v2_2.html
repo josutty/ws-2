@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>FERT Lineage Intelligence Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--navy:#172240;--steel:#4A6FA5;--slate:#64748B;--bg:#F1F5F9;--card:#FFF;--border:#E2E8F0;--accent:#2563EB;--asoft:#EFF6FF;--green:#16A34A;--gbg:#F0FDF4;--amber:#D97706;--abg:#FFFBEB;--red:#DC2626;--rbg:#FEF2F2;--purple:#7C3AED;--pbg:#F5F3FF;--teal:#0D9488;--tbg:#F0FDFA;--runner:#0D9488;--repeater:#6366F1;--stranger:#94A3B8;--mono:'JetBrains Mono',monospace;--sans:'Inter',-apple-system,sans-serif}
+body{font-family:var(--sans);background:var(--bg);min-height:100vh;display:flex;font-size:13px;color:var(--navy)}
+/* ═══ SIDEBAR (global) ═══ */
+.sb{width:216px;background:var(--navy);color:#fff;display:flex;flex-direction:column;height:100vh;position:fixed;left:0;top:0;z-index:20}
+.sb-brand{padding:18px 16px 12px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-brand small{font-size:11px;font-weight:700;letter-spacing:.06em;color:rgba(255,255,255,.45);display:block;margin-bottom:3px}
+.sb-brand b{font-size:15px;font-weight:600}
+.sb-nav{padding:10px 0;flex:1;overflow-y:auto}
+.ni{display:flex;align-items:center;gap:9px;padding:10px 16px;cursor:pointer;border-left:3px solid transparent;color:rgba(255,255,255,.55);font-size:13px;transition:all .12s}
+.ni:hover{background:rgba(255,255,255,.05);color:#fff}
+.ni.on{background:rgba(255,255,255,.1);border-left-color:var(--accent);color:#fff;font-weight:600}
+.ni .ic{width:18px;text-align:center;font-size:15px;flex-shrink:0}
+.sb-sub{padding:5px 16px 5px 40px;font-size:11px;color:rgba(255,255,255,.4);cursor:pointer;transition:all .12s}
+.sb-sub:hover{color:#fff}
+.sb-sub.on{color:var(--accent);font-weight:700}
+.sb-sub.on::before{content:"▸ ";color:var(--accent)}
+.sb-foot{padding:11px 16px;border-top:1px solid rgba(255,255,255,.08);font-size:10px;color:rgba(255,255,255,.32)}
+/* ═══ MAIN ═══ */
+.mn{margin-left:216px;flex:1;padding:22px 26px;max-width:1220px}
+.hdr{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px}
+.hdr h1{font-size:21px;font-weight:700}.hdr .sub{font-size:12px;color:var(--slate);margin-top:3px}
+.back-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;font-size:12px;color:var(--accent);background:var(--asoft);border:1px solid rgba(37,99,235,.15);border-radius:5px;cursor:pointer;font-family:var(--sans);margin-bottom:14px;font-weight:500}
+.back-btn:hover{background:rgba(37,99,235,.12)}
+/* ═══ SHARED PRIMITIVES ═══ */
+.badge,.bg{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:.02em;white-space:nowrap}
+.card,.cd{background:var(--card);border:1px solid var(--border);border-radius:8px}
+.btn{padding:8px 18px;font-size:12px;font-weight:600;border:none;border-radius:5px;cursor:pointer;font-family:var(--sans);transition:all .12s}
+.bp{color:#fff;background:var(--accent)}.bp:hover{background:#1d4ed8}.bp:disabled{opacity:.45;cursor:not-allowed}
+.bo{color:var(--slate);background:transparent;border:1px solid var(--border)}.bo:hover{border-color:var(--accent);color:var(--accent)}
+.bs{padding:4px 11px;font-size:11px}
+.bpurple{color:var(--purple);background:var(--pbg);border:1px solid rgba(124,58,237,.2)}
+.bamber{color:var(--amber);background:var(--abg);border:1px solid rgba(217,119,6,.2)}
+/* ═══ DASHBOARD ═══ */
+.kpi-row{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:15px 19px;flex:1;min-width:150px}
+.kpi-card .kl{font-size:11px;color:var(--slate);font-weight:500;margin-bottom:5px;display:flex;align-items:center;gap:5px}
+.kpi-card .kv{font-size:27px;font-weight:700;letter-spacing:-.02em}
+.kpi-card .ks{font-size:11px;color:var(--slate);margin-top:3px}
+.readiness{display:flex;align-items:center;gap:8px;padding:8px 15px;border-radius:6px;font-size:13px;font-weight:600}
+.rr-row{display:flex;gap:18px}.rr-item{flex:1;text-align:center}
+.rr-circle{width:62px;height:62px;border-radius:50%;border:4px solid;display:flex;align-items:center;justify-content:center;margin:0 auto 7px}
+.rr-circle .n{font-size:19px;font-weight:700}
+.rr-lbl{font-size:12px;font-weight:600}.rr-pct{font-size:11px;color:var(--slate)}
+.rr-bar{margin-top:15px;height:8px;border-radius:4px;overflow:hidden;display:flex}
+.lc-row{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.lc-row .nm{width:82px;font-size:12px;color:var(--slate)}
+.lc-track{flex:1;height:19px;background:#F1F5F9;border-radius:4px;overflow:hidden;position:relative}
+.lc-fill{height:100%;border-radius:4px}
+.lc-val{position:absolute;left:8px;top:2px;font-size:11px;font-weight:600}
+.task-table{width:100%;border-collapse:collapse;font-size:13px}
+.task-table thead th{padding:9px 16px;text-align:left;font-size:11px;font-weight:600;color:var(--slate);border-bottom:1px solid var(--border);background:#F8FAFC}
+.task-table tbody td{padding:10px 16px;border-bottom:1px solid var(--border)}
+/* ═══ DISCOVERY TAB BAR (shared by New Fert Mapping / Universe / Pairs / Clusters / Radar) ═══ */
+.tab-bar{display:flex;border-bottom:2px solid var(--border);margin-bottom:18px}
+.tb{padding:9px 17px;font-size:13px;font-weight:400;color:var(--slate);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;margin-bottom:-2px;font-family:var(--sans);display:flex;align-items:center;gap:5px;transition:all .12s}
+.tb.on{font-weight:700;color:var(--accent);border-bottom-color:var(--accent)}
+.tc{font-size:9px;padding:1px 6px;border-radius:8px;font-weight:700}
+/* ═══ NEW FERT MAPPING (nm-) ═══ */
+.nm-grid{display:grid;grid-template-columns:340px 1fr;gap:18px}
+.nm-panel{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;align-self:start}
+.nm-char{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px}
+.nm-char .k{color:var(--slate)}.nm-char .v{font-weight:600}
+.nm-sugg{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:10px;transition:all .15s}
+.nm-sugg.picked{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+.nm-sugg.dimmed{opacity:.35;position:relative}
+.nm-sugg.dimmed::after{content:"OVERRIDDEN";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-6deg);font-size:15px;font-weight:800;color:var(--red);letter-spacing:.1em;pointer-events:none}
+.nm-sugg-main{display:flex;align-items:center;gap:13px;padding:13px 17px;cursor:pointer}
+.nm-cb{width:20px;height:20px;border-radius:4px;border:2px solid #CBD5E1;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .12s}
+.nm-cb.on{border-color:var(--accent);background:var(--accent)}
+.nm-match{text-align:center;min-width:64px}
+.nm-match .n{font-size:23px;font-weight:700}.nm-match .l{font-size:9px;color:var(--slate)}
+.nm-expand{padding:0 17px 15px 53px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sbar{display:flex;align-items:center;gap:7px;font-size:11px}.sbar .sl{color:var(--slate);width:82px;flex-shrink:0}
+.sbar .st{flex:1;height:6px;background:#E2E8F0;border-radius:3px;overflow:hidden}.sbar .sf{height:100%;border-radius:3px}
+.sbar .sv{font-weight:600;width:32px;text-align:right}
+.nm-actions{display:flex;gap:8px;margin-top:6px}
+.nm-override{background:var(--pbg);border:2px solid rgba(124,58,237,.15);border-radius:8px;padding:18px;margin-top:12px}
+.nm-nopred{background:var(--abg);border:2px solid rgba(217,119,6,.18);border-radius:8px;padding:18px;margin-top:12px}
+.nm-search-input{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:var(--sans);outline:none;margin-bottom:10px}
+.nm-search-input:focus{border-color:var(--purple)}
+.nm-search-row{display:flex;align-items:center;gap:10px;padding:9px 11px;border-bottom:1px solid var(--border);cursor:pointer;font-size:12px}
+.nm-search-row:hover{background:var(--pbg)}
+.rchip{padding:4px 11px;font-size:11px;border-radius:14px;border:1px solid var(--border);background:var(--card);cursor:pointer;font-family:var(--sans);transition:all .12s}
+.rchip.on{border-color:var(--purple);background:var(--pbg);color:var(--purple);font-weight:600}
+.jtxt{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:var(--sans);outline:none;resize:vertical;min-height:56px}
+.gtier{display:flex;align-items:center;gap:7px;padding:9px 13px;border-radius:6px;font-size:12px;margin-top:12px}
+.gtier.gs{background:var(--gbg);border:1px solid rgba(22,163,74,.12);color:var(--green)}
+.gtier.ge{background:var(--abg);border:1px solid rgba(217,119,6,.12);color:var(--amber)}
+.gtier.gh{background:var(--rbg);border:1px solid rgba(220,38,38,.12);color:var(--red)}
+.nm-relbuilder{background:#F8FAFC;border:1px solid var(--border);border-radius:8px;padding:20px;margin-top:18px}
+.topt{flex:1;padding:12px 13px;border:2px solid var(--border);border-radius:6px;cursor:pointer;background:var(--card);transition:all .12s;text-align:center}
+.topt:hover{border-color:var(--accent)}.topt.on{border-color:var(--accent);background:var(--asoft)}
+.topt .tl{font-size:13px;font-weight:600}.topt.on .tl{color:var(--accent)}.topt .td{font-size:10px;color:var(--slate);margin-top:2px}
+.nm-insights{background:#F8FAFC;border:1px solid var(--border);border-radius:8px;padding:16px;margin-top:16px}
+.itag{padding:3px 9px;font-size:10px;border-radius:11px;border:1px solid var(--border);background:var(--card);cursor:pointer;font-family:var(--sans);transition:all .12s;color:var(--slate)}
+.itag.on{border-color:var(--accent);background:var(--asoft);color:var(--accent);font-weight:600}
+.icard{padding:9px 11px;background:var(--card);border-radius:6px;margin-top:7px;border-left:3px solid var(--accent);font-size:11px}
+.nm-cta{background:linear-gradient(135deg,var(--asoft),var(--tbg));border:2px solid rgba(37,99,235,.15);border-radius:8px;padding:18px;margin-top:16px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+/* ═══ UNIVERSE / PAIRS / CLUSTERS / RADAR (disc-) ═══ */
+.fltr{display:flex;gap:7px;margin-bottom:11px;flex-wrap:wrap;align-items:center}
+.fsel{padding:5px 9px;font-size:11px;border:1px solid var(--border);border-radius:4px;background:var(--card);font-family:var(--sans);outline:none}
+.sinp{padding:6px 11px;border:1px solid var(--border);border-radius:5px;font-size:12px;font-family:var(--sans);outline:none;min-width:190px}
+.dt{width:100%;border-collapse:collapse;font-size:12px}
+.dt thead th{padding:8px 11px;text-align:left;font-size:10px;font-weight:600;color:var(--slate);border-bottom:1px solid var(--border);background:#F8FAFC;position:sticky;top:0}
+.dt tbody td{padding:8px 11px;border-bottom:1px solid var(--border)}
+.dt tbody tr{cursor:pointer;transition:background .08s}.dt tbody tr:hover{background:#F8FAFC}
+.dt tbody tr.sel{background:var(--asoft);border-left:3px solid var(--accent)}
+.dt code{font-family:var(--mono);font-size:11px;font-weight:600}
+.lb{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600}
+.lb-m{color:var(--green);background:var(--gbg)}.lb-p{color:var(--amber);background:var(--abg)}.lb-u{color:var(--red);background:var(--rbg)}
+.bbar{display:flex;align-items:center;gap:9px;padding:9px 15px;background:var(--asoft);border:1px solid rgba(37,99,235,.12);border-radius:7px;margin-bottom:11px}
+.pc{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:15px;margin-bottom:11px}
+.pf{display:grid;grid-template-columns:1fr 44px 1fr;gap:9px;align-items:center}
+.pfb{background:#F8FAFC;border-radius:6px;padding:11px;border:1px solid var(--border)}
+.pa{text-align:center;font-size:19px;color:var(--accent)}
+.psig{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:9px}
+.psi{text-align:center;padding:6px;background:#F8FAFC;border-radius:4px}
+.psi .v{font-size:15px;font-weight:700}.psi .l{font-size:9px;color:var(--slate);margin-top:1px}
+.clcard{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:15px;margin-bottom:11px}
+.clchain{display:flex;align-items:center;overflow-x:auto;padding:7px 0}
+.cln{padding:8px 11px;border:2px solid var(--border);border-radius:6px;background:#F8FAFC;min-width:115px;flex-shrink:0;font-size:10px;cursor:pointer}
+.cln.ca{border-color:var(--green)}.cln.cb{border-color:var(--red);opacity:.6}
+.cll{padding:0 6px;font-size:15px;color:var(--accent);flex-shrink:0}
+.rside{border-radius:6px;padding:11px}.rside.rd{background:var(--rbg)}.rside.rg{background:var(--gbg)}
+/* ═══ DEMAND HISTORY WORKBENCH (dh-) ═══ */
+.dh-kpi-row{display:flex;gap:12px;margin-bottom:18px}
+.dh-kpi{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 18px;flex:1;min-width:0}
+.dh-kpi .l{font-size:11px;color:var(--slate);font-weight:500;margin-bottom:4px}
+.dh-kpi .v{font-size:24px;font-weight:700;letter-spacing:-.02em}
+.dh-kpi .s{font-size:11px;color:var(--slate);margin-top:2px}
+.chain-strip{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding:14px 0}
+.chain-node-wrap{display:flex;align-items:center;flex-shrink:0}
+.chain-node{width:212px;border:2px solid var(--border);border-radius:10px;padding:13px;background:var(--card);position:relative;cursor:pointer;transition:all .2s}
+.chain-node:hover{box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.chain-node.active-node{border-color:var(--green)}
+.chain-node.blocked-node{border-color:var(--red);opacity:.65}
+.chain-node.new-node{border-color:var(--accent)}
+.chain-node.sel-node{box-shadow:0 0 0 3px rgba(37,99,235,.18)}
+.chain-node .ns{position:absolute;top:-8px;right:11px;font-size:10px;padding:1px 7px;border-radius:8px;font-weight:600}
+.chain-link{display:flex;flex-direction:column;align-items:center;justify-content:center;width:56px;flex-shrink:0}
+.chain-link-arrow{font-size:19px;color:var(--accent)}
+.chain-link-lbl{font-size:9px;color:var(--slate);text-align:center;margin-top:2px;font-weight:600}
+.chain-link-pct{font-size:11px;color:var(--accent);font-weight:700}
+.dh-tabs{display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:14px;width:fit-content}
+.dh-tab{padding:7px 15px;font-size:12px;border:none;cursor:pointer;font-family:var(--sans);background:var(--card);color:var(--slate);font-weight:500}
+.dh-tab.on{background:var(--accent);color:#fff;font-weight:600}
+.chart-area-wrap{position:relative;overflow-x:auto}
+.chart-bar-col{display:flex;flex-direction:column;align-items:center;gap:1px}
+.chart-bar{border-radius:2px 2px 0 0;min-height:1px;transition:height .3s;position:relative}
+.chart-legend{display:flex;gap:16px;margin-top:11px;padding-top:9px;border-top:1px solid var(--border)}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--slate)}
+.legend-dot{width:10px;height:10px;border-radius:2px}
+.cf-option{display:flex;align-items:center;gap:9px;padding:8px 11px;border:1px solid var(--border);border-radius:6px;cursor:pointer;margin-bottom:7px;transition:all .12s;background:var(--card)}
+.cf-option:hover{border-color:var(--accent)}
+.cf-option.on{border-color:var(--accent);background:var(--asoft)}
+.cf-option .rd{width:15px;height:15px;border-radius:50%;border:2px solid #CBD5E1;flex-shrink:0}
+.cf-option.on .rd{border-color:var(--accent);background:var(--accent);position:relative}
+.cf-option.on .rd::after{content:"";position:absolute;top:3px;left:3px;width:5px;height:5px;border-radius:50%;background:#fff}
+.detail-table{width:100%;border-collapse:collapse;font-size:12px}
+.detail-table thead th{padding:7px 9px;text-align:right;font-size:10px;font-weight:600;color:var(--slate);border-bottom:2px solid var(--border);background:#F8FAFC}
+.detail-table thead th:first-child{text-align:left}
+.detail-table tbody td{padding:6px 9px;text-align:right;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums}
+.detail-table tbody td:first-child{text-align:left;font-weight:500}
+.detail-table tfoot td{padding:7px 9px;text-align:right;border-top:2px solid var(--navy);font-weight:700}
+.detail-table tfoot td:first-child{text-align:left}
+.inherited-val{color:var(--purple);font-style:italic}.own-val{color:var(--teal);font-weight:600}
+.stitched-val{color:var(--accent);font-weight:700}.zero-val{color:#CBD5E1}
+.scale-input{width:56px;padding:4px 6px;border:1px solid var(--border);border-radius:4px;font-size:12px;text-align:center;font-family:var(--sans)}
+/* ═══ FAMILY EXPLORER (fam-) ═══ */
+.fam-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(275px,1fr));gap:15px;margin-bottom:20px}
+.fam-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:19px;cursor:pointer;transition:all .12s;position:relative;overflow:hidden}
+.fam-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.fam-bg{position:absolute;bottom:0;left:0;right:0;background:rgba(37,99,235,.04);transition:height .3s}
+.fam-inner{position:relative}
+.fam-hdr2{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:11px}
+.fam-name{font-size:14px;font-weight:700}.fam-meta{font-size:11px;color:var(--slate);margin-top:2px}
+.fam-stats{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:11px}
+.fam-stat .n{font-size:21px;font-weight:700}.fam-stat .l{font-size:11px;color:var(--slate)}
+.fam-codes{display:flex;gap:4px;flex-wrap:wrap}
+.fam-codes code{font-family:var(--mono);font-size:10px;padding:2px 6px;background:#F1F5F9;border-radius:3px;color:var(--slate)}
+</style>
+
+<!--[if gte mso 9]><xml>
+<mso:CustomDocumentProperties>
+<mso:xd_Signature msdt:dt="string"></mso:xd_Signature>
+<mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Editor msdt:dt="string">Mohd. Zakariya</mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Editor>
+<mso:Order msdt:dt="string">28800.0000000000</mso:Order>
+<mso:xd_ProgID msdt:dt="string"></mso:xd_ProgID>
+<mso:_ExtendedDescription msdt:dt="string"></mso:_ExtendedDescription>
+<mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Author msdt:dt="string">Mohd. Zakariya</mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Author>
+<mso:ComplianceAssetId msdt:dt="string"></mso:ComplianceAssetId>
+<mso:TemplateUrl msdt:dt="string"></mso:TemplateUrl>
+<mso:ContentTypeId msdt:dt="string">0x010100915D1156AF89E94CB4E0E819A4FFFAAD</mso:ContentTypeId>
+<mso:TriggerFlowInfo msdt:dt="string"></mso:TriggerFlowInfo>
+<mso:_SourceUrl msdt:dt="string"></mso:_SourceUrl>
+<mso:_SharedFileIndex msdt:dt="string"></mso:_SharedFileIndex>
+<mso:MediaLengthInSeconds msdt:dt="string"></mso:MediaLengthInSeconds>
+<mso:MediaServiceImageTags msdt:dt="string"></mso:MediaServiceImageTags>
+<mso:lcf76f155ced4ddcb4097134ff3c332f msdt:dt="string"></mso:lcf76f155ced4ddcb4097134ff3c332f>
+</mso:CustomDocumentProperties>
+</xml><![endif]-->
+</head>
+<body>
+<div class="sb">
+  <div class="sb-brand"><small>FERT INTELLIGENCE</small><b>Governance Platform</b></div>
+  <div class="sb-nav" id="sbNav"></div>
+  <div class="sb-foot">Data refreshed: Jul 23, 2026</div>
+</div>
+<div class="mn" id="app"></div>
+<script>
+// ══════════════════════════════════════════════════════════════
+// DATA MODEL
+// ══════════════════════════════════════════════════════════════
+const FERTS=[
+{id:"F-301899",d:"3019 HSD 20FT COWL 4x2 BS4 AC",v:"HD",mpg:"3019",wb:"4200",en:"B6-494",fu:"HSD",tn:"16T",bd:"Cowl",st:"Blocked",rrs:"Stranger",lc:"Dormant",lin:"mapped",vol:2780,s:[340,360,380,350,280,180,60,0,0,0,0,0],cr:"2018-01"},
+{id:"F-301900",d:"3019 HSD 20FT COWL 4x2 BS6 AC R1",v:"HD",mpg:"3019",wb:"4200",en:"B6-494",fu:"HSD",tn:"16T",bd:"Cowl",st:"Blocked",rrs:"Stranger",lc:"Dormant",lin:"mapped",vol:3120,s:[50,120,280,350,380,400,420,440,450,460,470,450],cr:"2021-04"},
+{id:"F-301901",d:"3019 HSD 20FT COWL 4x2 BS6 AC",v:"HD",mpg:"3019",wb:"4200",en:"B6-494",fu:"HSD",tn:"16T",bd:"Cowl",st:"Active",rrs:"Runner",lc:"Stable",lin:"mapped",vol:5190,s:[420,380,410,390,450,470,430,460,480,440,420,460],cr:"2022-03"},
+{id:"F-301902",d:"3019 HSD 20FT CAB-CHS 4x2 BS6 AC",v:"HD",mpg:"3019",wb:"4200",en:"B6-494",fu:"HSD",tn:"16T",bd:"Cab-Chassis",st:"Active",rrs:"Runner",lc:"Winner",lin:"mapped",vol:5870,s:[320,340,380,400,430,450,460,490,520,540,560,580],cr:"2022-06"},
+{id:"F-301903",d:"3019 CBC 20FT COWL 4x2 BS6 AC",v:"HD",mpg:"3019",wb:"4200",en:"B6-494",fu:"CBC",tn:"16T",bd:"Cowl",st:"Active",rrs:"Repeater",lc:"Stable",lin:"unmapped",vol:2360,s:[180,170,190,200,185,195,210,205,190,200,215,210],cr:"2022-09"},
+{id:"F-301904",d:"3019 HSD 20FT FBV 4x2 BS6 AC",v:"HD",mpg:"3019",wb:"4200",en:"B6-494",fu:"HSD",tn:"16T",bd:"Fully-Built",st:"Blocked",rrs:"Stranger",lc:"Declining",lin:"unmapped",vol:1410,s:[280,250,210,180,150,120,90,60,40,20,10,0],cr:"2021-01"},
+{id:"F-301905",d:"3019 HSD 22FT COWL 4x2 BS6 AC",v:"HD",mpg:"3019",wb:"4600",en:"B6-494",fu:"HSD",tn:"16T",bd:"Cowl",st:"Active",rrs:"Repeater",lc:"Stable",lin:"proposed",vol:2105,s:[150,160,155,170,165,180,175,185,190,180,195,200],cr:"2023-01"},
+{id:"F-211901",d:"2119 HSD 24FT COWL 4x2 BS6 NAC",v:"HD",mpg:"2119",wb:"5200",en:"B4-394",fu:"HSD",tn:"12T",bd:"Cowl",st:"Active",rrs:"Runner",lc:"Stable",lin:"mapped",vol:3880,s:[310,300,320,330,340,320,310,340,350,330,320,340],cr:"2021-08"},
+{id:"F-211902",d:"2119 CNG 24FT COWL 4x2 BS6 NAC",v:"HD",mpg:"2119",wb:"5200",en:"B4-394C",fu:"CNG",tn:"12T",bd:"Cowl",st:"Active",rrs:"Repeater",lc:"Winner",lin:"proposed",vol:2370,s:[80,100,120,140,160,190,220,250,280,310,340,380],cr:"2023-02"},
+{id:"F-PRO801",d:"PRO8000 HSD 32FT COWL 6x4 BS6 AC",v:"HD",mpg:"8000",wb:"6800",en:"B6-694",fu:"HSD",tn:"31T",bd:"Cowl",st:"Active",rrs:"Runner",lc:"Stable",lin:"unmapped",vol:6660,s:[520,540,530,550,560,540,570,580,560,550,570,590],cr:"2020-11"},
+{id:"F-PRO800",d:"PRO8000 HSD 32FT COWL 6x4 BS4 AC",v:"HD",mpg:"8000",wb:"6800",en:"B6-694",fu:"HSD",tn:"31T",bd:"Cowl",st:"Blocked",rrs:"Stranger",lc:"Dormant",lin:"unmapped",vol:3060,s:[380,400,420,360,280,200,120,60,20,0,0,0],cr:"2017-03"},
+{id:"F-BUS401",d:"SCHOOLBUS 22FT ESC 42SEAT CNG",v:"Bus",mpg:"SB-42",wb:"4800",en:"B4-394C",fu:"CNG",tn:"9T",bd:"Fully-Built",st:"Active",rrs:"Repeater",lc:"New Growth",lin:"unmapped",vol:800,s:[0,0,0,10,20,40,60,80,100,130,160,200],cr:"2025-10"},
+{id:"F-LMD101",d:"LMD 14FT HSD COWL 4x2 BS6 NAC",v:"LMD",mpg:"LM14",wb:"2800",en:"B3-294",fu:"HSD",tn:"5T",bd:"Cowl",st:"Active",rrs:"Runner",lc:"Declining",lin:"proposed",vol:6530,s:[680,650,620,600,580,560,540,520,500,480,460,440],cr:"2019-04"},
+{id:"F-LMD102",d:"LMD 14FT CNG COWL 4x2 BS6 NAC",v:"LMD",mpg:"LM14",wb:"2800",en:"B3-294C",fu:"CNG",tn:"5T",bd:"Cowl",st:"Active",rrs:"Repeater",lc:"Winner",lin:"proposed",vol:3540,s:[120,150,180,210,250,290,330,370,410,450,490,540],cr:"2023-05"},
+{id:"F-LMD103",d:"LMD 14FT HSD COWL 4x2 BS4 NAC",v:"LMD",mpg:"LM14",wb:"2800",en:"B3-294",fu:"HSD",tn:"5T",bd:"Cowl",st:"Blocked",rrs:"Stranger",lc:"Dormant",lin:"unmapped",vol:1700,s:[400,350,300,250,180,120,60,30,10,0,0,0],cr:"2017-06"},
+{id:"F-301906",d:"3019 HSD 20FT COWL 4x2 BS6 AC PREM",v:"HD",mpg:"3019",wb:"4200",en:"B6-494",fu:"HSD",tn:"16T",bd:"Cowl",st:"New",rrs:"—",lc:"—",lin:"unmapped",vol:0,s:[0,0,0,0,0,0,0,0,0,0,0,0],cr:"2026-07",route:"FRF",pclass:"Class 1"},
+];
+
+// 36-month extended sales for the two "rich" demonstration chains (used by Demand History workbench)
+const S36={
+"F-301899":[340,360,380,350,370,390,400,410,380,350,320,280,250,220,180,150,120,90,60,30,10,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+"F-301900":[0,0,0,0,0,0,0,0,0,0,0,0,50,120,280,350,380,400,420,440,450,460,470,450,430,420,400,380,350,300,250,180,100,40,0,0],
+"F-301901":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,100,200,320,380,420,450,470,480,460,440],
+"F-301906":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+"F-LMD103":[60,50,40,30,20,10,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+"F-LMD101":[900,891,883,874,865,857,848,839,830,822,813,804,796,787,778,770,761,752,743,735,726,717,709,700,680,650,620,600,580,560,540,520,500,480,460,440],
+"F-LMD102":[5,10,15,19,24,29,34,38,43,48,53,58,62,67,72,77,82,86,91,96,101,106,110,115,120,150,180,210,250,290,330,370,410,450,490,540],
+};
+const MONTHS_36=(()=>{const arr=[];const start=new Date(2023,7,1);for(let i=0;i<36;i++){const d=new Date(start);d.setMonth(d.getMonth()+i);arr.push(d.toLocaleDateString('en',{month:'short',year:'2-digit'}))}return arr})();
+
+const CHAINS={
+  "FAM-019":{name:"3019 HD 20FT 4x2 Family",members:["F-301899","F-301900","F-301901","F-301906"],transitions:["Migration","Ramp","Pending"],pct:[100,100,null]},
+  "FAM-LM1":{name:"LMD 14FT Family",members:["F-LMD103","F-LMD101","F-LMD102"],transitions:["Migration","Parallel"],pct:[100,null]},
+};
+
+const SYS_PAIRS=[
+{a:"F-LMD101",b:"F-LMD103",sc:94,cm:96,dm:88,dc:92,tp:95,mig:true,sug:"Migration",pri:"Critical",cv:8230},
+{a:"F-PRO801",b:"F-PRO800",sc:91,cm:95,dm:90,dc:85,tp:88,mig:true,sug:"Migration",pri:"Critical",cv:9720},
+{a:"F-LMD102",b:"F-LMD103",sc:88,cm:90,dm:82,dc:88,tp:80,mig:true,sug:"Successor",pri:"High",cv:5240},
+{a:"F-301904",b:"F-301902",sc:85,cm:92,dm:78,dc:80,tp:82,mig:true,sug:"Ramp-Down",pri:"High",cv:7280},
+{a:"F-301903",b:"F-301901",sc:72,cm:75,dm:70,dc:68,tp:78,mig:false,sug:"Parallel",pri:"Medium",cv:7550},
+{a:"F-211902",b:"F-211901",sc:78,cm:82,dm:75,dc:72,tp:85,mig:false,sug:"Parallel",pri:"Medium",cv:6250},
+];
+const CLUSTERS=[
+{id:"CL-001",nm:"3019 HD 20FT 4x2",mpg:"3019",v:"HD",mem:["F-301899","F-301900","F-301901","F-301903","F-301904","F-301905","F-301906"],mp:3,tot:7,tv:22835,chainKey:"FAM-019"},
+{id:"CL-002",nm:"LMD 14FT Family",mpg:"LM14",v:"LMD",mem:["F-LMD103","F-LMD101","F-LMD102"],mp:0,tot:3,tv:11770,chainKey:"FAM-LM1"},
+{id:"CL-003",nm:"PRO8000 HD 32FT 6x4",mpg:"8000",v:"HD",mem:["F-PRO800","F-PRO801"],mp:0,tot:2,tv:9720,chainKey:null},
+{id:"CL-004",nm:"2119 HD 24FT 4x2",mpg:"2119",v:"HD",mem:["F-211901","F-211902"],mp:1,tot:2,tv:6250,chainKey:null},
+];
+const MIGRATIONS=[
+{dec:"F-LMD103",ris:"F-LMD101",ov:"Jan 2020 – Aug 2020",seg:"LMD / LM14 / BS4→BS6",conf:94},
+{dec:"F-PRO800",ris:"F-PRO801",ov:"Mar 2021 – Nov 2021",seg:"HD / PRO8000 / BS4→BS6",conf:91},
+{dec:"F-LMD101",ris:"F-LMD102",ov:"May 2024 – Present",seg:"LMD / LM14 / HSD→CNG",conf:82},
+];
+const CHARS=["v","mpg","wb","en","fu","tn","bd"];
+const CLBL={v:"Vertical",mpg:"MPG",wb:"Wheelbase",en:"Engine",fu:"Fuel",tn:"Tonnage",bd:"Body"};
+const RCODES=["Cross-vertical","Platform change","Regulation","Data quality","Suggestions wrong","New segment","Other"];
+const ITAGS=["Weight too high","Weight too low","Missing char","Wrong MPG","Fuel mismatch OK","Body irrelevant","Desc misleading","Good match missed"];
+let INSIGHTS=[
+  {u:"Akshay",dt:"Jul 20",tx:"CBC and HSD cowl variants within 3019 serve different channels — body type weight should be higher.",tags:["Body irrelevant","Weight too low"],fp:"F-301901↔F-301903"},
+  {u:"Rajkumar",dt:"Jul 18",tx:"Engine B6-494 vs B6-494E should match — 'E' suffix is emission variant only.",tags:["Missing char"],fp:"General"},
+];
+
+// ══════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════
+let S={
+  screen:"dashboard",       // dashboard | mapping | universe | pairs | clusters | radar | demand | family
+  persona:"mdm",
+  // ---- mapping screen ----
+  mapMode:"suggest",        // 'suggest' (single anchor + AI candidates) | 'pair' (both known already)
+  anchorId:null,            // for suggest mode
+  slotA:null, slotB:null,   // for pair mode
+  pickedId:null,            // chosen predecessor in suggest mode
+  overrideMode:false, nopredMode:false, manualSearch:"",
+  transType:"", reasonCode:"", justification:"", noPredReason:"",
+  showInsights:false, insightText:"", insightTags:[], expandedCard:null,
+  mapSource:"",             // how we arrived: dashboard | universe | pairs | clusters | radar
+  // ---- universe/pairs/clusters/radar ----
+  search:"",vF:"",sF:"",lF:"",bulkSel:[],expCluster:null,confThreshold:70,
+  // ---- demand history ----
+  dhChainKey:null, dhCustomPair:null, dhFocus:null, dhView:"stitched",
+  cfMethod:"full", scaleFactor:85, dhReturnTo:"dashboard",
+  // ---- family explorer ----
+  famSelected:null, famView:"clusters",
+};
+
+// ══════════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════════
+const byId=id=>FERTS.find(f=>f.id===id);
+const bd_=(l,c,b)=>`<span class="bg" style="color:${c};background:${b}">${l}</span>`;
+const stB=s=>({Active:["var(--green)","var(--gbg)"],Blocked:["var(--red)","var(--rbg)"],New:["var(--accent)","var(--asoft)"]}[s]||["var(--slate)","#F1F5F9"]);
+const rrB=r=>({Runner:["var(--runner)","var(--tbg)"],Repeater:["var(--repeater)","var(--pbg)"],Stranger:["var(--stranger)","#F8FAFC"]}[r]||["var(--slate)","#F1F5F9"]);
+const lcB=l=>({Winner:["var(--green)","var(--gbg)"],Stable:["var(--accent)","var(--asoft)"],Declining:["var(--amber)","#FFF7ED"],"New Growth":["var(--purple)","var(--pbg)"],Dormant:["var(--slate)","#F9FAFB"]}[l]||["var(--slate)","#F1F5F9"]);
+const sb=s=>bd_(s,...stB(s));const rb=r=>bd_(r,...rrB(r));const lb=l=>bd_(l,...lcB(l));
+const linB=l=>({mapped:["lb-m","✓ Mapped"],proposed:["lb-p","◐ Proposed"],unmapped:["lb-u","✗ Unmapped"]}[l]||["lb-u","?"]);
+const scC=s=>s>85?"var(--green)":s>70?"var(--amber)":"var(--red)";
+const spkC=l=>(l==="Declining"||l==="Dormant")?"var(--red)":(l==="Winner"||l==="New Growth")?"var(--green)":"var(--accent)";
+const fmt=n=>n.toLocaleString();
+function spk(d,w=80,h=24,c="var(--accent)"){if(!d||!d.length)return"";const mx=Math.max(...d,1);const p=d.map((v,i)=>`${(i/(d.length-1))*w},${h-(v/mx)*(h-4)}`).join(" ");return`<svg width="${w}" height="${h}" style="display:block"><polyline points="${p}" fill="none" stroke="${c}" stroke-width="1.5"/></svg>`}
+function sBarH(sc,lbl){return`<div class="sbar"><span class="sl">${lbl}</span><div class="st"><div class="sf" style="width:${sc}%;background:${scC(sc)}"></div></div><span class="sv" style="color:${scC(sc)}">${sc}%</span></div>`}
+function compSim(a,b){let m=0;CHARS.forEach(k=>{if(a[k]===b[k])m++});const cm=Math.round(m/CHARS.length*100);
+  // deterministic pseudo-signals so repeated renders are stable (seeded by id concat)
+  const seed=(a.id+b.id).split("").reduce((s,c)=>s+c.charCodeAt(0),0);
+  const dm=Math.round(50+(seed%35));const dc=Math.round(40+((seed*7)%45));const tp=Math.round(50+((seed*13)%40));
+  return{cm,dm,dc,tp,comp:Math.round(cm*.4+dm*.2+dc*.25+tp*.15)};
+}
+function govTier(sim,isOverride){if(!isOverride)return"gs";if(!sim)return"gs";return sim.comp<50?"gh":sim.comp<70?"ge":"gs"}
+
+// ══════════════════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════════════════
+function resetMapState(){S.mapMode="suggest";S.anchorId=null;S.slotA=null;S.slotB=null;S.pickedId=null;S.overrideMode=false;S.nopredMode=false;S.manualSearch="";S.transType="";S.reasonCode="";S.justification="";S.noPredReason="";S.expandedCard=null;}
+function goDashboard(){S.screen="dashboard";render();window.scrollTo(0,0)}
+function goScreen(scr){S.screen=scr;render();window.scrollTo(0,0)}
+function openMappingFromTask(fertId){resetMapState();S.screen="mapping";S.mapMode="suggest";S.anchorId=fertId;S.mapSource="dashboard";render();window.scrollTo(0,0)}
+function openMappingPair(idA,idB,source){resetMapState();S.screen="mapping";S.mapMode="pair";S.slotA=idA;S.slotB=idB;S.mapSource=source;render();window.scrollTo(0,0)}
+function goDemandHistory(opts){
+  // opts: {chainKey} or {pair:[a,b]}, focus: fert id whose KPIs to show, returnTo: screen name
+  S.dhReturnTo=opts.returnTo||S.screen;
+  S.dhChainKey=opts.chainKey||null;
+  S.dhCustomPair=opts.pair||null;
+  S.dhFocus=opts.focus||null;
+  S.dhView="stitched";
+  S.screen="demand";render();window.scrollTo(0,0);
+}
+function backFromDemand(){S.screen=S.dhReturnTo;render();window.scrollTo(0,0)}
+
+function render(){
+  const sn=document.getElementById("sbNav");
+  const s=S.screen;
+  sn.innerHTML=`
+    <div class="ni ${s==="dashboard"?"on":""}" onclick="goDashboard()"><span class="ic">&#9635;</span>Dashboard</div>
+    <div class="ni ${["mapping","universe","pairs","clusters","radar"].includes(s)?"on":""}" onclick="goScreen('mapping')"><span class="ic">&#11042;</span>Lineage Discovery</div>
+    ${["mapping","universe","pairs","clusters","radar"].includes(s)?`
+      <div class="sb-sub ${s==="mapping"?"on":""}" onclick="event.stopPropagation();resetMapState();S.mapSource='sidebar';goScreen('mapping')">New Fert Mapping</div>
+      <div class="sb-sub ${s==="universe"?"on":""}" onclick="event.stopPropagation();goScreen('universe')">FERT Universe</div>
+      <div class="sb-sub ${s==="pairs"?"on":""}" onclick="event.stopPropagation();goScreen('pairs')">System Pairs</div>
+      <div class="sb-sub ${s==="clusters"?"on":""}" onclick="event.stopPropagation();goScreen('clusters')">Cluster Review</div>
+      <div class="sb-sub ${s==="radar"?"on":""}" onclick="event.stopPropagation();goScreen('radar')">Migration Radar</div>
+    `:""}
+    <div class="ni ${s==="demand"?"on":""}" onclick="goDemandHistory({chainKey:'FAM-019',focus:'F-301901',returnTo:'dashboard'})"><span class="ic">&#9670;</span>Demand History</div>
+    <div class="ni ${s==="family"?"on":""}" onclick="goScreen('family')"><span class="ic">&#8862;</span>Family Explorer</div>`;
+  const app=document.getElementById("app");
+  const fns={dashboard:renderDashboard,mapping:renderMapping,universe:renderUniverse,pairs:renderPairs,clusters:renderClusters,radar:renderRadar,demand:renderDemand,family:renderFamily};
+  app.innerHTML=(fns[s]||renderDashboard)();
+}
+
+// ══════════════════════════════════════════════════════════════
+// SCREEN: DASHBOARD
+// ══════════════════════════════════════════════════════════════
+function renderDashboard(){
+  const active=FERTS.filter(f=>f.st==="Active").length;
+  const blocked=FERTS.filter(f=>f.st==="Blocked").length;
+  const unmapped=FERTS.filter(f=>f.lin==="unmapped").length;
+  const pLabel={mdm:"MDM Administration View",marketing:"Marketing Planning View",ppc:"PPC / Central Planning View"}[S.persona];
+
+  const rrs={Runner:FERTS.filter(f=>f.st==="Active"&&f.rrs==="Runner").length,Repeater:FERTS.filter(f=>f.st==="Active"&&f.rrs==="Repeater").length,Stranger:FERTS.filter(f=>f.st==="Active"&&f.rrs==="Stranger").length};
+  const lc={Winner:FERTS.filter(f=>f.st==="Active"&&f.lc==="Winner").length,Stable:FERTS.filter(f=>f.st==="Active"&&f.lc==="Stable").length,Declining:FERTS.filter(f=>f.st==="Active"&&f.lc==="Declining").length,"New Growth":FERTS.filter(f=>f.st==="Active"&&f.lc==="New Growth").length,Dormant:FERTS.filter(f=>f.st==="Active"&&f.lc==="Dormant").length};
+  const rrsC={Runner:"var(--runner)",Repeater:"var(--repeater)",Stranger:"var(--stranger)"};
+  const lcC={Winner:"var(--green)",Stable:"var(--accent)",Declining:"var(--amber)","New Growth":"var(--purple)",Dormant:"var(--slate)"};
+
+  const allTasks=[
+    {fert:"F-301906",type:"Lineage Mapping",owner:"Akshay",age:"2 days",pri:"High",action:()=>`openMappingFromTask('F-301906')`},
+    {fert:"F-BUS402",type:"Lineage Mapping",owner:"Akshay",age:"5 days",pri:"High",action:()=>`alert('F-BUS402 not in demo dataset — try F-301906')`},
+    {fert:"F-301903",type:"Characteristic Fix",owner:"Rajkumar",age:"1 day",pri:"Medium",action:()=>`alert('Opens Characteristic Quality Console')`},
+    {fert:"F-LMD101",type:"Retirement Review",owner:"Rohit",age:"12 days",pri:"Medium",action:()=>`goDemandHistory({chainKey:'FAM-LM1',focus:'F-LMD101',returnTo:'dashboard'})`},
+    {fert:"F-211902",type:"Grouping Review",owner:"Hemant",age:"3 days",pri:"Low",action:()=>`goScreen('family')`},
+    {fert:"F-301904",type:"Blocking Confirm",owner:"Rajkumar",age:"8 days",pri:"High",action:()=>`alert('Opens Retirement & Blocking Governance')`},
+    {fert:"F-PRO800",type:"Lineage Mapping",owner:"Akshay",age:"14 days",pri:"Critical",action:()=>`openMappingPair('F-PRO800','F-PRO801','dashboard')`},
+  ];
+  const tasksByPersona={mdm:[0,2,3,5,6],marketing:[0,1,3,6],ppc:[3,4,5]};
+  const tasks=tasksByPersona[S.persona].map(i=>allTasks[i]);
+
+  return`
+  <div class="hdr"><div><h1>Intelligence Dashboard</h1><div class="sub">Planning Cycle: August 2026 &middot; ${pLabel}</div></div>
+    <div class="readiness" style="background:var(--abg);border:1px solid rgba(217,119,6,.15)">
+      <div style="width:10px;height:10px;border-radius:50%;background:var(--amber)"></div>
+      <span style="color:var(--amber)">3 Blockers Remaining</span></div>
+    <select onchange="S.persona=this.value;render()" style="padding:6px 10px;border:1px solid var(--border);border-radius:5px;font-size:12px;font-family:var(--sans)">
+      <option value="mdm" ${S.persona==="mdm"?"selected":""}>Rajkumar — MDM Admin</option>
+      <option value="marketing" ${S.persona==="marketing"?"selected":""}>Akshay — Marketing</option>
+      <option value="ppc" ${S.persona==="ppc"?"selected":""}>Hemant — PPC Planning</option>
+    </select>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi-card"><div class="kl">&#9679; Active Ferts</div><div class="kv" style="color:var(--navy)">${active}</div><div class="ks">Across HD, LMD, Bus</div></div>
+    <div class="kpi-card"><div class="kl">&#8856; Blocked Ferts</div><div class="kv" style="color:var(--slate)">${blocked}</div><div class="ks">Last 3 years</div></div>
+    <div class="kpi-card"><div class="kl">&#9888; Unmapped Ferts</div><div class="kv" style="color:var(--amber)">${unmapped}</div><div class="ks">Pending lineage</div></div>
+    <div class="kpi-card"><div class="kl">&#8599; Migrations Detected</div><div class="kv" style="color:var(--accent)">3</div><div class="ks">This month (auto)</div></div>
+    <div class="kpi-card"><div class="kl">&#10003; Your Tasks</div><div class="kv" style="color:var(--red)">${tasks.length}</div><div class="ks">Pending action</div></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+    <div class="card" style="padding:20px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:16px">RRS Distribution — Active Ferts</div>
+      <div class="rr-row">
+        ${Object.entries(rrs).map(([k,v])=>{const c=rrsC[k];const pct=active?Math.round(v/active*100):0;
+          return`<div class="rr-item"><div class="rr-circle" style="border-color:${c};background:${c}10"><span class="n" style="color:${c}">${v}</span></div><div class="rr-lbl" style="color:${c}">${k}</div><div class="rr-pct">${pct}% of active</div></div>`}).join("")}
+      </div>
+      <div class="rr-bar">${Object.entries(rrs).map(([k,v])=>`<div style="flex:${v||0.001};background:${rrsC[k]}"></div>`).join("")}</div>
+    </div>
+    <div class="card" style="padding:20px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:16px">Lifecycle Classification — Active Ferts</div>
+      ${Object.entries(lc).map(([k,v])=>{const c=lcC[k];return`<div class="lc-row"><span class="nm">${k}</span><div class="lc-track"><div class="lc-fill" style="width:${active?v/active*100:0}%;background:${c}20;border-right:3px solid ${c}"></div><span class="lc-val" style="color:${c}">${v} ferts</span></div></div>`}).join("")}
+    </div>
+  </div>
+
+  <div class="card" style="padding:0;overflow:hidden">
+    <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:13px;font-weight:600">Task Queue — ${pLabel.replace(" View","")}</div>
+      <span style="font-size:11px;color:var(--slate)">${tasks.length} pending</span>
+    </div>
+    <table class="task-table">
+      <thead><tr><th>Fert Code</th><th>Task Type</th><th>Owner</th><th>Age</th><th>Priority</th><th></th></tr></thead>
+      <tbody>${tasks.map(t=>`<tr>
+        <td><code style="font-family:var(--mono);font-size:12px;font-weight:600">${t.fert}</code></td>
+        <td style="color:var(--slate)">${t.type}</td><td style="color:var(--slate)">${t.owner}</td>
+        <td><span style="color:${parseInt(t.age)>7?"var(--red)":parseInt(t.age)>3?"var(--amber)":"var(--slate)"};font-weight:600">${t.age}</span></td>
+        <td>${bd_(t.pri,t.pri==="Critical"?"var(--red)":t.pri==="High"?"var(--amber)":t.pri==="Medium"?"var(--accent)":"var(--slate)",t.pri==="Critical"?"var(--rbg)":t.pri==="High"?"var(--abg)":t.pri==="Medium"?"var(--asoft)":"#F1F5F9")}</td>
+        <td><button class="btn bs bpurple" onclick="${t.action()}">Open</button></td>
+      </tr>`).join("")}</tbody>
+    </table>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// SCREEN: MAPPING (New Fert Mapping — handles both 'suggest' and 'pair' modes)
+// ══════════════════════════════════════════════════════════════
+function tabBarHTML(active){
+  return`<div class="tab-bar">
+    <button class="tb ${active==='mapping'?'on':''}" onclick="resetMapState();goScreen('mapping')">New Fert Mapping</button>
+    <button class="tb ${active==='universe'?'on':''}" onclick="goScreen('universe')">FERT Universe</button>
+    <button class="tb ${active==='pairs'?'on':''}" onclick="goScreen('pairs')">System Pairs</button>
+    <button class="tb ${active==='clusters'?'on':''}" onclick="goScreen('clusters')">Cluster Review</button>
+    <button class="tb ${active==='radar'?'on':''}" onclick="goScreen('radar')">Migration Radar</button>
+  </div>`;
+}
+
+function renderMapping(){
+  if(S.mapMode==="suggest") return renderMappingSuggest();
+  return renderMappingPair();
+}
+
+function renderMappingSuggest(){
+  const anchor=S.anchorId?byId(S.anchorId):null;
+  if(!anchor){
+    // land here with nothing chosen — offer to pick an anchor
+    return`<div class="hdr"><div><h1>Fert Lineage Discovery</h1><div class="sub">AI-powered predecessor matching, bulk discovery, and demand migration detection</div></div></div>
+    ${tabBarHTML('mapping')}
+    <div class="card" style="padding:40px;text-align:center">
+      <div style="font-size:15px;font-weight:700;margin-bottom:8px">Select a FERT to find its lineage</div>
+      <div style="font-size:12px;color:var(--slate);margin-bottom:16px">Pick a new or existing FERT to see AI-suggested predecessors, or browse Discovery tabs above.</div>
+      <button class="btn bp" onclick="openMappingFromTask('F-301906')">Try example: F-301906 (new FERT)</button>
+    </div>`;
+  }
+  const excludeIds=[anchor.id];
+  const cands=FERTS.filter(f=>!excludeIds.includes(f.id)).map(f=>({...f,...compSim(f,anchor)})).sort((a,b)=>b.comp-a.comp).slice(0,4);
+  const picked=S.pickedId?byId(S.pickedId):null;
+  const pickedSim=picked?compSim(picked,anchor):null;
+  const isOverriding=S.overrideMode;
+
+  return`
+  <div class="hdr"><div><h1>Fert Lineage Discovery</h1><div class="sub">AI-powered predecessor matching, bulk discovery, and demand migration detection</div></div></div>
+  ${tabBarHTML('mapping')}
+  <div class="nm-grid">
+    <div class="nm-panel">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        ${anchor.st==="New"?bd_("NEW FERT","#fff","var(--accent)"):bd_("ANCHOR FERT","#fff","var(--steel)")}
+        <span style="font-size:11px;color:var(--slate)">Created ${anchor.cr}</span>
+      </div>
+      <code style="font-family:var(--mono);font-size:16px;font-weight:700;display:block;margin-bottom:4px">${anchor.id}</code>
+      <div style="font-size:13px;color:var(--slate);margin-bottom:16px;line-height:1.5">${anchor.d}</div>
+      <div style="font-size:10px;font-weight:600;letter-spacing:.05em;color:var(--slate);margin-bottom:8px">CHARACTERISTICS</div>
+      ${CHARS.map(k=>`<div class="nm-char"><span class="k">${CLBL[k]}</span><span class="v">${anchor[k]}</span></div>`).join("")}
+      ${anchor.route?`<div class="nm-char"><span class="k">Route</span><span class="v">${anchor.route}</span></div>`:""}
+      ${anchor.pclass?`<div class="nm-char"><span class="k">Project Class</span><span class="v">${anchor.pclass}</span></div>`:""}
+      <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
+        <button class="btn bo" style="width:100%;font-size:12px" onclick="S.showInsights=!S.showInsights;render()">${S.showInsights?"▾ Hide":"▸"} Matching Insights (${INSIGHTS.length})</button>
+      </div>
+    </div>
+
+    <div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="font-size:13px;font-weight:600">AI-Suggested Predecessors <span style="font-weight:400;color:var(--slate)">— ranked by composite match</span></div>
+        ${!isOverriding?`<button class="btn bs bpurple" onclick="S.overrideMode=true;render()">&#9889; Override — Select Different FERT</button>`:`<button class="btn bs bo" onclick="S.overrideMode=false;render()">&#10005; Cancel Override</button>`}
+      </div>
+
+      ${cands.map(c=>{
+        const isSel=S.pickedId===c.id&&!isOverriding;
+        const isExp=S.expandedCard===c.id;
+        return`<div class="nm-sugg ${isSel?"picked":""} ${isOverriding?"dimmed":""}">
+          <div class="nm-sugg-main" onclick="${isOverriding?"":`S.pickedId='${c.id}';render()`}">
+            <div class="nm-cb ${isSel?"on":""}">${isSel?'<span style="color:#fff;font-size:12px;font-weight:700">✓</span>':""}</div>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;gap:8px">
+                <code style="font-family:var(--mono);font-size:12px;font-weight:600">${c.id}</code>${sb(c.st)}${rb(c.rrs)}${lb(c.lc)}
+              </div>
+              <div style="font-size:12px;color:var(--slate);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.d}</div>
+            </div>
+            ${spk(c.s,80,24,spkC(c.lc))}
+            <div class="nm-match"><div class="n" style="color:${scC(c.comp)}">${c.comp}%</div><div class="l">MATCH</div></div>
+            <button onclick="event.stopPropagation();S.expandedCard=S.expandedCard==='${c.id}'?null:'${c.id}';render()" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--slate)">${isExp?"▾":"▸"}</button>
+          </div>
+          ${isExp&&!isOverriding?`<div class="nm-expand">${sBarH(c.cm,"Characteristics")}${sBarH(c.dm,"Description")}${sBarH(c.dc,"Demand Corr.")}${sBarH(c.tp,"Temporal")}</div>`:""}
+        </div>`;
+      }).join("")}
+
+      <div class="nm-actions">
+        ${!isOverriding?`<button class="btn bo" style="font-size:11px" onclick="S.nopredMode=!S.nopredMode;render()">&#8856; No Predecessor — New Product</button>`:""}
+      </div>
+
+      ${isOverriding?renderOverridePanel(anchor,excludeIds):""}
+      ${S.nopredMode?renderNoPredPanel(cands):""}
+
+      ${picked&&!isOverriding?renderRelationshipSection(anchor,picked,pickedSim,false):""}
+      ${S.showInsights?renderInsightsPanel(anchor.id):""}
+    </div>
+  </div>`;
+}
+
+function renderMappingPair(){
+  const a=S.slotA?byId(S.slotA):null,b=S.slotB?byId(S.slotB):null;
+  const both=a&&b;
+  const srcLabel={dashboard:"Dashboard Task",universe:"FERT Universe",pairs:"System-Detected Pair",clusters:"Cluster Review",radar:"Migration Radar",sidebar:"Manual"}[S.mapSource]||"Manual";
+  return`
+  <div class="hdr"><div><h1>Fert Lineage Discovery</h1><div class="sub">Source: ${srcLabel} &middot; Both FERTs pre-selected — review similarity and define relationship</div></div></div>
+  ${tabBarHTML('mapping')}
+  <div style="display:grid;grid-template-columns:1fr 50px 1fr;gap:12px;margin-bottom:8px">
+    ${[["A — Predecessor",a,"slotA"],["B — Successor",b,"slotB"]].map(([lbl,f,key],i)=>{
+      if(i===1){} 
+      return f?`<div class="card" style="padding:16px">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+          <span style="font-size:9px;font-weight:600;color:var(--slate)">${lbl}</span>
+          <button class="btn bs bo" style="margin-left:auto" onclick="S.${key}=null;render()">✕</button></div>
+        <code style="font-family:var(--mono);font-size:14px;font-weight:700;display:block">${f.id}</code>
+        <div style="font-size:11px;color:var(--slate);margin:4px 0 8px">${f.d}</div>
+        <div style="display:flex;align-items:center;gap:8px">${sb(f.st)}${rb(f.rrs)}${lb(f.lc)}<span style="font-size:12px;font-weight:700;margin-left:auto">${fmt(f.vol)}</span></div>
+        ${spk(f.s,150,22,spkC(f.lc))}
+      </div>`:`<div class="card" style="padding:16px;border-style:dashed;text-align:center;display:flex;flex-direction:column;justify-content:center;min-height:110px;cursor:pointer" onclick="promptSlot('${key}')">
+        <span style="font-size:20px;color:#CBD5E1">+</span><span style="font-size:11px;color:var(--slate)">${lbl}</span></div>`;
+    }).join('<div style="display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--accent)">&rarr;</div>')}
+  </div>
+  ${both?(()=>{
+    const sim=compSim(a,b);
+    return renderRelationshipSection(a,b,sim,true);
+  })():""}
+  ${S.showInsights?renderInsightsPanel((a?a.id:"")+"↔"+(b?b.id:"")):""}
+  ${both?`<div style="margin-top:12px"><button class="btn bo" onclick="S.showInsights=!S.showInsights;render()">${S.showInsights?"▾ Hide":"▸ Show"} Matching Insights (${INSIGHTS.length})</button></div>`:""}
+  `;
+}
+
+function promptSlot(key){const id=prompt("Enter FERT code:");if(id){const f=byId(id);if(f){S[key]=id;render()}else alert("FERT not found")}}
+
+// ══════════════════════════════════════════════════════════════
+// SHARED MAPPING SUB-PANELS
+// ══════════════════════════════════════════════════════════════
+function renderOverridePanel(anchor,excludeIds){
+  const q=S.manualSearch.toLowerCase();
+  let results=FERTS.filter(f=>!excludeIds.includes(f.id));
+  if(q)results=results.filter(f=>f.id.toLowerCase().includes(q)||f.d.toLowerCase().includes(q));
+  results=results.slice(0,8);
+  return`<div class="nm-override">
+    <div style="font-size:13px;font-weight:700;color:var(--purple);margin-bottom:10px">&#9889; Manual Override — Search Full Universe</div>
+    <input class="nm-search-input" placeholder="Search FERT code or description..." value="${S.manualSearch}" oninput="S.manualSearch=this.value;render()" autofocus>
+    <div style="max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;background:var(--card)">
+      ${results.map(f=>`<div class="nm-search-row" onclick="S.pickedId='${f.id}';S.overrideMode=false;render()">
+        <code style="font-family:var(--mono);font-weight:600">${f.id}</code>
+        <span style="flex:1;color:var(--slate);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.d}</span>
+        ${sb(f.st)}${rb(f.rrs)}${spk(f.s,55,16,spkC(f.lc))}</div>`).join("")}
+    </div>
+  </div>`;
+}
+
+function renderNoPredPanel(cands){
+  const highConf=cands.filter(c=>c.comp>=70).length;
+  return`<div class="nm-nopred">
+    <div style="font-size:13px;font-weight:700;color:var(--amber);margin-bottom:10px">&#8856; No Predecessor Declaration</div>
+    ${highConf>0?`<div class="gtier ge"><b>&#9888; Elevated Approval Required</b><span style="margin-left:6px;opacity:.85">${highConf} suggestion(s) scored above 70% — rejecting them needs justification</span></div>`:""}
+    <div style="font-size:11px;font-weight:600;margin:10px 0 6px">Reason Code *</div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">
+      ${["New platform launch","New market segment","First VECV entry","No related product exists","Other"].map(r=>`<button class="rchip ${S.noPredReason===r?"on":""}" onclick="S.noPredReason='${r}';render()">${r}</button>`).join("")}
+    </div>
+    <div style="font-size:11px;font-weight:600;margin-bottom:6px">Justification *</div>
+    <textarea class="jtxt" placeholder="Explain why this FERT has no predecessor..." oninput="S.justification=this.value">${S.justification}</textarea>
+    <button class="btn bp" style="margin-top:10px" ${!S.noPredReason?"disabled":""} onclick="alert('No-predecessor declaration submitted for approval')">Submit Declaration →</button>
+  </div>`;
+}
+
+function renderRelationshipSection(a,b,sim,isPairMode){
+  const isOverrideOrigin=!isPairMode && S.overrideMode===false && S.pickedId && !FERTS.filter(f=>f.id!==a.id).slice(0,4).map(x=>x.id).includes(S.pickedId);
+  const tier=govTier(sim,false); // simplified: tier based on similarity regardless of path, keeps logic legible
+  const realTier=sim.comp<50?"gh":sim.comp<70?"ge":"gs";
+  return`
+  <div class="card" style="padding:20px;margin-top:${isPairMode?'0':'16px'}">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <span style="font-size:13px;font-weight:600">Computed Similarity — ${a.id} ↔ ${b.id}</span>
+      <span style="font-size:26px;font-weight:800;color:${scC(sim.comp)}">${sim.comp}%</span></div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">
+      ${[["Characteristics",sim.cm],["Description",sim.dm],["Demand Corr.",sim.dc],["Temporal",sim.tp]].map(([l,v])=>
+        `<div style="text-align:center;padding:10px;background:#F8FAFC;border-radius:6px"><div style="font-size:19px;font-weight:700;color:${scC(v)}">${v}%</div><div style="font-size:9px;color:var(--slate);margin-top:2px">${l}</div></div>`).join("")}
+    </div>
+    <div style="font-size:10px;font-weight:600;color:var(--slate);margin-bottom:6px">CHARACTERISTIC COMPARISON</div>
+    <div style="display:grid;grid-template-columns:1fr 28px 1fr;font-size:11px;margin-bottom:14px">
+      <div style="padding:5px 8px;font-weight:600;font-size:10px;color:var(--slate);background:#F8FAFC;border-bottom:1px solid var(--border)">${a.id}</div>
+      <div style="padding:5px 8px;font-weight:600;font-size:10px;color:var(--slate);background:#F8FAFC;border-bottom:1px solid var(--border);text-align:center">&equiv;</div>
+      <div style="padding:5px 8px;font-weight:600;font-size:10px;color:var(--slate);background:#F8FAFC;border-bottom:1px solid var(--border)">${b.id}</div>
+      ${CHARS.map(k=>{const va=a[k],vb=b[k],m=va===vb;return`<div style="padding:4px 8px;border-bottom:1px solid var(--border);${m?"":"font-weight:600"}">${va}</div><div style="padding:4px;border-bottom:1px solid var(--border);text-align:center;color:${m?"var(--green)":"var(--red)"}">${m?"✓":"✗"}</div><div style="padding:4px 8px;border-bottom:1px solid var(--border);${m?"":"font-weight:600;color:var(--red)"}">${vb}</div>`}).join("")}
+    </div>
+
+    <div style="font-size:12px;font-weight:600;margin-bottom:8px">Transition Type</div>
+    <div style="display:flex;gap:8px;margin-bottom:6px">
+      ${[["migration","Migration","Full replacement"],["ramp","Ramp Up/Down","Gradual transition"],["parallel","Parallel","Both continue"]].map(([k,l,d])=>
+        `<div class="topt ${S.transType===k?"on":""}" onclick="S.transType='${k}';render()"><div class="tl">${l}</div><div class="td">${d}</div></div>`).join("")}
+    </div>
+    ${S.transType==="ramp"?`<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin:10px 0">${["Aug'26","Sep'26","Oct'26","Nov'26","Dec'26","Jan'27"].map(m=>`<div><div style="font-size:9px;color:var(--slate);text-align:center;margin-bottom:3px">${m}</div><input type="number" min="0" max="100" placeholder="%" style="width:100%;padding:5px 3px;text-align:center;border:1px solid var(--border);border-radius:4px;font-size:12px;font-weight:600;font-family:var(--sans)"></div>`).join("")}</div>`:""}
+
+    ${sim.comp<70?`<div class="gtier ${realTier}" style="margin-top:12px"><b>${realTier==="gh"?"&#9940; High Scrutiny":"&#9888; Elevated"} Approval</b><span style="margin-left:6px;opacity:.85">Low similarity match — reason code required</span></div>
+      <div style="margin-top:10px"><div style="font-size:11px;font-weight:600;margin-bottom:6px">Override Reason Code *</div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">${RCODES.map(r=>`<button class="rchip ${S.reasonCode===r?"on":""}" onclick="S.reasonCode='${r}';render()">${r}</button>`).join("")}</div>
+      <textarea class="jtxt" placeholder="Justification..." oninput="S.justification=this.value">${S.justification}</textarea></div>`:`<div class="gtier gs" style="margin-top:12px"><b>&#10003; Standard Approval</b><span style="margin-left:6px;opacity:.85">Marketing &rarr; PPC &rarr; MDM</span></div>`}
+
+    ${S.transType?`<div class="nm-cta">
+      <div><div style="font-size:13px;font-weight:700;color:var(--navy)">Next: Configure Demand Carry-Forward</div>
+        <div style="font-size:11px;color:var(--slate);margin-top:2px">See exactly how ${a.id}'s history stitches into ${b.id} before you submit.</div></div>
+      <button class="btn bp" onclick="handoffToDemandHistory('${a.id}','${b.id}')">Configure Carry-Forward →</button>
+    </div>`:""}
+  </div>`;
+}
+
+function handoffToDemandHistory(idA,idB){
+  // find if this pair belongs to a known rich chain
+  const chainKey=Object.keys(CHAINS).find(k=>CHAINS[k].members.includes(idA)&&CHAINS[k].members.includes(idB));
+  const returnTo=S.screen;
+  if(chainKey){ goDemandHistory({chainKey,focus:idB,returnTo}); }
+  else{ goDemandHistory({pair:[idA,idB],focus:idB,returnTo}); }
+}
+
+function renderInsightsPanel(context){
+  return`<div class="nm-insights">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="font-size:13px;font-weight:600">&#128161; Matching Insights &amp; Feedback</div>
+      <div style="font-size:11px;color:var(--slate);font-style:italic">Your feedback improves the scoring engine</div></div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">${ITAGS.map(t=>`<button class="itag ${S.insightTags.includes(t)?"on":""}" onclick="togIT('${t}')">${t}</button>`).join("")}</div>
+    <div style="display:flex;gap:6px">
+      <input class="sinp" style="flex:1" placeholder="What should the engine do differently?" value="${S.insightText}" oninput="S.insightText=this.value">
+      <button class="btn bs bp" onclick="submitInsight('${context}')">Submit</button></div>
+    <div style="margin-top:10px">${INSIGHTS.map(ins=>`<div class="icard"><div style="display:flex;gap:8px;font-size:10px;color:var(--slate);margin-bottom:3px"><b style="color:var(--navy)">${ins.u}</b><span>${ins.dt}</span><code style="font-size:9px">${ins.fp}</code></div>${ins.tx}<div style="margin-top:5px">${ins.tags.map(t=>`<span style="font-size:10px;padding:2px 6px;border-radius:8px;background:var(--asoft);color:var(--accent);margin-right:3px">${t}</span>`).join("")}</div></div>`).join("")}</div>
+    <div style="margin-top:10px;padding:9px 11px;background:var(--card);border-radius:6px;border:1px solid var(--border);font-size:11px">
+      <b>Engine Improvement Tracker:</b> <span style="color:var(--slate)">23 insights submitted &middot; </span><span style="color:var(--green);font-weight:600">14 incorporated</span><span style="color:var(--slate)"> &middot; override rate </span><span style="color:var(--amber);font-weight:600">18%</span><span style="color:var(--green)"> ↓ from 31%</span>
+    </div>
+  </div>`;
+}
+function togIT(t){const i=S.insightTags.indexOf(t);if(i>-1)S.insightTags.splice(i,1);else S.insightTags.push(t);render()}
+function submitInsight(ctx){if(S.insightText.trim()){INSIGHTS.unshift({u:"You",dt:"Now",tx:S.insightText,tags:[...S.insightTags],fp:ctx});S.insightText="";S.insightTags=[];render()}}
+
+// ══════════════════════════════════════════════════════════════
+// SCREEN: FERT UNIVERSE
+// ══════════════════════════════════════════════════════════════
+function renderUniverse(){
+  let fs=FERTS.slice();
+  const q=S.search.toLowerCase();
+  if(q)fs=fs.filter(f=>f.id.toLowerCase().includes(q)||f.d.toLowerCase().includes(q));
+  if(S.vF)fs=fs.filter(f=>f.v===S.vF);if(S.sF)fs=fs.filter(f=>f.st===S.sF);if(S.lF)fs=fs.filter(f=>f.lin===S.lF);
+  fs.sort((a,b)=>b.vol-a.vol);
+  const sel=S.bulkSel;
+  return`<div class="hdr"><div><h1>Fert Lineage Discovery</h1><div class="sub">Browse the full portfolio. Select any two rows to map them.</div></div></div>
+  ${tabBarHTML('universe')}
+  <div class="fltr">
+    <input class="sinp" placeholder="Search FERT code or description..." value="${S.search}" oninput="S.search=this.value;render()">
+    <select class="fsel" onchange="S.vF=this.value;render()"><option value="">All Verticals</option><option>HD</option><option>LMD</option><option>Bus</option></select>
+    <select class="fsel" onchange="S.sF=this.value;render()"><option value="">All Status</option><option>Active</option><option>Blocked</option><option>New</option></select>
+    <select class="fsel" onchange="S.lF=this.value;render()"><option value="">All Lineage</option><option value="mapped">Mapped</option><option value="proposed">Proposed</option><option value="unmapped">Unmapped</option></select>
+    <span style="margin-left:auto;font-size:10px;color:var(--slate)">${fs.length} FERTs</span>
+  </div>
+  ${sel.length?`<div class="bbar"><span style="font-size:11px;font-weight:600;color:var(--accent)">${sel.length} selected</span>
+    ${sel.map(id=>`<code style="font-family:var(--mono);font-size:10px;background:var(--card);padding:2px 7px;border-radius:3px;border:1px solid var(--border)">${id}</code>`).join("")}
+    ${sel.length===2?`<button class="btn bs bp" style="margin-left:auto" onclick="openMappingPair('${sel[0]}','${sel[1]}','universe')">Map These →</button>`:`<span style="font-size:10px;color:var(--slate);margin-left:auto">Select one more</span>`}
+    <button class="btn bs bo" onclick="S.bulkSel=[];render()">Clear</button></div>`:""}
+  <div class="cd" style="padding:0;overflow:hidden;max-height:460px;overflow-y:auto">
+    <table class="dt"><thead><tr><th style="width:28px"></th><th>Code</th><th>Description</th><th>Vert</th><th>MPG</th><th>Status</th><th>RRS</th><th>Demand</th><th>Trend</th><th>Lineage</th></tr></thead>
+    <tbody>${fs.map(f=>{const isSel=sel.includes(f.id);const[lc,lt]=linB(f.lin);
+      return`<tr class="${isSel?"sel":""}" onclick="togSel('${f.id}')">
+        <td><div style="width:14px;height:14px;border-radius:3px;border:2px solid ${isSel?"var(--accent)":"#CBD5E1"};background:${isSel?"var(--accent)":"transparent"};display:flex;align-items:center;justify-content:center">${isSel?'<span style="color:#fff;font-size:9px">✓</span>':""}</div></td>
+        <td><code>${f.id}</code></td><td style="color:var(--slate);font-size:11px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.d}</td>
+        <td>${bd_(f.v,"var(--navy)","#F1F5F9")}</td><td style="font-size:11px;color:var(--slate)">${f.mpg}</td><td>${sb(f.st)}</td><td>${rb(f.rrs)}</td>
+        <td style="font-weight:600;font-variant-numeric:tabular-nums">${fmt(f.vol)}</td><td>${spk(f.s,55,16,spkC(f.lc))}</td><td><span class="lb ${lc}">${lt}</span></td></tr>`}).join("")}
+    </tbody></table></div>`;
+}
+function togSel(id){const i=S.bulkSel.indexOf(id);if(i>-1)S.bulkSel.splice(i,1);else if(S.bulkSel.length<2)S.bulkSel.push(id);else{S.bulkSel.shift();S.bulkSel.push(id)}render()}
+
+// ══════════════════════════════════════════════════════════════
+// SCREEN: SYSTEM PAIRS
+// ══════════════════════════════════════════════════════════════
+function renderPairs(){
+  const filtered=SYS_PAIRS.filter(p=>p.sc>=S.confThreshold);
+  return`<div class="hdr"><div><h1>Fert Lineage Discovery</h1><div class="sub">AI-proposed relationships ranked by composite match.</div></div></div>
+  ${tabBarHTML('pairs')}
+  <div class="fltr">
+    <span style="font-size:12px;color:var(--slate)">Confidence threshold:</span>
+    <input type="range" min="50" max="95" value="${S.confThreshold}" oninput="S.confThreshold=parseInt(this.value);render()" style="width:120px;accent-color:var(--accent)">
+    <span style="font-size:12px;font-weight:600;color:var(--accent)">${S.confThreshold}%+</span>
+    <span style="font-size:11px;color:var(--slate);margin-left:8px">${filtered.length} pairs shown</span>
+  </div>
+  ${filtered.map(p=>{const a=byId(p.a),b=byId(p.b);if(!a||!b)return"";
+    return`<div class="pc"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:8px"><span style="font-size:18px;font-weight:700;color:${scC(p.sc)}">${p.sc}%</span><span style="font-size:10px;color:var(--slate)">match</span>
+        ${bd_(p.pri,p.pri==="Critical"?"var(--red)":"var(--amber)",p.pri==="Critical"?"var(--rbg)":"var(--abg)")}
+        ${p.mig?bd_("Migration","var(--green)","var(--gbg)"):""}</div>
+      <div style="display:flex;gap:5px"><button class="btn bs bp" onclick="openMappingPair('${p.a}','${p.b}','pairs')">Map →</button><button class="btn bs bo">Reject</button></div></div>
+    <div class="pf">
+      <div class="pfb"><div style="display:flex;align-items:center;gap:5px;margin-bottom:3px"><code style="font-family:var(--mono);font-size:11px;font-weight:700">${a.id}</code>${sb(a.st)}${rb(a.rrs)}</div><div style="font-size:10px;color:var(--slate);margin-bottom:4px">${a.d}</div>${spk(a.s,100,20,spkC(a.lc))}</div>
+      <div class="pa">↔</div>
+      <div class="pfb"><div style="display:flex;align-items:center;gap:5px;margin-bottom:3px"><code style="font-family:var(--mono);font-size:11px;font-weight:700">${b.id}</code>${sb(b.st)}${rb(b.rrs)}</div><div style="font-size:10px;color:var(--slate);margin-bottom:4px">${b.d}</div>${spk(b.s,100,20,spkC(b.lc))}</div></div>
+    <div class="psig">${[["Char",p.cm],["Desc",p.dm],["Demand",p.dc],["Temporal",p.tp]].map(([l,v])=>`<div class="psi"><div class="v" style="color:${scC(v)}">${v}%</div><div class="l">${l}</div></div>`).join("")}</div></div>`}).join("")}`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// SCREEN: CLUSTER REVIEW
+// ══════════════════════════════════════════════════════════════
+function renderClusters(){
+  return`<div class="hdr"><div><h1>Fert Lineage Discovery</h1><div class="sub">Related FERTs grouped into families. Expand to review the full chain.</div></div></div>
+  ${tabBarHTML('clusters')}
+  ${CLUSTERS.map((c,ci)=>{const isE=S.expCluster===ci;const mem=c.mem.map(id=>byId(id)).filter(Boolean).sort((a,b)=>a.cr.localeCompare(b.cr));const cov=Math.round(c.mp/c.tot*100);
+    return`<div class="clcard">
+      <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="S.expCluster=${isE?"null":ci};render()">
+        <div style="display:flex;align-items:center;gap:10px"><span style="font-size:14px">${isE?"▾":"▸"}</span>
+          <div><div style="font-size:13px;font-weight:700">${c.nm}</div><div style="font-size:10px;color:var(--slate)">${c.v} &middot; MPG ${c.mpg} &middot; ${fmt(c.tv)} units</div></div></div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:70px"><div style="height:5px;background:#E2E8F0;border-radius:3px;overflow:hidden;margin-bottom:2px"><div style="width:${cov}%;height:100%;background:${cov===100?"var(--green)":"var(--amber)"}"></div></div><div style="font-size:9px;color:var(--slate);text-align:center">${c.mp}/${c.tot} mapped</div></div>
+          ${c.chainKey?`<button class="btn bs bpurple" onclick="event.stopPropagation();goDemandHistory({chainKey:'${c.chainKey}',focus:'${mem[mem.length-1].id}',returnTo:'clusters'})">View Demand History</button>`:""}
+        </div></div>
+      ${isE?`<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)"><div class="clchain">
+        ${mem.map((m,mi)=>`<div style="display:flex;align-items:center"><div class="cln ${m.st==="Active"?"ca":"cb"}" onclick="event.stopPropagation();${mi>0?`openMappingPair('${mem[mi-1].id}','${m.id}','clusters')`:`openMappingFromTask('${m.id}')`}">
+          <code style="font-family:var(--mono);font-weight:700;display:block">${m.id}</code>
+          <div style="color:var(--slate);margin:2px 0">${m.d.slice(0,25)}…</div>
+          <div style="display:flex;gap:3px;margin-top:3px">${sb(m.st)}${rb(m.rrs)}</div>${spk(m.s,90,16,spkC(m.lc))}
+          <div style="font-size:9px;color:var(--slate);margin-top:2px">${m.cr} &middot; ${m.lin==="mapped"?'<span style="color:var(--green)">✓</span>':'<span style="color:var(--red)">✗</span>'}</div>
+        </div>${mi<mem.length-1?'<div class="cll">→</div>':""}</div>`).join("")}
+      </div></div>`:""}</div>`}).join("")}`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// SCREEN: MIGRATION RADAR
+// ══════════════════════════════════════════════════════════════
+function renderRadar(){
+  return`<div class="hdr"><div><h1>Fert Lineage Discovery</h1><div class="sub">Demand transfers detected in sales history that were never formally mapped.</div></div></div>
+  ${tabBarHTML('radar')}
+  ${MIGRATIONS.map(m=>{const dec=byId(m.dec),ris=byId(m.ris);
+    return`<div class="pc">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+      <div><div style="font-size:9px;font-weight:600;letter-spacing:.06em;color:var(--slate)">DEMAND MIGRATION DETECTED</div><div style="font-size:12px;font-weight:500">${m.seg}</div><div style="font-size:10px;color:var(--slate)">Overlap: ${m.ov}</div></div>
+      <div style="text-align:center"><div style="font-size:20px;font-weight:700;color:${m.conf>85?"var(--green)":"var(--amber)"}">${m.conf}%</div><div style="font-size:9px;color:var(--slate)">CONFIDENCE</div></div></div>
+    <div class="pf">
+      <div class="rside rd"><div style="font-size:9px;font-weight:600;color:var(--red);margin-bottom:3px">▼ DECLINING</div><code style="font-family:var(--mono);font-size:11px;font-weight:700">${dec.id}</code><div style="font-size:10px;color:var(--slate);margin:2px 0">${dec.d}</div>${spk(dec.s,110,20,"var(--red)")}</div>
+      <div class="pa">→</div>
+      <div class="rside rg"><div style="font-size:9px;font-weight:600;color:var(--green);margin-bottom:3px">▲ RISING</div><code style="font-family:var(--mono);font-size:11px;font-weight:700">${ris.id}</code><div style="font-size:10px;color:var(--slate);margin:2px 0">${ris.d}</div>${spk(ris.s,110,20,"var(--green)")}</div></div>
+    <div style="margin-top:10px;display:flex;gap:6px">
+      <button class="btn bp" onclick="openMappingPair('${m.dec}','${m.ris}','radar')">Establish Lineage →</button>
+      <button class="btn bo">Dismiss</button></div></div>`}).join("")}`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// SCREEN: DEMAND HISTORY CARRY-FORWARD WORKBENCH
+// ══════════════════════════════════════════════════════════════
+function getActiveChain(){
+  if(S.dhChainKey && CHAINS[S.dhChainKey]){
+    const ch=CHAINS[S.dhChainKey];
+    return{name:ch.name,members:ch.members.map(id=>({...byId(id),s36:S36[id]||padTo36(byId(id).s)})),transitions:ch.transitions,pct:ch.pct,rich:true};
+  }
+  if(S.dhCustomPair){
+    const[a,b]=S.dhCustomPair;
+    const fa=byId(a),fb=byId(b);
+    return{name:`${a} → ${b}`,members:[{...fa,s36:padTo36(fa.s)},{...fb,s36:padTo36(fb.s)}],transitions:["Pending"],pct:[null],rich:false};
+  }
+  return null;
+}
+function padTo36(s12){return[...Array(24).fill(0),...s12]}
+function sum(arr){return arr.reduce((a,b)=>a+b,0)}
+
+function getStitchedSeries(chain){
+  const n=36;
+  const stitched=new Array(n).fill(0),sources=new Array(n).fill(-1);
+  for(let m=0;m<n;m++){
+    for(let f=chain.members.length-1;f>=0;f--){
+      if(chain.members[f].s36[m]>0){stitched[m]=chain.members[f].s36[m];sources[m]=f;break;}
+    }
+  }
+  return{stitched,sources};
+}
+function getFocusIdx(chain){
+  const idx=chain.members.findIndex(m=>m.id===S.dhFocus);
+  return idx>=0?idx:chain.members.length-1;
+}
+function getCarryForwardSeries(chain,focusIdx){
+  const{stitched,sources}=getStitchedSeries(chain);
+  const n=36,result=new Array(n).fill(0);
+  for(let m=0;m<n;m++){
+    const own=chain.members[focusIdx].s36[m];
+    let inherited=0;
+    if(sources[m]<focusIdx && sources[m]>=0){
+      if(S.cfMethod==="full") inherited=stitched[m];
+      else if(S.cfMethod==="scaled") inherited=Math.round(stitched[m]*S.scaleFactor/100);
+      else if(S.cfMethod==="selective") inherited=stitched[m]; // simplified: all periods included by default
+      // "none" -> stays 0
+    }
+    result[m]=own+inherited;
+  }
+  return result;
+}
+
+function renderDemand(){
+  const chain=getActiveChain();
+  if(!chain){
+    return`<div class="hdr"><div><h1>Demand History Carry-Forward Workbench</h1><div class="sub">Visualize, configure, and validate how demand history flows across the lineage chain</div></div></div>
+    <div class="card" style="padding:40px;text-align:center">
+      <div style="font-size:15px;font-weight:700;margin-bottom:8px">No chain selected</div>
+      <div style="font-size:12px;color:var(--slate);margin-bottom:16px">Pick a family to inspect, or configure carry-forward from a mapping.</div>
+      <button class="btn bp" onclick="goDemandHistory({chainKey:'FAM-019',focus:'F-301901',returnTo:'dashboard'})">View 3019 HD Family</button>
+    </div>`;
+  }
+  const focusIdx=getFocusIdx(chain);
+  const focus=chain.members[focusIdx];
+  const cfSeries=getCarryForwardSeries(chain,focusIdx);
+  const {stitched,sources}=getStitchedSeries(chain);
+  const ownVol=sum(focus.s36);
+  const totalVol=sum(cfSeries);
+  const inheritedVol=totalVol-ownVol;
+  const predecessorCount=focusIdx;
+  const chainMonths=chain.members.reduce((acc,f)=>acc+f.s36.filter(v=>v>0).length,0);
+  const maxVol=Math.max(...chain.members.map(f=>sum(f.s36)),1);
+
+  return`
+  <button class="back-btn" onclick="backFromDemand()">← Back</button>
+  <div class="hdr"><div><h1>Demand History Carry-Forward Workbench</h1><div class="sub">Visualize, configure, and validate how demand history flows across the lineage chain</div></div>
+    <div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;color:var(--slate)">Viewing lineage for:</span>
+      <code style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--accent)">${focus.id}</code>${sb(focus.st)}</div>
+  </div>
+
+  <div class="dh-kpi-row">
+    <div class="dh-kpi"><div class="l">Own Demand (36M)</div><div class="v" style="color:var(--teal)">${fmt(ownVol)}</div><div class="s">Units from ${focus.id} directly</div></div>
+    <div class="dh-kpi"><div class="l">Inherited Demand</div><div class="v" style="color:var(--purple)">${fmt(inheritedVol)}</div><div class="s">Carried forward from ${predecessorCount} predecessor${predecessorCount!==1?"s":""}</div></div>
+    <div class="dh-kpi"><div class="l">Total Stitched Demand</div><div class="v" style="color:var(--accent)">${fmt(totalVol)}</div><div class="s">What the forecasting engine sees</div></div>
+    <div class="dh-kpi"><div class="l">Lineage Depth</div><div class="v" style="color:var(--navy)">${chain.members.length}</div><div class="s">FERTs in the chain &middot; ${chainMonths} active months</div></div>
+  </div>
+
+  ${!chain.rich?`<div style="background:var(--abg);border:1px solid rgba(217,119,6,.15);border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--amber)">
+    &#9888; Limited history depth for this pair — showing available 12-month data. Extended 36-month lineage is available for FERTs in a governed family (e.g. 3019 HD, LMD 14FT).</div>`:""}
+
+  <div class="cd" style="padding:16px 20px;margin-bottom:16px;overflow-x:auto">
+    <div style="font-size:13px;font-weight:600;margin-bottom:12px">Lineage Chain — Demand Flow</div>
+    <div class="chain-strip">
+      ${chain.members.map((f,i)=>{
+        const nodeClass=f.st==="Active"?"active-node":f.st==="Blocked"?"blocked-node":f.st==="New"?"new-node":"";
+        const isSel=i===focusIdx;
+        const fertVol=sum(f.s36);
+        const barPct=(fertVol/maxVol)*100;
+        const activePeriods=f.s36.filter(v=>v>0).length;
+        return`<div class="chain-node-wrap">
+          <div class="chain-node ${nodeClass} ${isSel?"sel-node":""}" onclick="S.dhFocus='${f.id}';render()">
+            <div class="ns" style="background:${f.st==="Active"?"var(--gbg)":f.st==="Blocked"?"var(--rbg)":"var(--asoft)"};color:${f.st==="Active"?"var(--green)":f.st==="Blocked"?"var(--red)":"var(--accent)"}">${f.st}</div>
+            <code style="font-family:var(--mono);font-size:13px;font-weight:700;display:block;margin-top:4px">${f.id}</code>
+            <div style="font-size:10px;color:var(--slate);margin:4px 0 8px;line-height:1.3;height:26px;overflow:hidden">${f.d}</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+              <div style="flex:1;height:8px;background:#E2E8F0;border-radius:4px;overflow:hidden"><div style="width:${barPct}%;height:100%;background:${spkC(f.lc)};border-radius:4px"></div></div>
+              <span style="font-size:12px;font-weight:700;color:${spkC(f.lc)};min-width:36px;text-align:right">${fmt(fertVol)}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--slate)">
+              <span>${f.cr}</span><span>${activePeriods}mo active</span>
+            </div>
+          </div>
+          ${i<chain.members.length-1?`<div class="chain-link"><div class="chain-link-arrow">→</div><div class="chain-link-lbl">${chain.transitions[i]||"Pending"}</div>${chain.pct[i]?`<div class="chain-link-pct">${chain.pct[i]}%</div>`:""}</div>`:""}
+        </div>`;
+      }).join("")}
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 300px;gap:16px">
+    <div>
+      <div class="dh-tabs">
+        ${[["stitched","Stitched Timeline"],["breakdown","Source Breakdown"],["table","Monthly Detail"]].map(([k,l])=>`<button class="dh-tab ${S.dhView===k?"on":""}" onclick="S.dhView='${k}';render()">${l}</button>`).join("")}
+      </div>
+      ${S.dhView==="stitched"?renderStitchedChart(chain,cfSeries,sources,focus):""}
+      ${S.dhView==="breakdown"?renderBreakdownChart(chain):""}
+      ${S.dhView==="table"?renderDetailTable(chain,cfSeries,sources,focus):""}
+    </div>
+    <div>
+      <div class="cd" style="padding:16px">
+        <div style="font-size:12px;font-weight:600;margin-bottom:8px">Carry-Forward Method</div>
+        ${[["full","Full","100% of predecessor demand"],["scaled","Scaled","Apply adjustment factor"],["selective","Selective","Choose which periods count"],["none","None","Zero inherited history"]].map(([k,t,d])=>
+          `<div class="cf-option ${S.cfMethod===k?"on":""}" onclick="S.cfMethod='${k}';render()"><div class="rd"></div><div><div style="font-size:12px;font-weight:600">${t}</div><div style="font-size:10px;color:var(--slate)">${d}</div></div></div>`).join("")}
+        ${S.cfMethod==="scaled"?`<div style="margin-top:8px;padding:8px;background:#F8FAFC;border-radius:5px;display:flex;align-items:center;gap:8px">
+          <input type="range" min="10" max="200" value="${S.scaleFactor}" oninput="S.scaleFactor=parseInt(this.value);render()" style="flex:1;accent-color:var(--accent)">
+          <input class="scale-input" type="number" min="10" max="200" value="${S.scaleFactor}" onchange="S.scaleFactor=parseInt(this.value);render()">%</div>`:""}
+      </div>
+      <div class="cd" style="padding:16px;margin-top:12px">
+        <div style="font-size:12px;font-weight:600;margin-bottom:10px">Forecasting Engine Input</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="width:10px;height:10px;border-radius:2px;background:var(--teal)"></div><span style="font-size:11px">Own: <b style="color:var(--teal)">${fmt(ownVol)}</b></span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="width:10px;height:10px;border-radius:2px;background:var(--purple)"></div><span style="font-size:11px">Inherited: <b style="color:var(--purple)">${fmt(inheritedVol)}</b></span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><div style="width:10px;height:10px;border-radius:2px;background:var(--accent)"></div><span style="font-size:11px">Total: <b style="color:var(--accent)">${fmt(totalVol)}</b></span></div>
+        <div style="height:11px;display:flex;border-radius:6px;overflow:hidden;margin-bottom:6px">
+          ${ownVol?`<div style="flex:${ownVol};background:var(--teal)"></div>`:""}${inheritedVol>0?`<div style="flex:${inheritedVol};background:var(--purple)"></div>`:""}</div>
+        <button class="btn bp" style="width:100%;margin-top:6px" onclick="publishCarryForward('${focus.id}')">Save &amp; Publish to Forecasting →</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderStitchedChart(chain,cfSeries,sources,focus){
+  const maxVal=Math.max(...cfSeries,1);const barW=20,gap=3,chartH=150;
+  return`<div class="cd" style="padding:16px;overflow-x:auto">
+    <div style="font-size:13px;font-weight:600;margin-bottom:10px">Stitched Demand Timeline — 36 Months</div>
+    <div style="position:relative;height:${chartH+28}px;min-width:${(barW+gap)*36}px">
+      ${MONTHS_36.map((m,i)=>{
+        const val=cfSeries[i],ownVal=focus.s36[i],inhVal=Math.max(val-ownVal,0);
+        const ownH=(ownVal/maxVal)*chartH,inhH=(inhVal/maxVal)*chartH;
+        const x=i*(barW+gap);
+        return`<div style="position:absolute;left:${x}px;bottom:0;width:${barW}px;display:flex;flex-direction:column;align-items:center">
+          <div style="position:relative;width:${barW}px;height:${chartH}px;display:flex;flex-direction:column;justify-content:flex-end">
+            ${inhVal>0?`<div class="chart-bar" style="height:${inhH}px;background:var(--purple);opacity:.5;width:100%" title="${m}: ${inhVal} inherited"></div>`:""}
+            ${ownVal>0?`<div class="chart-bar" style="height:${ownH}px;background:var(--teal);width:100%" title="${m}: ${ownVal} own"></div>`:""}
+            ${val===0?`<div style="height:2px;background:#E2E8F0;width:100%;border-radius:1px"></div>`:""}
+          </div>
+          ${i%3===0?`<div style="font-size:9px;color:var(--slate);margin-top:4px">${m}</div>`:`<div style="height:14px"></div>`}
+        </div>`;
+      }).join("")}
+    </div>
+    <div class="chart-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--teal)"></div>Own demand (${focus.id})</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--purple);opacity:.5"></div>Inherited from predecessors</div>
+      <div class="legend-item" style="margin-left:auto;font-weight:600;color:var(--accent)">Total stitched: ${fmt(sum(cfSeries))}</div>
+    </div></div>`;
+}
+function renderBreakdownChart(chain){
+  const maxVal=Math.max(...chain.members.map(f=>Math.max(...f.s36)),1);const barW=20,gap=3,chartH=150;
+  const colors=["#94A3B8","#7C3AED","#0D9488","#2563EB","#DC2626"];
+  return`<div class="cd" style="padding:16px;overflow-x:auto">
+    <div style="font-size:13px;font-weight:600;margin-bottom:10px">Source Breakdown — Which FERT contributed each month</div>
+    <div style="position:relative;height:${chartH+28}px;min-width:${(barW+gap)*36}px">
+      ${MONTHS_36.map((m,i)=>{const x=i*(barW+gap);let stack="",totalH=0;
+        chain.members.forEach((f,fi)=>{const val=f.s36[i];if(val>0){const h=(val/maxVal)*chartH;stack+=`<div class="chart-bar" style="height:${h}px;background:${colors[fi%colors.length]};width:100%" title="${m}: ${f.id}=${val}"></div>`;totalH+=h}});
+        if(totalH===0)stack=`<div style="height:2px;background:#E2E8F0;width:100%;border-radius:1px"></div>`;
+        return`<div style="position:absolute;left:${x}px;bottom:0;width:${barW}px;display:flex;flex-direction:column;align-items:center">
+          <div style="position:relative;width:${barW}px;height:${chartH}px;display:flex;flex-direction:column;justify-content:flex-end">${stack}</div>
+          ${i%3===0?`<div style="font-size:9px;color:var(--slate);margin-top:4px">${m}</div>`:`<div style="height:14px"></div>`}</div>`;
+      }).join("")}
+    </div>
+    <div class="chart-legend">${chain.members.map((f,i)=>`<div class="legend-item"><div class="legend-dot" style="background:${colors[i%colors.length]}"></div>${f.id} ${sb(f.st)}</div>`).join("")}</div>
+  </div>`;
+}
+function renderDetailTable(chain,cfSeries,sources,focus){
+  return`<div class="cd" style="padding:0;overflow-x:auto">
+    <div style="padding:14px 14px 6px"><div style="font-size:13px;font-weight:600;margin-bottom:6px">Monthly Demand Detail — Source Attribution</div>
+      <div style="font-size:11px;color:var(--slate)"><span style="color:var(--teal);font-weight:600">■ Own</span> &middot; <span style="color:var(--purple);font-weight:600;font-style:italic">■ Inherited</span> &middot; <span style="color:var(--accent);font-weight:700">■ Stitched total</span></div></div>
+    <table class="detail-table"><thead><tr><th style="text-align:left;width:90px">Month</th>${chain.members.map(f=>`<th>${f.id.replace("F-","")}</th>`).join("")}<th style="color:var(--accent)">Stitched</th><th>Source</th></tr></thead>
+    <tbody>${MONTHS_36.map((m,mi)=>{const src=sources_for(chain)[mi];const srcLabel=src>=0?chain.members[src].id.replace("F-",""):"—";
+      return`<tr><td>${m}</td>${chain.members.map((f,fi)=>{const v=f.s36[mi];if(v===0)return`<td class="zero-val">—</td>`;const isOwn=f.id===focus.id;const isInh=src===fi&&fi!==chain.members.findIndex(x=>x.id===focus.id);return`<td class="${isOwn?"own-val":isInh?"inherited-val":""}">${fmt(v)}</td>`}).join("")}<td class="stitched-val">${cfSeries[mi]>0?fmt(cfSeries[mi]):"—"}</td><td style="font-size:10px;color:var(--slate)">${srcLabel}</td></tr>`;
+    }).join("")}</tbody>
+    <tfoot><tr><td>TOTAL</td>${chain.members.map(f=>`<td>${fmt(sum(f.s36))}</td>`).join("")}<td style="color:var(--accent)">${fmt(sum(cfSeries))}</td><td></td></tr></tfoot></table></div>`;
+}
+function sources_for(chain){return getStitchedSeries(chain).sources}
+function publishCarryForward(fertId){
+  const f=byId(fertId);if(f)f.lin="mapped";
+  alert(`Carry-forward configuration saved and published to forecasting engine for ${fertId}.`);
+  backFromDemand();
+}
+
+// ══════════════════════════════════════════════════════════════
+// SCREEN: FAMILY EXPLORER
+// ══════════════════════════════════════════════════════════════
+function renderFamily(){
+  const sel=S.famSelected;
+  return`<div class="hdr"><div><h1>Fert Family Explorer</h1><div class="sub">Visualize lineage chains and family clusters across the fert universe</div></div></div>
+  ${!sel?renderFamilyGrid():renderFamilyDetail(sel)}`;
+}
+function renderFamilyGrid(){
+  const maxVol=Math.max(...CLUSTERS.map(c=>c.tv),1);
+  return`<div class="fam-grid">
+    ${CLUSTERS.map(c=>{const ratio=c.tv/maxVol;const covPct=Math.round(c.mp/c.tot*100);
+      const lcLabel=covPct===100?"Stable":covPct>0?"Transitioning":"Needs Review";
+      return`<div class="fam-card" onclick="S.famSelected='${c.id}';render()">
+        <div class="fam-bg" style="height:${ratio*40}%"></div>
+        <div class="fam-inner">
+          <div class="fam-hdr2"><div><div class="fam-name">${c.nm}</div><div class="fam-meta">${c.id} &middot; ${c.v}</div></div>${lb(lcLabel)}</div>
+          <div class="fam-stats"><div class="fam-stat"><div class="n" style="color:var(--navy)">${c.tot}</div><div class="l">Fert codes</div></div><div class="fam-stat"><div class="n" style="color:var(--accent)">${(c.tv/1000).toFixed(1)}K</div><div class="l">12M volume</div></div></div>
+          <div class="fam-codes">${c.mem.slice(0,3).map(m=>`<code>${m}</code>`).join("")}${c.mem.length>3?`<span style="font-size:10px;color:var(--slate)">+${c.mem.length-3} more</span>`:""}</div>
+        </div></div>`}).join("")}
+  </div>`;
+}
+function renderFamilyDetail(clId){
+  const c=CLUSTERS.find(x=>x.id===clId);if(!c)return"";
+  const mem=c.mem.map(id=>byId(id)).filter(Boolean).sort((a,b)=>a.cr.localeCompare(b.cr));
+  return`<button class="back-btn" onclick="S.famSelected=null;render()">← Back to all families</button>
+  <div class="card" style="padding:24px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px">
+      <div><div style="font-size:18px;font-weight:700">${c.nm}</div><div style="font-size:12px;color:var(--slate);margin-top:2px">${c.id} &middot; ${c.tot} fert codes &middot; ${fmt(c.tv)} units (12M)</div></div>
+      ${c.chainKey?`<button class="btn bp" onclick="goDemandHistory({chainKey:'${c.chainKey}',focus:'${mem[mem.length-1].id}',returnTo:'family'})">Configure Carry-Forward →</button>`:`<button class="btn bo" onclick="alert('No governed chain configured for this family yet — map its members first in Lineage Discovery.')">Configure Carry-Forward →</button>`}
+    </div>
+    <div style="font-size:12px;font-weight:600;color:var(--slate);margin-bottom:12px">Lineage Timeline</div>
+    ${mem.map((f,i)=>`<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="width:10px;height:10px;border-radius:50%;background:${f.st==="Active"?"var(--green)":f.st==="Blocked"?"var(--red)":"var(--accent)"};flex-shrink:0"></div>
+      <code style="font-family:var(--mono);font-size:12px;font-weight:700;min-width:90px">${f.id}</code>
+      ${sb(f.st)}${rb(f.rrs)}${lb(f.lc)}
+      <span style="font-size:11px;color:var(--slate);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.d}</span>
+      ${spk(f.s,80,20,spkC(f.lc))}
+      <span style="font-size:12px;font-weight:600;min-width:60px;text-align:right">${fmt(f.vol)}</span>
+    </div>`).join("")}
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════
+render();
+
+</script>

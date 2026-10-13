@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>VECVplan — Rush Order Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0B2545;--blue:#1565C0;--blue-lt:#E3EEFF;--ink:#0D1B2A;--ink2:#1A2E42;
+  --grey:#5A6E82;--rule:#D1DAE3;--rule-lt:#EBF0F5;--bg:#F0F4F8;--surface:#fff;--s2:#F7F9FB;
+  --green:#1B5E20;--green-lt:#E8F5E9;--amber:#E65100;--amber-lt:#FFF3E0;
+  --red:#B71C1C;--red-lt:#FEECEC;--teal:#00695C;--teal-lt:#E0F2F1;--purple:#4A148C;
+  --sh:0 1px 3px rgba(13,27,42,.08);--r:6px;--font:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);font-size:13px;color:var(--ink);background:var(--bg);min-height:100vh;display:flex;flex-direction:column;}
+
+/* ── TOP BAR ── */
+.topbar{height:46px;background:var(--navy);display:flex;align-items:center;padding:0 16px;gap:14px;flex-shrink:0;border-bottom:1px solid #1A3A56;}
+.brand{font-weight:700;font-size:13px;color:#fff;}.brand span{color:#7AB3E8;}
+.divpipe{width:1px;height:20px;background:#1A3A56;}
+.nav-tabs{display:flex;gap:2px;}
+.ntab{padding:0 14px;height:46px;display:flex;align-items:center;font-size:11px;font-weight:600;color:#7A9AB8;cursor:pointer;border-bottom:2px solid transparent;transition:all .12s;}
+.ntab:hover{color:#fff;}.ntab.active{color:#fff;border-bottom-color:#fff;}
+.persona-sw{display:flex;align-items:center;gap:5px;background:var(--ink2);border-radius:6px;padding:3px;margin-left:auto;}
+.psw-lbl{font-size:8px;color:#5A7A96;text-transform:uppercase;letter-spacing:.08em;padding:0 4px;}
+.psw-btn{padding:4px 11px;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;border:none;background:transparent;color:#7A9AB8;font-family:var(--font);transition:all .12s;}
+.psw-btn.active{background:var(--blue);color:#fff;}
+.user-pill{display:flex;align-items:center;gap:6px;background:var(--ink2);border-radius:14px;padding:3px 10px 3px 4px;margin-left:8px;}
+.avatar{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;background:var(--blue);}
+.uname{font-size:10px;color:#fff;font-weight:500;}.urole{font-size:9px;color:#7AB3E8;}
+
+/* ── WORKFLOW BANNER ── */
+.wf-banner{background:var(--ink2);padding:0 16px;height:48px;display:flex;align-items:center;gap:6px;flex-shrink:0;border-bottom:1px solid #1A3A56;overflow-x:auto;}
+.wf-step{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.wf-node{padding:4px 12px;border-radius:16px;font-size:10px;font-weight:700;display:flex;align-items:center;gap:5px;white-space:nowrap;}
+.wf-done{background:#1A3A2A;color:#6DBFAB;border:1px solid #2A5A3A;}
+.wf-active{background:var(--blue);color:#fff;box-shadow:0 0 0 3px rgba(21,101,192,.3);}
+.wf-pend{background:#1A2E42;color:#5A7A96;border:1px solid #243A52;}
+.wf-num{width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;}
+.wf-arrow{color:#1A3A56;font-size:14px;padding:0 2px;}
+.wf-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.sla-pill{background:#7C2D12;border:1px solid #9A4318;border-radius:6px;padding:3px 12px;font-size:10px;color:#FBC99A;font-family:var(--mono);}
+
+/* ── SCREEN TABS ── */
+.screen-tabs{background:var(--surface);border-bottom:2px solid var(--rule);display:flex;padding:0 16px;gap:2px;flex-shrink:0;box-shadow:var(--sh);}
+.stab{display:flex;align-items:center;gap:6px;padding:9px 14px;font-size:12px;font-weight:500;color:var(--grey);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .12s;white-space:nowrap;}
+.stab:hover{color:var(--ink);}.stab.active{color:var(--blue);border-bottom-color:var(--blue);}
+.badge{display:inline-block;padding:1px 7px;border-radius:8px;font-size:9px;font-weight:700;}
+.b-open{background:var(--amber-lt);color:var(--amber);}
+.b-new{background:#EDE7F6;color:#4A148C;}
+
+/* ── PAGE HDR ── */
+.page-hdr{background:var(--surface);border-bottom:1px solid var(--rule);padding:10px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0;box-shadow:var(--sh);}
+.page-title{font-size:15px;font-weight:700;}.page-sub{font-size:11px;color:var(--grey);margin-top:2px;}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+
+/* ── FILTER BAR ── */
+.filterbar{background:var(--s2);border-bottom:1px solid var(--rule);padding:8px 16px;display:flex;align-items:flex-end;gap:9px;flex-wrap:wrap;flex-shrink:0;}
+.fil{display:flex;flex-direction:column;gap:3px;}.fil label{font-size:8px;color:var(--grey);text-transform:uppercase;letter-spacing:.06em;font-weight:600;}
+.fil select,.fil input[type=text]{height:28px;padding:0 8px;border:1.5px solid var(--rule);border-radius:4px;background:#fff;font-size:11.5px;font-family:var(--font);color:var(--ink);min-width:100px;}
+.fil select:focus,.fil input:focus{outline:none;border-color:var(--blue);}
+.fdiv{width:1px;height:28px;background:var(--rule);}
+.count{font-size:10px;color:var(--grey);margin-left:auto;}
+
+/* ── MAIN CONTENT ── */
+.content{flex:1;overflow:auto;padding:12px 16px 24px;}
+
+/* ── STATUS CARDS ── */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px;}
+.kpi{background:var(--surface);border:1px solid var(--rule);border-radius:var(--r);padding:10px 14px;border-left:3px solid;}
+.kpi-lbl{font-size:9px;color:var(--grey);text-transform:uppercase;letter-spacing:.06em;}
+.kpi-val{font-family:var(--mono);font-size:22px;font-weight:500;margin-top:2px;}
+.kpi-sub{font-size:9px;color:var(--grey);margin-top:2px;}
+
+/* ── RO TABLE ── */
+.ro-table-wrap{background:var(--surface);border:1px solid var(--rule);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);}
+.ro-table{width:100%;border-collapse:collapse;font-size:11px;min-width:1250px;}
+.ro-table th{padding:6px 10px;text-align:left;font-size:9px;font-weight:700;color:var(--grey);border-bottom:2px solid var(--rule);background:var(--s2);white-space:nowrap;text-transform:uppercase;letter-spacing:.04em;}
+.ro-table td{padding:8px 10px;border-bottom:1px solid var(--rule-lt);vertical-align:middle;}
+.ro-table tr:hover td{background:#EEF4FC;}
+.mono{font-family:var(--mono);font-size:10px;}
+.ro-id{font-family:var(--mono);font-size:9px;color:var(--blue);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.fert-code{font-family:var(--mono);font-size:10px;color:var(--blue);}
+.seg{display:inline-block;padding:1px 5px;border-radius:2px;font-size:8px;font-weight:700;}
+.seg-R{background:var(--green-lt);color:var(--green);}
+.seg-S{background:var(--amber-lt);color:var(--amber);}
+.seg-D{background:var(--red-lt);color:var(--red);}
+
+/* STATUS CHIPS */
+.status{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700;white-space:nowrap;}
+.s-open{background:#FFF3E0;color:#E65100;border:1px solid #FFCC80;}
+.s-vh{background:#E3F2FD;color:#0D47A1;border:1px solid #90CAF9;}
+.s-iso{background:var(--teal-lt);color:var(--teal);border:1px solid #80CBC4;}
+.s-ppc{background:var(--green-lt);color:var(--green);border:1px solid #A5D6A7;}
+.s-rej{background:var(--red-lt);color:var(--red);border:1px solid #FFCDD2;}
+.s-dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
+
+/* QTY COLS */
+.qty-field{text-align:right;font-family:var(--mono);font-weight:600;color:var(--blue);}
+.qty-vh{text-align:right;font-family:var(--mono);color:#0D47A1;}
+.qty-iso{text-align:right;font-family:var(--mono);color:var(--teal);}
+.qty-ppc{text-align:right;font-family:var(--mono);font-weight:600;color:var(--green);}
+.qty-na{text-align:right;font-family:var(--mono);color:var(--rule);}
+.edd-val{font-family:var(--mono);font-size:10px;color:var(--teal);}
+.edd-pend{font-family:var(--mono);font-size:10px;color:var(--amber);}
+
+/* ── CREATE / REVIEW FORM ── */
+.form-card{background:var(--surface);border:1px solid var(--rule);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;}
+.form-hdr{padding:12px 16px;border-bottom:1px solid var(--rule);display:flex;align-items:center;gap:10px;}
+.form-hdr-title{font-size:14px;font-weight:700;}
+.form-body{padding:20px 24px;display:grid;grid-template-columns:1fr 1fr;gap:16px 24px;}
+.form-body.three{grid-template-columns:1fr 1fr 1fr;}
+.form-full{grid-column:1/-1;}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field label{font-size:10px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:.04em;}
+.field input,.field select,.field textarea{width:100%;padding:7px 10px;border:1.5px solid var(--rule);border-radius:4px;font-size:12px;font-family:var(--font);color:var(--ink);background:#fff;}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--blue);background:var(--blue-lt);}
+.field textarea{resize:vertical;min-height:72px;}
+.field .hint{font-size:9px;color:var(--grey);}
+.ro-val{background:var(--s2);padding:7px 10px;border-radius:4px;border:1px solid var(--rule-lt);font-size:12px;color:var(--ink2);}
+.ro-val.mono{font-family:var(--mono);font-size:11px;}
+
+.reason-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.reason-opt{border:1.5px solid var(--rule);border-radius:4px;padding:8px 10px;cursor:pointer;transition:all .12s;}
+.reason-opt:hover{border-color:var(--blue);background:var(--blue-lt);}
+.reason-opt.selected{border-color:var(--blue);background:var(--blue-lt);}
+.reason-opt .rt{font-size:11px;font-weight:600;}
+.reason-opt .rs{font-size:9px;color:var(--grey);margin-top:2px;}
+
+/* ── QTY REVIEW TABLE ── */
+.qty-review{width:100%;border-collapse:collapse;font-size:11px;}
+.qty-review th{padding:5px 10px;text-align:right;font-size:9px;font-weight:700;color:var(--grey);border-bottom:2px solid var(--rule);background:var(--s2);text-transform:uppercase;letter-spacing:.04em;}
+.qty-review th:first-child{text-align:left;}
+.qty-review td{padding:7px 10px;border-bottom:1px solid var(--rule-lt);}
+
+/* ── STAGE TIMELINE ── */
+.timeline{display:flex;flex-direction:column;gap:0;}
+.tl-item{display:flex;gap:14px;padding:12px 0;}
+.tl-item:not(:last-child){border-bottom:1px solid var(--rule-lt);}
+.tl-dot-wrap{display:flex;flex-direction:column;align-items:center;gap:0;width:28px;flex-shrink:0;}
+.tl-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.tl-done{background:var(--teal);color:#fff;}
+.tl-active{background:var(--blue);color:#fff;box-shadow:0 0 0 3px rgba(21,101,192,.2);}
+.tl-pend{background:var(--s2);color:var(--grey);border:1px solid var(--rule);}
+.tl-body{flex:1;}
+.tl-title{font-size:12px;font-weight:600;margin-bottom:2px;}
+.tl-sub{font-size:10px;color:var(--grey);}
+.tl-detail{font-size:11px;margin-top:4px;color:var(--ink2);}
+
+/* ── BTNS ── */
+.btn{height:32px;padding:0 14px;border-radius:4px;font-size:12px;font-weight:500;cursor:pointer;border:none;font-family:var(--font);display:inline-flex;align-items:center;gap:6px;transition:all .12s;}
+.btn-primary{background:var(--blue);color:#fff;}
+.btn-primary:hover{background:#1976D2;}
+.btn-success{background:var(--green);color:#fff;}
+.btn-success:hover{background:#2E7D32;}
+.btn-danger{background:var(--red);color:#fff;}
+.btn-danger:hover{background:#C62828;}
+.btn-secondary{background:var(--surface);color:var(--ink2);border:1px solid var(--rule);}
+.btn-secondary:hover{background:var(--s2);}
+.btn-sm{height:26px;padding:0 10px;font-size:11px;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.form-actions{grid-column:1/-1;display:flex;align-items:center;gap:8px;padding-top:8px;border-top:1px solid var(--rule);}
+
+/* ── NOTICE ── */
+.notice{padding:8px 12px;border-radius:4px;font-size:11px;display:flex;align-items:center;gap:8px;border-left:3px solid;margin-bottom:12px;}
+.notice.info{background:var(--blue-lt);border-color:var(--blue);color:var(--blue);}
+.notice.warn{background:var(--amber-lt);border-color:var(--amber);color:var(--amber);}
+.notice.success{background:var(--green-lt);border-color:var(--green);color:var(--green);}
+
+/* ── SCREEN ── */
+.screen{display:none;}.screen.active{display:block;}
+
+
+/* ── PIPELINE INLINE PANEL ── */
+.pipeline-panel{background:#F0F4F8;border:1.5px solid var(--rule);border-radius:var(--r);padding:12px 16px;margin-top:6px;}
+.pipeline-panel .pp-title{font-size:10px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
+.pipeline-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.pp-card{background:var(--surface);border:1px solid var(--rule);border-radius:4px;padding:8px 10px;text-align:center;}
+.pp-card .pp-stage{font-size:8px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:.05em;}
+.pp-card .pp-qty{font-family:var(--mono);font-size:18px;font-weight:500;margin-top:2px;}
+.pp-card.pp-conf .pp-qty{color:var(--teal);}
+.pp-card.pp-fa .pp-qty{color:var(--blue);}
+.pp-card.pp-fc .pp-qty{color:var(--amber);}
+.pp-card.pp-hi .pp-qty{color:var(--purple);}
+.pp-card .pp-pct{font-size:9px;color:var(--grey);margin-top:1px;}
+
+/* ── STRANGER VALIDATION ALERT ── */
+.stranger-alert{background:var(--red-lt);border:1.5px solid #EF9A9A;border-radius:var(--r);padding:10px 14px;margin-top:8px;display:flex;align-items:center;gap:10px;}
+.stranger-alert .sa-icon{font-size:18px;flex-shrink:0;}
+.stranger-alert .sa-text{font-size:11px;color:var(--red);}
+.stranger-alert .sa-text strong{font-weight:700;}
+
+/* ── HISTORICAL SALES MINI TABLE ── */
+.hist-sales{width:100%;border-collapse:collapse;font-size:10px;margin-top:6px;}
+.hist-sales th{padding:4px 8px;text-align:right;font-size:8px;font-weight:700;color:var(--grey);border-bottom:1px solid var(--rule);text-transform:uppercase;}
+.hist-sales th:first-child{text-align:left;}
+.hist-sales td{padding:4px 8px;text-align:right;font-family:var(--mono);border-bottom:1px solid var(--rule-lt);}
+.hist-sales td:first-child{text-align:left;font-weight:500;}
+
+/* ── MULTI-DATE EDD TABLE ── */
+.edd-multi{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px;}
+.edd-multi th{padding:5px 10px;text-align:left;font-size:9px;font-weight:700;color:var(--grey);border-bottom:2px solid var(--rule);background:var(--s2);text-transform:uppercase;}
+.edd-multi td{padding:7px 10px;border-bottom:1px solid var(--rule-lt);}
+
+/* ── NOTIFICATION BANNER ── */
+.notif-banner{background:#E8F5E9;border:1px solid #A5D6A7;border-radius:var(--r);padding:8px 14px;font-size:11px;color:var(--green);display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.notif-banner .nb-icon{font-size:14px;}
+
+/* ── MODERATION HISTORY (RSM tracking view) ── */
+.mod-row{display:flex;gap:6px;align-items:center;font-size:10px;margin-top:4px;}
+.mod-chip{padding:1px 6px;border-radius:3px;font-size:9px;font-weight:600;font-family:var(--mono);}
+.mod-original{background:var(--blue-lt);color:var(--blue);}
+.mod-changed{background:var(--amber-lt);color:var(--amber);}
+.mod-arrow{color:var(--grey);font-size:10px;}
+
+/* ── NEW STATUSES: DRAFT / HOLD-VH / HOLD-ISO (Fix #2, #8, Item A) ── */
+.s-draft{background:#ECEFF1;color:#455A64;border:1px dashed #90A4AE;}
+.s-hold-vh{background:#F3E5F5;color:#6A1B9A;border:1px solid #CE93D8;}
+.s-hold-iso{background:#E8EAF6;color:#283593;border:1px solid #9FA8DA;}
+
+/* ── DISABLED CHECKBOX (Item A) ── */
+.cb-disabled{opacity:.25;cursor:not-allowed;pointer-events:none;}
+
+/* ── TYPEAHEAD SEARCH (Fix #3) ── */
+.ta-wrap{position:relative;}
+.ta-results{position:absolute;top:calc(100% + 2px);left:0;right:0;background:#fff;border:1.5px solid var(--blue);border-radius:4px;max-height:180px;overflow-y:auto;z-index:30;box-shadow:0 6px 16px rgba(13,27,42,.15);}
+.ta-item{padding:6px 10px;cursor:pointer;border-bottom:1px solid var(--rule-lt);}
+.ta-item:last-child{border-bottom:none;}
+.ta-item:hover{background:var(--blue-lt);}
+.ta-code{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--blue);}
+.ta-desc{font-size:9px;color:var(--grey);margin-top:1px;}
+.ta-empty{padding:8px 10px;font-size:10px;color:var(--grey);font-style:italic;}
+
+/* ── FIELD VALIDATION (Fix #4) ── */
+.field-err .reason-grid{border:1.5px solid var(--red);border-radius:4px;padding:2px;}
+.err-msg{font-size:9.5px;color:var(--red);margin-top:3px;display:none;}
+.err-msg.show{display:block;}
+
+/* ── BULK ACTION BAR (Item A — multi-button) ── */
+.bulk-bar{display:none;background:var(--blue-lt);border:1.5px solid #90CAF9;border-radius:var(--r);padding:8px 14px;margin-bottom:10px;align-items:center;gap:8px;flex-wrap:wrap;}
+.bulk-bar.show{display:flex;}
+.bulk-bar-text{font-size:11px;color:#0D47A1;font-weight:600;margin-right:4px;}
+.bulk-bar-sep{width:1px;height:20px;background:#90CAF9;margin:0 2px;}
+.cb-cell{width:30px;text-align:center;}
+
+/* ── DRAFT REVIEW CARD (Fix #2) ── */
+.review-card{background:var(--surface);border:1.5px solid var(--teal);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;}
+.review-card .form-hdr{background:var(--teal-lt);}
+.review-line{display:flex;padding:9px 16px;border-bottom:1px solid var(--rule-lt);font-size:12px;}
+.review-line:last-child{border-bottom:none;}
+.review-line .rl-lbl{width:160px;flex-shrink:0;font-size:10px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:.04em;}
+.review-line .rl-val{font-weight:500;}
+
+/* ── LOGIN SCREEN (Item D) ── */
+.login-overlay{position:fixed;inset:0;z-index:100;background:var(--navy);display:flex;align-items:center;justify-content:center;flex-direction:column;}
+.login-card{background:var(--surface);border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,.3);width:380px;overflow:hidden;}
+.login-brand{background:var(--ink2);padding:28px 32px 22px;text-align:center;}
+.login-brand .lb-name{font-size:26px;font-weight:700;color:#fff;letter-spacing:.02em;}.login-brand .lb-name span{color:#7AB3E8;}
+.login-brand .lb-sub{font-size:11px;color:#7A9AB8;margin-top:4px;letter-spacing:.04em;}
+.login-brand .lb-module{font-size:10px;color:#5A7A96;margin-top:10px;padding-top:10px;border-top:1px solid #1A3A56;text-transform:uppercase;letter-spacing:.08em;}
+.login-body{padding:28px 32px;}
+.login-field{margin-bottom:16px;}
+.login-field label{display:block;font-size:10px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;}
+.login-field input{width:100%;height:38px;border:1.5px solid var(--rule);border-radius:4px;padding:0 12px;font-family:var(--font);font-size:13px;transition:border-color .15s;}
+.login-field input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(21,101,192,.12);}
+.login-btn{width:100%;height:40px;background:var(--blue);color:#fff;border:none;border-radius:4px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;transition:background .12s;}
+.login-btn:hover{background:#1976D2;}
+.login-note{text-align:center;margin-top:14px;font-size:9px;color:var(--grey);}
+.login-demo{margin-top:16px;padding-top:14px;border-top:1px solid var(--rule-lt);}
+.login-demo-lbl{font-size:9px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
+.login-demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.login-demo-btn{height:32px;border:1.5px solid var(--rule);border-radius:4px;background:var(--s2);font-family:var(--font);font-size:11px;font-weight:500;cursor:pointer;color:var(--ink2);transition:all .12s;display:flex;align-items:center;justify-content:center;gap:5px;}
+.login-demo-btn:hover{border-color:var(--blue);background:var(--blue-lt);color:var(--blue);}
+.login-demo-btn .ldb-dot{width:8px;height:8px;border-radius:50%;}
+
+/* ── VIEW TOGGLE: By Order / By FERT (Item E1) ── */
+.view-toggle{display:flex;align-items:center;gap:2px;background:var(--s2);border:1px solid var(--rule);border-radius:4px;padding:2px;margin-bottom:10px;}
+.vt-btn{padding:5px 14px;border-radius:3px;font-size:11px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--grey);font-family:var(--font);transition:all .12s;}
+.vt-btn.active{background:var(--blue);color:#fff;font-weight:600;}
+.vt-label{font-size:10px;color:var(--grey);margin-right:6px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+
+/* ── FERT AGGREGATION TABLE (Item E1) ── */
+.fert-agg-wrap{display:none;}
+.fert-agg-wrap.show{display:block;}
+.fert-agg-table{width:100%;border-collapse:collapse;font-size:11px;min-width:800px;}
+.fert-agg-table thead th{background:var(--ink2);color:#fff;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:8px 10px;text-align:left;border-bottom:2px solid var(--navy);}
+.fert-agg-table tbody td{padding:8px 10px;border-bottom:1px solid var(--rule-lt);vertical-align:top;}
+.fert-agg-table tbody tr:hover{background:var(--blue-lt);cursor:pointer;}
+.fert-agg-bar{display:flex;gap:2px;height:10px;border-radius:3px;overflow:hidden;min-width:100px;}
+.fab-seg{height:100%;border-radius:1px;}
+.fert-agg-count{font-family:var(--mono);font-weight:600;font-size:12px;}
+.fert-agg-sub{font-size:9px;color:var(--grey);margin-top:2px;}
+</style>
+
+<!--[if gte mso 9]><xml>
+<mso:CustomDocumentProperties>
+<mso:xd_Signature msdt:dt="string"></mso:xd_Signature>
+<mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Editor msdt:dt="string">Mohd. Zakariya</mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Editor>
+<mso:Order msdt:dt="string">24800.0000000000</mso:Order>
+<mso:xd_ProgID msdt:dt="string"></mso:xd_ProgID>
+<mso:_ExtendedDescription msdt:dt="string"></mso:_ExtendedDescription>
+<mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Author msdt:dt="string">Mohd. Zakariya</mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Author>
+<mso:ComplianceAssetId msdt:dt="string"></mso:ComplianceAssetId>
+<mso:TemplateUrl msdt:dt="string"></mso:TemplateUrl>
+<mso:ContentTypeId msdt:dt="string">0x010100915D1156AF89E94CB4E0E819A4FFFAAD</mso:ContentTypeId>
+<mso:TriggerFlowInfo msdt:dt="string"></mso:TriggerFlowInfo>
+<mso:_SourceUrl msdt:dt="string"></mso:_SourceUrl>
+<mso:_SharedFileIndex msdt:dt="string"></mso:_SharedFileIndex>
+<mso:MediaLengthInSeconds msdt:dt="string"></mso:MediaLengthInSeconds>
+<mso:MediaServiceImageTags msdt:dt="string"></mso:MediaServiceImageTags>
+<mso:lcf76f155ced4ddcb4097134ff3c332f msdt:dt="string"></mso:lcf76f155ced4ddcb4097134ff3c332f>
+</mso:CustomDocumentProperties>
+</xml><![endif]-->
+</head>
+<body>
+
+<!-- ════════ LOGIN SCREEN (Item D) ════════ -->
+<div class="login-overlay" id="login-overlay">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="lb-name">VECV<span>plan</span></div>
+      <div class="lb-sub">Demand Planning & Order Management</div>
+      <div class="lb-module">Rush Order Management Module</div>
+    </div>
+    <div class="login-body">
+      <div class="login-field">
+        <label>Username</label>
+        <input type="text" id="login-user" placeholder="Enter your VECV username" value="p.mehta">
+      </div>
+      <div class="login-field">
+        <label>Password</label>
+        <input type="password" id="login-pass" placeholder="Enter password" value="••••••••">
+      </div>
+      <button class="login-btn" onclick="doLogin()">Sign In →</button>
+      <div class="login-note">Contact IT Helpdesk for access issues · SSO coming in Phase 1</div>
+      <div class="login-demo">
+        <div class="login-demo-lbl">Quick Demo Access — sign in as:</div>
+        <div class="login-demo-grid">
+          <button class="login-demo-btn" onclick="demoLogin('rsm')"><span class="ldb-dot" style="background:#6A1B9A"></span>P. Mehta · RSM</button>
+          <button class="login-demo-btn" onclick="demoLogin('vh')"><span class="ldb-dot" style="background:#1B5E20"></span>A. Reddy · VH</button>
+          <button class="login-demo-btn" onclick="demoLogin('iso')"><span class="ldb-dot" style="background:#0277BD"></span>S. Mehta · ISO</button>
+          <button class="login-demo-btn" onclick="demoLogin('ppc')"><span class="ldb-dot" style="background:#7C2D12"></span>R. Kumar · PPC</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ APP SHELL (hidden until login) ════════ -->
+<div id="app-shell" style="display:none;min-height:100vh;display:none;flex-direction:column;">
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="brand">VECV<span>plan</span></div>
+  <div class="divpipe"></div>
+  <div class="nav-tabs">
+    <div class="ntab" onclick="alert('Navigate to Indent Workbook')">Indent Workbook</div>
+    <div class="ntab" onclick="alert('Navigate to MTO')">MTO</div>
+    <div class="ntab active">Rush Orders</div>
+    <div class="ntab" onclick="alert('Navigate to Summary')">Summary</div>
+  </div>
+  <div class="persona-sw">
+    <span class="psw-lbl">View as</span>
+    <button class="psw-btn active" id="psw-rsm" onclick="setPersona('rsm')">RSM</button>
+    <button class="psw-btn" id="psw-vh" onclick="setPersona('vh')">VH</button>
+    <button class="psw-btn" id="psw-iso" onclick="setPersona('iso')">ISO</button>
+    <button class="psw-btn" id="psw-ppc" onclick="setPersona('ppc')">PPC</button>
+  </div>
+  <div class="user-pill">
+    <div class="avatar" id="av">PM</div>
+    <div><div class="uname" id="uname">P. Mehta</div><div class="urole" id="urole">RSM · North Region</div></div>
+  </div>
+</div>
+
+<!-- WORKFLOW BANNER -->
+<div class="wf-banner">
+  <div class="wf-step"><div class="wf-node" id="wf1"><span class="wf-num">1</span>RSM — Create</div></div>
+  <div class="wf-arrow">›</div>
+  <div class="wf-step"><div class="wf-node" id="wf2"><span class="wf-num">2</span>VH — Review</div></div>
+  <div class="wf-arrow">›</div>
+  <div class="wf-step"><div class="wf-node" id="wf3"><span class="wf-num">3</span>ISO — Release</div></div>
+  <div class="wf-arrow">›</div>
+  <div class="wf-step"><div class="wf-node" id="wf4"><span class="wf-num">4</span>PPC — Commit EDD</div></div>
+  <div class="wf-right">
+    <span style="font-size:10px;color:#7A9AB8">Event-driven · no cutoff · any time during the month</span>
+    <div class="sla-pill">PPC SLA: 4 hrs</div>
+  </div>
+</div>
+
+<!-- SCREEN TABS -->
+<div class="screen-tabs">
+  <div class="stab active" id="tab-dashboard" onclick="showTab('dashboard')">Dashboard <span class="badge b-open" id="open-badge">4 Open</span></div>
+  <div class="stab" id="tab-create" onclick="newRO()" style="display:none">+ Create Rush Order</div>
+  <div class="stab" id="tab-review" onclick="showTab('review')" style="display:none">Review Request <span class="badge b-new" id="review-badge">1 Pending</span></div>
+  <div class="stab" id="tab-ppc" onclick="showTab('ppc')" style="display:none">Commit EDD <span class="badge b-new">1 Awaiting</span></div>
+</div>
+
+<!-- ════════ DASHBOARD SCREEN ════════ -->
+<div class="screen active" id="screen-dashboard">
+  <div class="page-hdr">
+    <div>
+      <div class="page-title" id="dash-title">Rush Orders — RSM Dashboard</div>
+      <div class="page-sub">All rush orders raised by or visible to your persona · Jul 2026</div>
+    </div>
+    <div class="hdr-right">
+      <button class="btn btn-secondary btn-sm" onclick="alert('Exporting CSV…')">↓ Export CSV</button>
+      <button class="btn btn-primary" id="create-btn" onclick="newRO()" style="display:none">+ Create Rush Order</button>
+    </div>
+  </div>
+  <div class="filterbar">
+    <div class="fil"><label>Vertical</label><select id="filt-vertical" onchange="applyFilters()"><option value="">All verticals</option><option value="LMD">LMD</option><option value="HD">HD</option><option value="Bus">Bus</option></select></div>
+    <div class="fil"><label>Status</label><select id="filt-status" onchange="applyFilters()"><option value="">All statuses</option><option value="draft">Draft</option><option value="open">Open</option><option value="hold_vh">On Hold — VH</option><option value="hold_iso">On Hold — ISO</option><option value="vh">VH Approved</option><option value="iso">ISO Released</option><option value="ppc">PPC Committed</option><option value="rej">Rejected</option></select></div>
+    <div class="fil"><label>Reason</label><select id="filt-reason" onchange="applyFilters()"><option value="">All reasons</option><option>Business Critical</option><option>Competitor threat</option><option>Runner FERT stockout</option><option>Post-cutoff demand</option><option>Scheme / incentive</option><option>Pipeline conversion</option></select></div>
+    <div class="fil"><label>Req. Delivery — From</label><input type="date" id="filt-date-from" onchange="applyFilters()"></div>
+    <div class="fil"><label>Req. Delivery — To</label><input type="date" id="filt-date-to" onchange="applyFilters()"></div>
+    <div class="fil"><label>&nbsp;</label><button class="btn btn-secondary btn-sm" onclick="clearFilters()">✕ Clear</button></div>
+    <div class="fdiv"></div>
+    <div class="count">Showing <strong id="ro-count">4</strong> of <strong id="ro-total">4</strong> rush orders</div>
+  </div>
+  <div class="content">
+    <div class="kpi-row">
+      <div class="kpi" style="border-left-color:#E65100"><div class="kpi-lbl">Open</div><div class="kpi-val" style="color:#E65100" id="kpi-open">0</div><div class="kpi-sub">awaiting VH</div></div>
+      <div class="kpi" style="border-left-color:var(--blue)"><div class="kpi-lbl">VH Approved</div><div class="kpi-val" style="color:var(--blue)" id="kpi-vh">0</div><div class="kpi-sub">awaiting ISO</div></div>
+      <div class="kpi" style="border-left-color:var(--teal)"><div class="kpi-lbl">ISO Released</div><div class="kpi-val" style="color:var(--teal)" id="kpi-iso">0</div><div class="kpi-sub">awaiting PPC</div></div>
+      <div class="kpi" style="border-left-color:var(--green)"><div class="kpi-lbl">PPC Committed</div><div class="kpi-val" style="color:var(--green)" id="kpi-ppc">0</div><div class="kpi-sub">EDD confirmed</div></div>
+      <div class="kpi" style="border-left-color:var(--red)"><div class="kpi-lbl">Rejected</div><div class="kpi-val" style="color:var(--red)" id="kpi-rej">0</div><div class="kpi-sub">this month</div></div>
+    </div>
+
+    <!-- E1: View Toggle — By Order / By FERT (RSM only) -->
+    <div id="view-toggle-wrap" style="display:none">
+      <div class="view-toggle">
+        <span class="vt-label">View:</span>
+        <button class="vt-btn active" id="vt-order" onclick="setView('order')">By Order</button>
+        <button class="vt-btn" id="vt-fert" onclick="setView('fert')">By FERT</button>
+      </div>
+    </div>
+
+    <!-- E1: FERT Aggregation Table (hidden by default, shown when "By FERT" is active) -->
+    <div class="fert-agg-wrap" id="fert-agg-wrap">
+      <div class="ro-table-wrap">
+        <table class="fert-agg-table">
+          <thead><tr>
+            <th>FERT Code</th>
+            <th>Description</th>
+            <th>Segment</th>
+            <th style="text-align:center">RO Count</th>
+            <th style="text-align:right">Total Qty Requested</th>
+            <th style="text-align:right">PPC Confirmed</th>
+            <th>Status Breakdown</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="fert-agg-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RO #3: Change — RSM dashboard now shows moderation visibility per RO -->
+    <div class="bulk-bar" id="bulk-bar">
+      <span class="bulk-bar-text" id="bulk-bar-text"></span>
+      <div class="bulk-bar-sep"></div>
+      <div id="bulk-bar-actions"></div>
+      <div class="bulk-bar-sep"></div>
+      <button class="btn btn-secondary btn-sm" onclick="clearSelection()">✕ Clear selection</button>
+    </div>
+    <div class="ro-table-wrap">
+      <table class="ro-table" id="ro-table">
+        <thead>
+          <tr>
+            <th class="cb-cell"><input type="checkbox" id="select-all-cb" onclick="toggleSelectAll(this)"></th>
+            <th>Rush Order ID</th>
+            <th>Vertical / Sub-V</th>
+            <th>FERT</th>
+            <th>Seg</th>
+            <th>Customer / Dealer</th>
+            <th>Location</th>
+            <th>Created By</th>
+            <th>Req. Delivery</th>
+            <th>Status</th>
+            <th>Reason</th>
+            <th style="text-align:right">Field Qty</th>
+            <th style="text-align:right">VH Qty</th>
+            <th style="text-align:right">ISO Qty</th>
+            <th style="text-align:right">PPC Qty</th>
+            <th>EDD</th>
+            <th>Moderation</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="ro-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ CREATE SCREEN (RSM) — Change #1: Simplified, auto-fill, pipeline inline ════════ -->
+<div class="screen" id="screen-create">
+  <div class="page-hdr">
+    <div><div class="page-title">Create Rush Order</div><div class="page-sub">RSM · North Region · Jul 2026</div></div>
+    <div class="hdr-right"><button class="btn btn-secondary" onclick="showTab('dashboard')">← Back to Dashboard</button></div>
+  </div>
+  <div class="content">
+    <div class="notice info">Rush orders bypass the monthly cutoff cycle. Select a FERT code to auto-fill details and see pipeline data inline.</div>
+
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;">
+      <!-- LEFT: Simplified form — resembles indent screen, auto-fills on FERT selection -->
+      <div class="form-card" id="create-form-card">
+        <div class="form-hdr">
+          <div><div class="form-hdr-title">Rush Order — Quick Entry</div><div style="font-size:10px;color:var(--grey);margin-top:2px">Fields auto-populate on FERT selection</div></div>
+          <div style="margin-left:auto;font-size:10px;color:var(--grey)">P. Mehta · RSM · 30 Jun 2026</div>
+        </div>
+        <div class="form-body three">
+          <div class="field">
+            <label>FERT Code * <span style="font-size:9px;color:var(--grey)">— start typing to search</span></label>
+            <div class="ta-wrap">
+              <input type="text" id="create-fert-input" placeholder="Search FERT code or description…" value="92009092" style="font-family:var(--mono);font-size:13px;font-weight:600" autocomplete="off" oninput="onFertInput(this.value)" onfocus="onFertInput(this.value)" onblur="setTimeout(()=&gt;hideTA('fert-ta'),150)">
+              <div class="ta-results" id="fert-ta" style="display:none"></div>
+            </div>
+          </div>
+          <div class="field">
+            <label>Description</label>
+            <div class="ro-val" id="create-desc">Pro2095XP PG DSD BS6 CNGNGB 18 2C 5SAC</div>
+          </div>
+          <div class="field">
+            <label>Segment</label>
+            <div class="ro-val" id="create-seg"><span class="seg seg-R">Runner</span> — auto from FERT master</div>
+          </div>
+          <div class="field">
+            <label>Vertical</label>
+            <div class="ro-val" id="create-vert">LMD · 5–16T · PRIVATE</div>
+          </div>
+          <div class="field">
+            <label>Quantity *</label>
+            <input type="number" value="8" min="1" max="50" id="create-qty" oninput="checkStrangerValidation()">
+          </div>
+          <div class="field">
+            <label>Requested Delivery *</label>
+            <input type="date" value="2026-07-15" id="create-deldate">
+          </div>
+          <div class="field">
+            <label>Customer</label>
+            <div class="ta-wrap">
+              <input type="text" id="create-cust-input" value="Manishkumar V. Harinkhede" placeholder="Search customer name or code…" autocomplete="off" oninput="onCustomerInput(this.value)" onfocus="onCustomerInput(this.value)" onblur="setTimeout(()=&gt;hideTA('cust-ta'),150)">
+              <div class="ta-results" id="cust-ta" style="display:none"></div>
+            </div>
+          </div>
+          <div class="field">
+            <label>Dealer *</label>
+            <div class="ta-wrap">
+              <input type="text" id="create-dealer-input" value="8040 · APCO-NAROL · Ahmedabad" placeholder="Search dealer code or name…" autocomplete="off" oninput="onDealerInput(this.value)" onfocus="onDealerInput(this.value)" onblur="setTimeout(()=&gt;hideTA('dealer-ta'),150)">
+              <div class="ta-results" id="dealer-ta" style="display:none"></div>
+            </div>
+          </div>
+          <div class="field form-full" id="reason-field">
+            <label>Reason Code *</label>
+            <div class="reason-grid" id="reason-grid">
+              <div class="reason-opt selected" onclick="selReason(this)"><div class="rt">Business Critical</div><div class="rs">Customer deadline at risk</div></div>
+              <div class="reason-opt" onclick="selReason(this)"><div class="rt">Competitor threat</div><div class="rs">Risk of losing deal</div></div>
+              <div class="reason-opt" onclick="selReason(this)"><div class="rt">Runner FERT stockout</div><div class="rs">High-velocity FERT unavailable</div></div>
+              <div class="reason-opt" onclick="selReason(this)"><div class="rt">Post-cutoff demand</div><div class="rs">Demand after S&OP closed</div></div>
+              <div class="reason-opt" onclick="selReason(this)"><div class="rt">Scheme / incentive</div><div class="rs">Time-bound scheme ending</div></div>
+              <div class="reason-opt" onclick="selReason(this)"><div class="rt">Pipeline conversion</div><div class="rs">Hot inquiry → confirmed</div></div>
+            </div>
+            <div class="err-msg" id="reason-err">Reason code is required before you can save this rush order.</div>
+          </div>
+          <div class="field form-full">
+            <label>Justification (optional)</label>
+            <textarea placeholder="Any context for VH…" style="min-height:50px">Customer fleet replacement deadline. Competitor offer expires 15 Jul.</textarea>
+          </div>
+          <!-- Change #2: Stranger validation gate — shown dynamically -->
+          <div class="field form-full" id="stranger-gate" style="display:none">
+            <div class="stranger-alert">
+              <div class="sa-icon">⚠</div>
+              <div class="sa-text"><strong>Stranger FERT validation:</strong> This FERT is classified as a Stranger. Requested qty (<span id="sg-qty">8</span>) exceeds confirmed pipeline qty (<span id="sg-pipe">0</span>). Rush order submission is blocked until pipeline confirmation covers the requested quantity.</div>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-success" id="submit-ro-btn" onclick="saveRO()">Save Rush Order →</button>
+            <button class="btn btn-secondary" onclick="editingDraftIdx=null;showTab('dashboard')">Cancel</button>
+            <span style="font-size:9px;color:var(--grey);margin-left:auto">You'll review before submitting to VH</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- NEW: Review-before-submit card (Fix #2) — same grid slot as create-form-card, toggled via JS -->
+      <div class="review-card" id="create-review-card" style="display:none">
+        <div class="form-hdr"><div class="form-hdr-title">Review Before Submitting</div><span style="margin-left:auto;font-size:10px;color:var(--teal)">Saved as draft · not yet visible to VH</span></div>
+        <div id="review-body"></div>
+        <div class="form-actions" style="padding:12px 16px;border-top:1px solid var(--rule)">
+          <button class="btn btn-secondary" onclick="backToEdit()">✏ Edit</button>
+          <button class="btn btn-success" onclick="confirmSubmitRO()">Submit Rush Order → Alert sent to VH</button>
+          <span style="font-size:9px;color:var(--grey);margin-left:auto">Once submitted, this rush order is locked — no further edits.</span>
+        </div>
+      </div>
+
+      <!-- RIGHT: Pipeline data inline panel — Change #1 continued -->
+      <div>
+        <div class="form-card" style="margin-bottom:14px">
+          <div class="form-hdr"><div class="form-hdr-title">Pipeline — 92009092</div></div>
+          <div style="padding:14px 16px;">
+            <div class="pipeline-grid">
+              <div class="pp-card pp-conf"><div class="pp-stage">Confirmed</div><div class="pp-qty">12</div><div class="pp-pct">35%</div></div>
+              <div class="pp-card pp-fa"><div class="pp-stage">FA</div><div class="pp-qty">8</div><div class="pp-pct">24%</div></div>
+              <div class="pp-card pp-fc"><div class="pp-stage">FC</div><div class="pp-qty">6</div><div class="pp-pct">18%</div></div>
+              <div class="pp-card pp-hi"><div class="pp-stage">Hot Inquiry</div><div class="pp-qty">8</div><div class="pp-pct">24%</div></div>
+            </div>
+            <div style="text-align:center;font-size:10px;color:var(--grey);margin-top:8px">Total pipeline: <strong>34</strong> units · Confirmed+FA: <strong>20</strong></div>
+          </div>
+        </div>
+        <div class="form-card">
+          <div class="form-hdr"><div class="form-hdr-title">Historical Sales — 92009092</div></div>
+          <div style="padding:10px 16px;">
+            <table class="hist-sales">
+              <tr><th>Period</th><th>Offtake</th><th>Retail</th></tr>
+              <tr><td>L3 (avg)</td><td>14</td><td>12</td></tr>
+              <tr><td>L6 (avg)</td><td>16</td><td>14</td></tr>
+              <tr><td>L12 (avg)</td><td>13</td><td>11</td></tr>
+              <tr><td>LYSM</td><td>18</td><td>15</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ VH/ISO REVIEW SCREEN — Changes #4,#5,#6 ════════ -->
+<div class="screen" id="screen-review">
+  <div class="page-hdr">
+    <div><div class="page-title" id="review-title">Rush Order Review — VH</div><div class="page-sub" id="review-sub">Review and approve or reject the RSM request</div></div>
+    <div class="hdr-right"><button class="btn btn-secondary" onclick="showTab('dashboard')">← Dashboard</button></div>
+  </div>
+  <div class="content">
+    <div class="notice warn" id="review-notice">Awaiting your review. RSM submitted this request. You can modify qty or date before approving.</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+      <!-- REQUEST DETAIL -->
+      <div class="form-card">
+        <div class="form-hdr"><div class="form-hdr-title">Request Detail</div><span class="status s-open"><span class="s-dot"></span>Open — awaiting VH</span></div>
+        <div class="form-body">
+          <div class="field"><label>Rush Order ID</label><div class="ro-val mono" style="font-size:9px">RO_PRIVATE_92009092_8_BusinessCritical_26-Jun-26__RO_8040</div></div>
+          <div class="field"><label>Reason Code</label><div class="ro-val" style="font-weight:600;color:#E65100">Business Critical</div></div>
+          <div class="field"><label>FERT Code</label><div class="ro-val"><span class="fert-code">92009092</span> · Pro2095XP PG DSD BS6 CNGNGB</div></div>
+          <div class="field"><label>Segment</label><div class="ro-val"><span class="seg seg-R">Runner</span></div></div>
+          <div class="field"><label>Customer</label><div class="ro-val">RO_CUST_001 · Manishkumar Vinod Harinkhede</div></div>
+          <div class="field"><label>Dealer</label><div class="ro-val">8040 · APCO-NAROL · Ahmedabad</div></div>
+          <div class="field"><label>Requested Delivery</label><div class="ro-val" style="font-weight:600">15 Jul 2026</div></div>
+          <div class="field"><label>RSM Justification</label><div class="ro-val" style="font-size:11px">Customer fleet replacement deadline. Competitor offer expires 15 Jul.</div></div>
+        </div>
+      </div>
+
+      <!-- Change #4: Pipeline + Historical Sales inline for VH -->
+      <div>
+        <div class="form-card" style="margin-bottom:14px">
+          <div class="form-hdr"><div class="form-hdr-title">Pipeline — 92009092</div></div>
+          <div style="padding:14px 16px;">
+            <div class="pipeline-grid">
+              <div class="pp-card pp-conf"><div class="pp-stage">Confirmed</div><div class="pp-qty">12</div></div>
+              <div class="pp-card pp-fa"><div class="pp-stage">FA</div><div class="pp-qty">8</div></div>
+              <div class="pp-card pp-fc"><div class="pp-stage">FC</div><div class="pp-qty">6</div></div>
+              <div class="pp-card pp-hi"><div class="pp-stage">Hot Inquiry</div><div class="pp-qty">8</div></div>
+            </div>
+            <!-- Change #5: Pipeline validation gate for VH too -->
+            <div id="vh-stranger-gate" style="display:none;margin-top:8px">
+              <div class="stranger-alert">
+                <div class="sa-icon">⚠</div>
+                <div class="sa-text"><strong>Stranger FERT:</strong> Requested qty exceeds confirmed pipeline. Review carefully before approving.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-card" style="margin-bottom:14px">
+          <div class="form-hdr"><div class="form-hdr-title">Historical Sales</div></div>
+          <div style="padding:10px 16px;">
+            <table class="hist-sales">
+              <tr><th>Period</th><th>Offtake</th><th>Retail</th></tr>
+              <tr><td>L3 (avg)</td><td>14</td><td>12</td></tr>
+              <tr><td>L6 (avg)</td><td>16</td><td>14</td></tr>
+              <tr><td>L12 (avg)</td><td>13</td><td>11</td></tr>
+              <tr><td>LYSM</td><td>18</td><td>15</td></tr>
+            </table>
+          </div>
+        </div>
+        <!-- Stage Timeline -->
+        <div class="form-card">
+          <div class="form-hdr"><div class="form-hdr-title">Stage Timeline</div></div>
+          <div style="padding:14px 16px;">
+            <div class="timeline">
+              <div class="tl-item"><div class="tl-dot-wrap"><div class="tl-dot tl-done">✓</div></div><div class="tl-body"><div class="tl-title">RSM — Created</div><div class="tl-sub">26 Jun 2026 · 09:14 · P. Mehta</div><div class="tl-detail">Qty: 8 · Business Critical</div></div></div>
+              <div class="tl-item"><div class="tl-dot-wrap"><div class="tl-dot tl-active">2</div></div><div class="tl-body"><div class="tl-title">VH — Review</div><div class="tl-sub">Pending · A. Reddy</div></div></div>
+              <div class="tl-item"><div class="tl-dot-wrap"><div class="tl-dot tl-pend">3</div></div><div class="tl-body"><div class="tl-title">ISO — Release</div><div class="tl-sub">Not yet reached</div></div></div>
+              <div class="tl-item"><div class="tl-dot-wrap"><div class="tl-dot tl-pend">4</div></div><div class="tl-body"><div class="tl-title">PPC — Commit EDD</div><div class="tl-sub">Not yet reached · SLA: 4 hrs</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VH/ISO Decision form — Change #6: ISO is view/pass-through only -->
+    <div class="form-card">
+      <div class="form-hdr"><div class="form-hdr-title" id="vh-form-title">VH Decision</div></div>
+      <div class="form-body" id="vh-form-body">
+        <div class="field"><label>RSM Requested Qty</label><div class="ro-val mono" style="font-size:16px;font-weight:600;color:var(--blue)">8</div></div>
+        <div class="field">
+          <label>VH Qty * <span style="font-size:9px;color:var(--grey)">(defaults to RSM qty)</span></label>
+          <input type="number" value="8" min="1" id="vh-qty" style="font-size:16px;font-weight:600">
+        </div>
+        <div class="field">
+          <label>Modified Delivery Date</label>
+          <input type="date" value="2026-07-15">
+        </div>
+        <div class="field">
+          <label>VH Notes (optional)</label>
+          <textarea style="height:60px" placeholder="Notes for ISO…"></textarea>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-success" onclick="vhApprove()">✓ Approve → Alert sent to ISO</button>
+          <button class="btn btn-secondary" onclick="vhHold()">⏸ Hold — keep in my queue</button>
+          <button class="btn btn-danger" onclick="vhReject()">✗ Reject → Alert sent to RSM</button>
+          <span style="font-size:10px;color:var(--grey);margin-left:auto">Approval forwards to ISO with your qty.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ PPC SCREEN — Changes #7, #8 ════════ -->
+<div class="screen" id="screen-ppc">
+  <div class="page-hdr">
+    <div><div class="page-title">PPC — Commit EDD</div><div class="page-sub">ISO has released this rush order. Commit production feasibility and EDD within 4 business hours.</div></div>
+    <div class="hdr-right"><button class="btn btn-secondary" onclick="showTab('dashboard')">← Dashboard</button></div>
+  </div>
+  <div class="content">
+    <div class="notice warn">SLA: You must acknowledge and commit EDD within 4 business hours of ISO release. This order was released at 11:30 · 26 Jun 2026.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+      <div class="form-card">
+        <div class="form-hdr"><div class="form-hdr-title">Approved Order Summary</div></div>
+        <div class="form-body">
+          <div class="field"><label>FERT</label><div class="ro-val"><span class="fert-code">95158891</span> · 2070 E Srl Scl Ac BSVI Faps</div></div>
+          <div class="field"><label>Segment</label><div class="ro-val"><span class="seg seg-D">Stranger</span></div></div>
+          <div class="field"><label>Vertical / Sub-V</label><div class="ro-val">Bus · LMD Bus · PRIVATE</div></div>
+          <div class="field"><label>Customer / Dealer</label><div class="ro-val">RO Customer · Henry Thomas S</div></div>
+          <div class="field"><label>Requested Delivery</label><div class="ro-val" style="font-weight:600;color:#E65100">3 Jun 2026</div></div>
+          <div class="field"><label>Reason</label><div class="ro-val" style="font-weight:600">Business Critical</div></div>
+        </div>
+      </div>
+      <div class="form-card">
+        <div class="form-hdr"><div class="form-hdr-title">Qty Approved Through Chain</div></div>
+        <div style="padding:14px 16px;">
+          <table class="qty-review">
+            <tr><th>Stage</th><th>Qty Approved</th><th>Status</th></tr>
+            <tr><td style="font-weight:600;color:var(--blue)">RSM (Field)</td><td class="qty-field">1</td><td><span class="status s-open"><span class="s-dot"></span>Submitted</span></td></tr>
+            <tr><td style="font-weight:600;color:#0D47A1">VH</td><td class="qty-vh">1</td><td><span class="status s-vh"><span class="s-dot"></span>Approved</span></td></tr>
+            <tr><td style="font-weight:600;color:var(--teal)">ISO</td><td class="qty-iso">1</td><td><span class="status s-iso"><span class="s-dot"></span>Released</span></td></tr>
+            <tr style="background:var(--green-lt)"><td style="font-weight:700">PPC Commit</td><td><input type="number" value="1" min="1" style="width:60px;padding:3px 6px;border:1.5px solid var(--green);border-radius:4px;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--green)"></td><td><span class="status s-pend" style="background:#FFF3E0;color:#E65100;border-color:#FFCC80"><span class="s-dot"></span>Pending</span></td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Change #7: Multi-date EDD tracking — same FERT on different dates get separate EDDs -->
+    <div class="form-card" style="margin-bottom:14px">
+      <div class="form-hdr"><div class="form-hdr-title">Multi-Date Requests — Same FERT</div><span style="font-size:10px;color:var(--grey)">Each request date tracked separately with its own EDD</span></div>
+      <div style="padding:14px 16px;">
+        <table class="edd-multi">
+          <tr><th>RO ID</th><th>Request Date</th><th>Req. Delivery</th><th style="text-align:right">Qty</th><th>EDD</th><th>Status</th></tr>
+          <tr>
+            <td style="font-family:var(--mono);font-size:9px;color:var(--blue)">RO_PRIVATE_95158891_1_…_3-Jun-26</td>
+            <td>3 Jun 2026</td><td style="color:#E65100;font-weight:500">3 Jun 2026</td>
+            <td style="text-align:right;font-family:var(--mono);font-weight:600">1</td>
+            <td><input type="date" value="2026-06-30" style="padding:3px 6px;border:1.5px solid var(--teal);border-radius:4px;font-family:var(--mono);font-size:11px"></td>
+            <td><span class="status s-pend" style="background:#FFF3E0;color:#E65100;border-color:#FFCC80"><span class="s-dot"></span>EDD Pending</span></td>
+          </tr>
+          <tr style="background:var(--s2)">
+            <td style="font-family:var(--mono);font-size:9px;color:var(--blue)">RO_PRIVATE_95158891_2_…_10-Jun-26</td>
+            <td>10 Jun 2026</td><td style="color:#E65100;font-weight:500">18 Jun 2026</td>
+            <td style="text-align:right;font-family:var(--mono);font-weight:600">2</td>
+            <td><input type="date" value="2026-07-05" style="padding:3px 6px;border:1.5px solid var(--teal);border-radius:4px;font-family:var(--mono);font-size:11px"></td>
+            <td><span class="status s-pend" style="background:#FFF3E0;color:#E65100;border-color:#FFCC80"><span class="s-dot"></span>EDD Pending</span></td>
+          </tr>
+          <tr>
+            <td style="font-family:var(--mono);font-size:9px;color:var(--blue)">RO_PRIVATE_95158891_1_…_15-Jun-26</td>
+            <td>15 Jun 2026</td><td style="color:#E65100;font-weight:500">25 Jun 2026</td>
+            <td style="text-align:right;font-family:var(--mono);font-weight:600">1</td>
+            <td><input type="date" value="2026-07-10" style="padding:3px 6px;border:1.5px solid var(--teal);border-radius:4px;font-family:var(--mono);font-size:11px"></td>
+            <td><span class="status s-pend" style="background:#FFF3E0;color:#E65100;border-color:#FFCC80"><span class="s-dot"></span>EDD Pending</span></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-hdr"><div class="form-hdr-title">Commit EDD</div></div>
+      <div class="form-body three">
+        <div class="field"><label>Estimated Delivery Date (EDD) *</label><input type="date" value="2026-06-30"><span class="hint">Phase 1: pulled from SAP PP automatically</span></div>
+        <div class="field"><label>Production Feasibility</label><select><option>Feasible — within plan</option><option>Feasible — requires plan adjustment</option><option>Partially feasible</option><option>Not feasible — escalate</option></select></div>
+        <div class="field"><label>PPC Notes (optional)</label><input type="text" placeholder="Any production notes…"></div>
+        <div class="form-actions">
+          <!-- Change #8: PPC commit triggers notification to VH + ISO -->
+          <button class="btn btn-success" onclick="ppcCommit()">✓ Commit EDD → Notify VH + ISO</button>
+          <button class="btn btn-secondary">Save draft</button>
+          <span style="font-size:10px;color:var(--grey);margin-left:auto">Committing EDD closes this rush order and notifies VH and ISO automatically.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /app-shell -->
+
+<script>
+const PERSONAS = {
+  rsm:{name:"P. Mehta",role:"RSM · North Region",av:"PM",avBg:"#6A1B9A",tabs:['dashboard','create'],wf:1},
+  vh: {name:"A. Reddy",role:"VH · LMD Vertical",av:"AR",avBg:"#1B5E20",tabs:['dashboard','review'],wf:2},
+  iso:{name:"S. Mehta",role:"ISO · Central Planning",av:"SM",avBg:"#0277BD",tabs:['dashboard','review'],wf:3},
+  ppc:{name:"R. Kumar",role:"PPC · Production Planning",av:"RK",avBg:"#7C2D12",tabs:['dashboard','ppc'],wf:4},
+};
+
+const RO_DATA = [
+  {id:"RO_PRIVATE_92009092_8_BusinessCritical_26-Jun-26__RO_8040",vert:"LMD",sv:"5–16T",code:"92009092",desc:"Pro2095XP PG DSD BS6 CNGNGB",seg:"R",cust:"Manishkumar V. Harinkhede",dealer:"APCO-NAROL",loc:"Ahmedabad",by:"P. Mehta",reqDate:"26 Jun",reqDel:"15 Jul 2026",reqDelISO:"2026-07-15",status:"open",qF:8,qV:null,qI:null,qP:null,edd:null,reason:"Business Critical"},
+  {id:"RO_PRIVATE_95158891_1_BusinessCritical_3-Jun-26__RO_RO",vert:"Bus",sv:"LMD Bus",code:"95158891",desc:"2070 E Srl Scl Ac BSVI Faps",seg:"D",cust:"RO Customer",dealer:"RO Dealer",loc:"Mumbai",by:"Henry Thomas S",reqDate:"3 Jun",reqDel:"3 Jun 2026",reqDelISO:"2026-06-03",status:"iso",qF:1,qV:1,qI:1,qP:null,edd:null,reason:"Business Critical"},
+  {id:"RO_PRIVATE_95206794_1_BusinessCritical_3-Jun-26__RO_RO",vert:"Bus",sv:"LMD Bus",code:"95206794",desc:"2090 L SKL CWC BSVI ESC",seg:"D",cust:"RO Customer",dealer:"RO Dealer",loc:"Delhi",by:"Henry Thomas S",reqDate:"3 Jun",reqDel:"3 Jun 2026",reqDelISO:"2026-06-03",status:"ppc",qF:5,qV:5,qI:5,qP:5,edd:"30 Jun 2026",reason:"Business Critical"},
+  {id:"RO_PRIVATE_99400142_1_BusinessCritical_3-Jun-26__RO_4790",vert:"LMD",sv:"5–16T",code:"99400142",desc:"Pro2110XP P H20 CBC BSVI NGB 7S",seg:"S",cust:"VVC-TELANGANA",dealer:"VVC-TELANGANA",loc:"Hyderabad",by:"Subramony K",reqDate:"3 Jun",reqDel:"3 Jun 2026",reqDelISO:"2026-06-03",status:"ppc",qF:5,qV:3,qI:3,qP:null,edd:null,reason:"Competitor threat"},
+];
+
+// FERT / Customer / Dealer master data used to power type-ahead search (Fix #3)
+const FERT_MASTER = {
+  '92009092':{desc:'Pro2095XP PG DSD BS6 CNGNGB 18 2C 5SAC',seg:'R',vert:'LMD · 5–16T · PRIVATE'},
+  '95158891':{desc:'2070 E Srl Scl Ac BSVI Faps',seg:'D',vert:'Bus · LMD Bus · PRIVATE'},
+  '99400142':{desc:'Pro2110XP P H20 CBC BSVI NGB 7S',seg:'S',vert:'LMD · 5–16T · PRIVATE'},
+  '95206794':{desc:'2090 L SKL CWC BSVI ESC',seg:'D',vert:'Bus · LMD Bus · PRIVATE'},
+  '92014521':{desc:'Pro6028T HD Tipper BSVI 6S ABS',seg:'R',vert:'HD · 25–31T · PRIVATE'},
+};
+const CUSTOMER_MASTER = [
+  {code:'RO_CUST_001',name:'Manishkumar V. Harinkhede'},
+  {code:'RO_CUST_002',name:'VVC Telangana Fleet Services'},
+  {code:'RO_CUST_003',name:'Henry Thomas S'},
+  {code:'RO_CUST_004',name:'Ganesh Logistics Pvt Ltd'},
+  {code:'RO_CUST_005',name:'Om Sai Transport Co.'},
+];
+const DEALER_MASTER = [
+  {code:'8040',name:'APCO-NAROL',city:'Ahmedabad'},
+  {code:'4790',name:'VVC-TELANGANA',city:'Hyderabad'},
+  {code:'RO',name:'RO Dealer',city:'Mumbai'},
+  {code:'6210',name:'SHREE MOTORS',city:'Pune'},
+  {code:'3315',name:'NORTHERN AUTO HUB',city:'Delhi'},
+];
+
+// Segment labels — Runner / Repeater / Stranger (aligned with VECV terminology)
+const SEG_LABEL={R:"Runner",S:"Repeater",D:"Stranger"};
+const STATUS_CFG = {
+  draft:{label:"Draft — not submitted",cls:"s-draft"},
+  open:{label:"Open — awaiting VH",cls:"s-open"},
+  hold_vh:{label:"On Hold — VH",cls:"s-hold-vh"},
+  hold_iso:{label:"On Hold — ISO",cls:"s-hold-iso"},
+  vh:{label:"VH Approved",cls:"s-vh"},
+  iso:{label:"ISO Released",cls:"s-iso"},
+  ppc:{label:"PPC Committed",cls:"s-ppc"},
+  rej:{label:"Rejected",cls:"s-rej"},
+};
+
+let persona = 'rsm';
+let selectedIdx = new Set();   // row indices currently checked for batch action (Fix #7/#10)
+let editingDraftIdx = null;    // which RO_DATA index the Create screen is currently saving into (Fix #2)
+
+function setPersona(p){
+  persona = p;
+  selectedIdx.clear();
+  const pd = PERSONAS[p];
+  document.getElementById('av').textContent = pd.av;
+  document.getElementById('av').style.background = pd.avBg;
+  document.getElementById('uname').textContent = pd.name;
+  document.getElementById('urole').textContent = pd.role;
+  document.querySelectorAll('.psw-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('psw-'+p).classList.add('active');
+  [1,2,3,4].forEach(n=>{
+    const el=document.getElementById('wf'+n);
+    el.className='wf-node '+(n<pd.wf?'wf-done':n===pd.wf?'wf-active':'wf-pend');
+  });
+  document.getElementById('tab-create').style.display = p==='rsm'?'':'none';
+  document.getElementById('create-btn').style.display = p==='rsm'?'':'none';
+  document.getElementById('tab-review').style.display = ['vh','iso'].includes(p)?'':'none';
+  document.getElementById('tab-ppc').style.display = p==='ppc'?'':'none';
+
+  // Change #6: ISO screen — view/pass-through only (all read-only except optional override)
+  if(p==='iso'){
+    document.getElementById('review-title').textContent='Rush Order Review — ISO';
+    document.getElementById('review-sub').textContent='View and release to PPC, or reject back to RSM. All fields read-only except optional override.';
+    document.getElementById('review-notice').textContent='This request was approved by VH. ISO acts as a checkpoint — review and release to PPC, or reject. No editing of qty/date (override field available if needed).';
+    document.getElementById('review-notice').className='notice info';
+    document.getElementById('vh-form-title').textContent='ISO Decision — View & Release';
+    document.getElementById('vh-form-body').innerHTML=`
+      <div class="field"><label>RSM Requested Qty</label><div class="ro-val mono" style="font-size:14px;font-weight:600;color:var(--blue)">8</div></div>
+      <div class="field"><label>VH Approved Qty</label><div class="ro-val mono" style="font-size:14px;font-weight:600;color:#0D47A1">8</div></div>
+      <div class="field"><label>Stock Flag</label><select><option>✓ Stock available at VECV</option><option>⚠ Partial stock — schedule balance</option><option>✗ No stock — PPC to produce</option></select></div>
+      <div class="field"><label>ISO Override Qty <span style="font-size:9px;color:var(--grey)">(optional — leave blank to pass through VH qty)</span></label>
+        <input type="number" placeholder="Leave blank to accept VH qty" min="1" style="font-size:14px;font-weight:600;border-color:var(--amber)"></div>
+      <div class="field form-full"><label>ISO Notes (optional)</label><textarea style="height:50px" placeholder="Notes for PPC…"></textarea></div>
+      <div class="form-actions">
+        <button class="btn btn-success" onclick="isoRelease()">✓ Release → Alert sent to PPC</button>
+        <button class="btn btn-secondary" onclick="isoHold()">⏸ Hold — keep in my queue</button>
+        <button class="btn btn-danger" onclick="isoReject()">✗ Reject → Alert sent to RSM</button>
+        <span style="font-size:10px;color:var(--grey);margin-left:auto">ISO is a checkpoint. Override only if stock position requires adjustment.</span>
+      </div>`;
+  } else {
+    document.getElementById('review-title').textContent='Rush Order Review — VH';
+    document.getElementById('review-sub').textContent='Review and approve or reject the RSM request';
+    document.getElementById('review-notice').textContent='Awaiting your review. RSM submitted this request. You can modify qty or date before approving.';
+    document.getElementById('review-notice').className='notice warn';
+    document.getElementById('vh-form-title').textContent='VH Decision';
+    document.getElementById('vh-form-body').innerHTML=`
+      <div class="field"><label>RSM Requested Qty</label><div class="ro-val mono" style="font-size:16px;font-weight:600;color:var(--blue)">8</div></div>
+      <div class="field"><label>VH Qty * <span style="font-size:9px;color:var(--grey)">(defaults to RSM qty)</span></label>
+        <input type="number" value="8" min="1" id="vh-qty" style="font-size:16px;font-weight:600"></div>
+      <div class="field"><label>Modified Delivery Date</label><input type="date" value="2026-07-15"></div>
+      <div class="field"><label>VH Notes (optional)</label><textarea style="height:60px" placeholder="Notes for ISO…"></textarea></div>
+      <div class="form-actions">
+        <button class="btn btn-success" onclick="vhApprove()">✓ Approve → Alert sent to ISO</button>
+        <button class="btn btn-secondary" onclick="vhHold()">⏸ Hold — keep in my queue</button>
+        <button class="btn btn-danger" onclick="vhReject()">✗ Reject → Alert sent to RSM</button>
+        <span style="font-size:10px;color:var(--grey);margin-left:auto">Approval forwards to ISO with your qty.</span>
+      </div>`;
+  }
+
+  document.getElementById('dash-title').textContent = `Rush Orders — ${pd.role.split('·')[0].trim()} Dashboard`;
+
+  // E1: Show view toggle only for RSM
+  const vtWrap = document.getElementById('view-toggle-wrap');
+  if(vtWrap) vtWrap.style.display = (p==='rsm') ? '' : 'none';
+  // Reset to order view on persona switch
+  currentView = 'order';
+  const fertWrap = document.getElementById('fert-agg-wrap');
+  if(fertWrap) fertWrap.classList.remove('show');
+  const vtOrder = document.getElementById('vt-order');
+  const vtFert = document.getElementById('vt-fert');
+  if(vtOrder) vtOrder.classList.add('active');
+  if(vtFert) vtFert.classList.remove('active');
+
+  showTab('dashboard');
+  applyFilters();
+}
+
+// ═══════════ FIX #1: Requested-Delivery date-range filter + real filtering (all filters were no-ops before) ═══════════
+function getFilteredData(){
+  const vert   = document.getElementById('filt-vertical')?.value || '';
+  const stat   = document.getElementById('filt-status')?.value || '';
+  const reason = document.getElementById('filt-reason')?.value || '';
+  const from   = document.getElementById('filt-date-from')?.value || '';
+  const to     = document.getElementById('filt-date-to')?.value || '';
+
+  return RO_DATA.map((r,i)=>({r,i})).filter(({r})=>{
+    if(r.status==='draft' && persona!=='rsm') return false; // drafts are private to the RSM who saved them
+    if(vert && r.vert!==vert) return false;
+    if(stat && r.status!==stat) return false;
+    if(reason && r.reason!==reason) return false;
+    if(from && r.reqDelISO < from) return false;
+    if(to && r.reqDelISO > to) return false;
+    if(window.__fertDrill && r.code!==window.__fertDrill) return false;
+    return true;
+  });
+}
+
+function clearFilters(){
+  ['filt-vertical','filt-status','filt-reason'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
+  ['filt-date-from','filt-date-to'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
+  applyFilters();
+}
+
+function applyFilters(){
+  renderTable();
+  updateKPIs();
+  updateBadges();
+}
+
+function updateKPIs(){
+  const counts = {open:0,hold_vh:0,vh:0,hold_iso:0,iso:0,ppc:0,rej:0};
+  RO_DATA.forEach(r=>{ if(counts.hasOwnProperty(r.status)) counts[r.status]++; });
+  document.getElementById('kpi-open').textContent = counts.open + counts.hold_vh;
+  document.getElementById('kpi-vh').textContent = counts.vh + counts.hold_iso;
+  document.getElementById('kpi-iso').textContent = counts.iso;
+  document.getElementById('kpi-ppc').textContent = counts.ppc;
+  document.getElementById('kpi-rej').textContent = counts.rej;
+}
+
+function updateBadges(){
+  const badge = document.getElementById('open-badge');
+  if(badge) badge.textContent = `${RO_DATA.filter(r=>r.status==='open').length} Open`;
+  const reviewBadge = document.getElementById('review-badge');
+  if(reviewBadge){
+    const n = persona==='iso' ? RO_DATA.filter(r=>r.status==='vh').length : RO_DATA.filter(r=>r.status==='open').length;
+    reviewBadge.textContent = `${n} Pending`;
+  }
+}
+
+// Change #3: RSM dashboard shows moderation visibility — qty changes visible per RO
+// Fix #4: Reason column · Fix #6: ISO-level moderation added · Fix #7/#10: batch checkboxes · Fix #9: inline VH qty edit
+function renderTable(){
+  const tbody=document.getElementById('ro-tbody');
+  const filtered = getFilteredData();
+  document.getElementById('ro-count').textContent = filtered.length;
+  document.getElementById('ro-total').textContent = RO_DATA.filter(r=>persona==='rsm'||r.status!=='draft').length;
+
+  const rows=filtered.map(({r,i})=>{
+    const sc=STATUS_CFG[r.status]||STATUS_CFG.open;
+    const isoQty=r.qI!==null?r.qI:'—';
+    const ppcQty=r.qP!==null?r.qP:'—';
+    const eddVal=r.edd?`<span class="edd-val">${r.edd}</span>`:`<span class="edd-pend">Pending</span>`;
+
+    // Fix #9: inline-editable VH qty shortcut, shown only for VH persona on rows awaiting their action
+    let vhQtyCell, vhCellClass;
+    if(persona==='vh' && (r.status==='open'||r.status==='hold_vh')){
+      vhQtyCell = `<input type="number" value="${r.qV!==null?r.qV:r.qF}" min="1" style="width:52px;padding:2px 4px;border:1.5px solid var(--blue);border-radius:3px;font-family:var(--mono);font-size:11px;font-weight:600;color:#0D47A1;text-align:right" onchange="inlineQtyEdit(${i},this.value)">`;
+      vhCellClass = 'qty-vh';
+    } else {
+      vhQtyCell = r.qV!==null ? r.qV : '—';
+      vhCellClass = r.qV!==null ? 'qty-vh' : 'qty-na';
+    }
+
+    // Fix #6: Moderation column now shows BOTH VH-vs-RSM and ISO-vs-VH (ISO side was previously missing)
+    let modParts=[];
+    if(r.qV!==null){
+      if(r.qV!==r.qF) modParts.push(`<div class="mod-row"><span class="mod-chip mod-original">${r.qF}</span><span class="mod-arrow">→</span><span class="mod-chip mod-changed">${r.qV}</span></div><div style="font-size:8px;color:var(--grey)">VH modified</div>`);
+      else modParts.push(`<span style="font-size:9px;color:var(--teal)">✓ VH: no change</span>`);
+    }
+    if(r.qI!==null){
+      if(r.qI!==r.qV) modParts.push(`<div class="mod-row"><span class="mod-chip mod-original">${r.qV}</span><span class="mod-arrow">→</span><span class="mod-chip mod-changed">${r.qI}</span></div><div style="font-size:8px;color:var(--grey)">ISO modified</div>`);
+      else modParts.push(`<span style="font-size:9px;color:var(--teal)">✓ ISO: no change</span>`);
+    }
+    const modCell = modParts.length ? modParts.join('<div style="height:3px"></div>') : '<span style="font-size:9px;color:var(--grey)">—</span>';
+
+    // Row action
+    let action='<span style="font-size:9px;color:var(--grey)">—</span>';
+    if(persona==='rsm'&&r.status==='draft') action=`<button class="btn btn-secondary btn-sm" onclick="editDraft(${i})">Edit</button>`;
+    else if(persona==='rsm') action=`<button class="btn btn-secondary btn-sm" onclick="alert('Viewing RO detail…')">View</button>`;
+    if(persona==='vh'&&(r.status==='open'||r.status==='hold_vh')) action=`<button class="btn btn-primary btn-sm" onclick="showTab('review')">Review ›</button>`;
+    if(persona==='iso'&&(r.status==='vh'||r.status==='hold_iso')) action=`<button class="btn btn-primary btn-sm" onclick="showTab('review')">Review ›</button>`;
+    if(persona==='ppc'&&r.status==='iso') action=`<button class="btn btn-success btn-sm" onclick="showTab('ppc')">Commit EDD ›</button>`;
+
+    // Item A: checkbox on EVERY row — enabled for actionable, disabled+greyed for non-actionable
+    const eligible = isEligibleForBulk(persona, r.status);
+    const disabledAttr = eligible ? '' : 'disabled';
+    const disabledCls = eligible ? '' : 'cb-disabled';
+    const tooltip = eligible ? '' : `title="No bulk action available for this status"`;
+    const cb = `<input type="checkbox" class="row-cb ${disabledCls}" data-idx="${i}" ${disabledAttr} ${tooltip} ${eligible&&selectedIdx.has(i)?'checked':''} ${eligible?`onclick="onRowCheck(${i},this.checked)"`:''}>`;
+
+
+    return `<tr>
+      <td class="cb-cell">${cb}</td>
+      <td><div class="ro-id" title="${r.id}">${r.id}</div></td>
+      <td><div style="font-size:10px;font-weight:600">${r.vert}</div><div style="font-size:9px;color:var(--grey)">${r.sv}</div></td>
+      <td><span class="fert-code">${r.code}</span><div style="font-size:9px;color:var(--grey);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.desc}</div></td>
+      <td><span class="seg seg-${r.seg}">${SEG_LABEL[r.seg]||r.seg}</span></td>
+      <td><div style="font-size:10px;font-weight:500">${r.cust}</div><div style="font-size:9px;color:var(--grey)">${r.dealer}</div></td>
+      <td style="font-size:10px;color:var(--grey)">${r.loc}</td>
+      <td style="font-size:10px">${r.by}</td>
+      <td style="font-size:10px;font-weight:500;color:#E65100">${r.reqDel}</td>
+      <td><span class="status ${sc.cls}"><span class="s-dot"></span>${sc.label}</span></td>
+      <td style="font-size:10px">${r.reason||'—'}</td>
+      <td class="qty-field">${r.qF}</td>
+      <td class="${vhCellClass}">${vhQtyCell}</td>
+      <td class="${r.qI!==null?'qty-iso':'qty-na'}">${isoQty}</td>
+      <td class="${r.qP!==null?'qty-ppc':'qty-na'}">${ppcQty}</td>
+      <td>${eddVal}</td>
+      <td>${modCell}</td>
+      <td>${action}</td></tr>`;
+  });
+  tbody.innerHTML = rows.join('') || `<tr><td colspan="18" style="text-align:center;padding:20px;color:var(--grey);font-size:11px">No rush orders match the current filters.</td></tr>`;
+  updateBulkBar();
+}
+
+// Fix #9: inline VH qty edit updates state directly and re-renders live
+function inlineQtyEdit(idx,val){
+  RO_DATA[idx].qV = parseInt(val)||RO_DATA[idx].qF;
+  renderTable();
+}
+
+// ═══════════ ITEM A: Checkbox + Bulk Actions — every row gets a checkbox, multi-button per persona ═══════════
+
+// Eligibility: which statuses can this persona act on in bulk?
+function isEligibleForBulk(p, status){
+  if(p==='rsm') return status==='draft';
+  if(p==='vh')  return status==='open' || status==='hold_vh';
+  if(p==='iso') return status==='vh' || status==='hold_iso';
+  return false; // PPC has no bulk actions
+}
+
+function onRowCheck(idx,checked){
+  if(checked) selectedIdx.add(idx); else selectedIdx.delete(idx);
+  const enabledBoxes=document.querySelectorAll('.row-cb:not(.cb-disabled)');
+  const checkedBoxes=document.querySelectorAll('.row-cb:not(.cb-disabled):checked');
+  const allCb=document.getElementById('select-all-cb');
+  if(allCb) allCb.checked = enabledBoxes.length>0 && checkedBoxes.length===enabledBoxes.length;
+  updateBulkBar();
+}
+
+function toggleSelectAll(el){
+  // Only toggles enabled (non-disabled) checkboxes — greyed-out rows are skipped
+  document.querySelectorAll('.row-cb:not(.cb-disabled)').forEach(cb=>{
+    cb.checked = el.checked;
+    const idx = parseInt(cb.dataset.idx);
+    if(el.checked) selectedIdx.add(idx); else selectedIdx.delete(idx);
+  });
+  updateBulkBar();
+}
+
+function clearSelection(){
+  selectedIdx.clear();
+  const allCb=document.getElementById('select-all-cb');
+  if(allCb) allCb.checked = false;
+  renderTable();
+}
+
+function updateBulkBar(){
+  const bar=document.getElementById('bulk-bar');
+  const text=document.getElementById('bulk-bar-text');
+  const actionsDiv=document.getElementById('bulk-bar-actions');
+  if(!bar||!actionsDiv) return;
+  if(selectedIdx.size===0){ bar.classList.remove('show'); return; }
+  bar.classList.add('show');
+  const n=selectedIdx.size;
+  text.textContent = `${n} rush order${n>1?'s':''} selected`;
+
+  // Per-persona explicit action buttons
+  let btns='';
+  if(persona==='rsm'){
+    btns = `<button class="btn btn-success btn-sm" onclick="bulkSubmitToVH()">Submit Selected (${n}) to VH</button>`
+         + `<button class="btn btn-danger btn-sm" onclick="bulkDelete()">Delete Selected (${n})</button>`;
+  } else if(persona==='vh'){
+    btns = `<button class="btn btn-success btn-sm" onclick="bulkApprove()">✓ Approve Selected (${n})</button>`
+         + `<button class="btn btn-secondary btn-sm" onclick="bulkHold('hold_vh')">⏸ Hold Selected (${n})</button>`
+         + `<button class="btn btn-danger btn-sm" onclick="bulkReject()">✗ Reject Selected (${n})</button>`;
+  } else if(persona==='iso'){
+    btns = `<button class="btn btn-success btn-sm" onclick="bulkRelease()">✓ Release Selected (${n}) to PPC</button>`
+         + `<button class="btn btn-secondary btn-sm" onclick="bulkHold('hold_iso')">⏸ Hold Selected (${n})</button>`
+         + `<button class="btn btn-danger btn-sm" onclick="bulkReject()">✗ Reject Selected (${n})</button>`;
+  }
+  actionsDiv.innerHTML = btns;
+}
+
+// ── Individual bulk action functions ──
+
+function bulkSubmitToVH(){
+  const idxs=[...selectedIdx];
+  if(idxs.length===0) return;
+  idxs.forEach(i=>{ RO_DATA[i].status='open'; });
+  alert(`${idxs.length} rush order(s) submitted to VH.\n\nEach is now locked — no further edits.\nAlerts sent to A. Reddy (VH).`);
+  selectedIdx.clear();
+  renderTable(); updateKPIs(); updateBadges();
+}
+
+function bulkDelete(){
+  const idxs=[...selectedIdx].sort((a,b)=>b-a); // reverse order so splice doesn't shift indices
+  if(idxs.length===0) return;
+  if(!confirm(`Permanently delete ${idxs.length} draft rush order(s)?\n\nThis cannot be undone.`)) return;
+  idxs.forEach(i=>{ RO_DATA.splice(i,1); });
+  selectedIdx.clear();
+  alert(`${idxs.length} draft(s) deleted.`);
+  renderTable(); updateKPIs(); updateBadges();
+}
+
+function bulkApprove(){
+  const idxs=[...selectedIdx];
+  if(idxs.length===0) return;
+  idxs.forEach(i=>{
+    if(RO_DATA[i].qV===null) RO_DATA[i].qV=RO_DATA[i].qF;
+    RO_DATA[i].status='vh';
+  });
+  alert(`${idxs.length} rush order(s) approved and forwarded to ISO.\n\nTo change quantity on a specific request, use the individual Review screen instead.\nAlerts sent to ISO · S. Mehta.`);
+  selectedIdx.clear();
+  renderTable(); updateKPIs(); updateBadges();
+}
+
+function bulkHold(holdStatus){
+  const idxs=[...selectedIdx];
+  if(idxs.length===0) return;
+  const who = holdStatus==='hold_vh' ? 'VH' : 'ISO';
+  idxs.forEach(i=>{ RO_DATA[i].status=holdStatus; });
+  alert(`${idxs.length} rush order(s) placed On Hold — ${who}.\n\nThey stay in your queue until you Approve/Release or Reject them.`);
+  selectedIdx.clear();
+  renderTable(); updateKPIs(); updateBadges();
+}
+
+function bulkRelease(){
+  const idxs=[...selectedIdx];
+  if(idxs.length===0) return;
+  idxs.forEach(i=>{
+    if(RO_DATA[i].qI===null) RO_DATA[i].qI=RO_DATA[i].qV;
+    RO_DATA[i].status='iso';
+  });
+  alert(`${idxs.length} rush order(s) released to PPC.\n\nPPC SLA clock (4 business hours) has started for each.\nAlerts sent to PPC · R. Kumar.`);
+  selectedIdx.clear();
+  renderTable(); updateKPIs(); updateBadges();
+}
+
+function bulkReject(){
+  const idxs=[...selectedIdx];
+  if(idxs.length===0) return;
+  let rejected=0, skipped=0;
+  for(const i of idxs){
+    const r=RO_DATA[i];
+    const reason = prompt(`Rejection reason for ${r.id}:\n\nFERT: ${r.code} · ${r.desc}\nQty: ${r.qF}\n\n(Cancel to skip this order)`);
+    if(reason===null){ skipped++; continue; }
+    r.status='rej';
+    r.rejReason=reason;
+    rejected++;
+  }
+  let msg=`${rejected} rush order(s) rejected. Alerts sent to RSM.`;
+  if(skipped>0) msg+=`\n${skipped} order(s) skipped (you cancelled the prompt).`;
+  alert(msg);
+  selectedIdx.clear();
+  renderTable(); updateKPIs(); updateBadges();
+}
+
+function showTab(t){
+  ['dashboard','create','review','ppc'].forEach(s=>{
+    document.getElementById('screen-'+s).classList.toggle('active',s===t);
+    const tab=document.getElementById('tab-'+s);
+    if(tab)tab.classList.toggle('active',s===t);
+  });
+}
+
+function selReason(el){
+  document.querySelectorAll('.reason-opt').forEach(r=>r.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('reason-field').classList.remove('field-err');
+  document.getElementById('reason-err').classList.remove('show');
+}
+
+// ═══════════ FIX #3: FERT / Customer / Dealer type-ahead search (was exact-match-only / static) ═══════════
+function onFertInput(q){
+  q=(q||'').trim().toUpperCase();
+  const box=document.getElementById('fert-ta');
+  if(!q){ box.style.display='none'; return; }
+  const matches=Object.entries(FERT_MASTER).filter(([code,f])=>code.includes(q)||f.desc.toUpperCase().includes(q));
+  if(matches.length===0){ box.innerHTML='<div class="ta-empty">No FERT codes match.</div>'; box.style.display='block'; return; }
+  box.innerHTML = matches.slice(0,6).map(([code,f])=>
+    `<div class="ta-item" onmousedown="selectFert('${code}')"><div class="ta-code">${code}</div><div class="ta-desc">${f.desc}</div></div>`
+  ).join('');
+  box.style.display='block';
+}
+function selectFert(code){
+  document.getElementById('create-fert-input').value=code;
+  hideTA('fert-ta');
+  onFertSelect(code);
+}
+function onFertSelect(code){
+  const f=FERT_MASTER[code];
+  if(!f)return;
+  document.getElementById('create-desc').textContent=f.desc;
+  document.getElementById('create-seg').innerHTML=`<span class="seg seg-${f.seg}">${SEG_LABEL[f.seg]}</span> — auto from FERT master`;
+  document.getElementById('create-vert').textContent=f.vert;
+  checkStrangerValidation();
+}
+
+function onCustomerInput(q){
+  q=(q||'').trim().toLowerCase();
+  const box=document.getElementById('cust-ta');
+  if(!q){ box.style.display='none'; return; }
+  const matches=CUSTOMER_MASTER.filter(c=>c.name.toLowerCase().includes(q)||c.code.toLowerCase().includes(q));
+  if(matches.length===0){ box.innerHTML='<div class="ta-empty">No customers match.</div>'; box.style.display='block'; return; }
+  box.innerHTML = matches.slice(0,6).map(c=>
+    `<div class="ta-item" onmousedown="selectCustomer('${c.code}',${JSON.stringify(c.name)})"><div class="ta-code">${c.code}</div><div class="ta-desc">${c.name}</div></div>`
+  ).join('');
+  box.style.display='block';
+}
+function selectCustomer(code,name){
+  document.getElementById('create-cust-input').value=name;
+  hideTA('cust-ta');
+}
+
+function onDealerInput(q){
+  q=(q||'').trim().toLowerCase();
+  const box=document.getElementById('dealer-ta');
+  if(!q){ box.style.display='none'; return; }
+  const matches=DEALER_MASTER.filter(d=>d.name.toLowerCase().includes(q)||d.code.toLowerCase().includes(q)||d.city.toLowerCase().includes(q));
+  if(matches.length===0){ box.innerHTML='<div class="ta-empty">No dealers match.</div>'; box.style.display='block'; return; }
+  box.innerHTML = matches.slice(0,6).map(d=>
+    `<div class="ta-item" onmousedown="selectDealer('${d.code}',${JSON.stringify(d.name)},${JSON.stringify(d.city)})"><div class="ta-code">${d.code} · ${d.name}</div><div class="ta-desc">${d.city}</div></div>`
+  ).join('');
+  box.style.display='block';
+}
+function selectDealer(code,name,city){
+  document.getElementById('create-dealer-input').value=`${code} · ${name} · ${city}`;
+  hideTA('dealer-ta');
+}
+
+function hideTA(id){ const el=document.getElementById(id); if(el) el.style.display='none'; }
+
+// Change #2: Pipeline-confirmation validation gate for Stranger FERTs
+function checkStrangerValidation(){
+  const seg=document.getElementById('create-seg')?.textContent||'';
+  const qty=parseInt(document.getElementById('create-qty')?.value)||0;
+  const gate=document.getElementById('stranger-gate');
+  const btn=document.getElementById('submit-ro-btn');
+  if(seg.includes('Stranger')){
+    const confirmedPipeline=0; // Stranger parts typically have low/no confirmed pipeline
+    if(qty>confirmedPipeline){
+      gate.style.display='block';
+      document.getElementById('sg-qty').textContent=qty;
+      document.getElementById('sg-pipe').textContent=confirmedPipeline;
+      btn.disabled=true;
+      btn.textContent='⚠ Blocked — Stranger FERT exceeds confirmed pipeline';
+      return;
+    }
+  }
+  gate.style.display='none';
+  btn.disabled=false;
+  btn.textContent='Save Rush Order →';
+}
+
+// ═══════════ FIX #2: Save → Review → Submit flow (was a single direct-submit button) ═══════════
+function newRO(){
+  editingDraftIdx = null;
+  document.getElementById('create-form-card').style.display='';
+  document.getElementById('create-review-card').style.display='none';
+  showTab('create');
+}
+
+function backToEdit(){
+  document.getElementById('create-form-card').style.display='';
+  document.getElementById('create-review-card').style.display='none';
+}
+
+function saveRO(){
+  // Fix #4: Reason code is now mandatory — blocks save if nothing selected
+  const selectedReason = document.querySelector('.reason-opt.selected');
+  if(!selectedReason){
+    document.getElementById('reason-field').classList.add('field-err');
+    document.getElementById('reason-err').classList.add('show');
+    const rf=document.getElementById('reason-field');
+    if(typeof rf.scrollIntoView==='function') rf.scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+  if(document.getElementById('submit-ro-btn').disabled) return; // Stranger validation gate still blocking
+
+  const fertCode = document.getElementById('create-fert-input').value.trim();
+  const desc = document.getElementById('create-desc').textContent;
+  const segLabel = (document.getElementById('create-seg').textContent.match(/^(\S+)/)||[,'Runner'])[1];
+  const segCode = Object.keys(SEG_LABEL).find(k=>SEG_LABEL[k]===segLabel)||'R';
+  const vertFull = document.getElementById('create-vert').textContent;
+  const vertParts = vertFull.split('·').map(s=>s.trim());
+  const qty = parseInt(document.getElementById('create-qty').value)||1;
+  const delDateISO = document.getElementById('create-deldate').value;
+  const delDateFmt = formatDateDDMonYYYY(delDateISO);
+  const custName = document.getElementById('create-cust-input').value;
+  const dealerRaw = document.getElementById('create-dealer-input').value;
+  const dealerParts = dealerRaw.split('·').map(s=>s.trim());
+  const reasonText = selectedReason.querySelector('.rt').textContent;
+  const reasonSlug = reasonText.replace(/[^A-Za-z]/g,'');
+
+  const roId = generateRoId(fertCode,qty,reasonSlug,dealerParts[0]||'0000');
+
+  const record = {
+    id:roId, vert:vertParts[0]||vertFull, sv:vertParts[1]||'',
+    code:fertCode, desc, seg:segCode, cust:custName,
+    dealer:dealerParts[1]||dealerRaw, loc:dealerParts[2]||'',
+    by:PERSONAS.rsm.name, reqDate:'Today', reqDel:delDateFmt||'—', reqDelISO:delDateISO,
+    status:'draft', qF:qty, qV:null, qI:null, qP:null, edd:null, reason:reasonText
+  };
+
+  if(editingDraftIdx!==null){
+    RO_DATA[editingDraftIdx] = record;
+  } else {
+    RO_DATA.push(record);
+    editingDraftIdx = RO_DATA.length-1;
+  }
+
+  renderReviewCard(record);
+  document.getElementById('create-form-card').style.display='none';
+  document.getElementById('create-review-card').style.display='';
+  renderTable(); updateKPIs(); updateBadges();
+}
+
+function renderReviewCard(r){
+  document.getElementById('review-body').innerHTML = `
+    <div class="review-line"><div class="rl-lbl">FERT Code</div><div class="rl-val"><span class="fert-code">${r.code}</span> · ${r.desc}</div></div>
+    <div class="review-line"><div class="rl-lbl">Dealer</div><div class="rl-val">${r.dealer}${r.loc?' · '+r.loc:''}</div></div>
+    <div class="review-line"><div class="rl-lbl">Quantity</div><div class="rl-val mono" style="font-size:14px;font-weight:700;color:var(--blue)">${r.qF}</div></div>
+    <div class="review-line"><div class="rl-lbl">Requested Delivery</div><div class="rl-val" style="color:#E65100;font-weight:600">${r.reqDel}</div></div>
+    <div class="review-line"><div class="rl-lbl">Reason Code</div><div class="rl-val">${r.reason}</div></div>
+    <div class="review-line"><div class="rl-lbl">Customer</div><div class="rl-val">${r.cust}</div></div>
+  `;
+}
+
+function editDraft(idx){
+  editingDraftIdx = idx;
+  const r = RO_DATA[idx];
+  document.getElementById('create-fert-input').value=r.code;
+  onFertSelect(r.code);
+  document.getElementById('create-qty').value=r.qF;
+  document.getElementById('create-deldate').value=r.reqDelISO;
+  document.getElementById('create-cust-input').value=r.cust;
+  document.getElementById('create-dealer-input').value=r.dealer + (r.loc?' · '+r.loc:'');
+  document.querySelectorAll('.reason-opt').forEach(el=>{
+    el.classList.toggle('selected', el.querySelector('.rt').textContent===r.reason);
+  });
+  document.getElementById('create-form-card').style.display='';
+  document.getElementById('create-review-card').style.display='none';
+  showTab('create');
+}
+
+function confirmSubmitRO(){
+  const r = RO_DATA[editingDraftIdx];
+  r.status='open';
+  alert(`Rush Order submitted!\n\nID: ${r.id}\n\nAlert sent to VH · A. Reddy\nStatus: Open — awaiting VH`);
+  editingDraftIdx=null;
+  showTab('dashboard');
+}
+
+function generateRoId(fertCode,qty,reasonSlug,dealerCode){
+  const d=new Date();
+  const mons=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const dateStr=`${String(d.getDate()).padStart(2,'0')}-${mons[d.getMonth()]}-${String(d.getFullYear()).slice(2)}`;
+  return `RO_PRIVATE_${fertCode}_${qty}_${reasonSlug}_${dateStr}__RO_${dealerCode}`;
+}
+
+function formatDateDDMonYYYY(iso){
+  if(!iso) return '';
+  const mons=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const [y,m,d]=iso.split('-').map(Number);
+  return `${d} ${mons[m-1]} ${y}`;
+}
+
+// ═══════════ Single-row Review/PPC screen actions — unchanged demo pattern (alert-based, not row-bound) ═══════════
+function vhApprove(){alert('Approved!\n\nQty approved: 8\nAlert sent to ISO · S. Mehta\nStatus updated: VH Approved');showTab('dashboard');}
+// Fix #8: Hold action — net-new status alongside Approve/Reject (split into hold_vh / hold_iso)
+function vhHold(){const note=prompt('Optional note for holding this request:','Awaiting confirmation from customer before forwarding.');alert('Rush order placed On Hold — VH.\n\nIt stays in your queue — ISO will not see it until you Approve or Reject.'+(note?'\n\nNote: '+note:''));showTab('dashboard');}
+function isoHold(){const note=prompt('Optional note for holding this request:','Checking stock position before releasing to PPC.');alert('Rush order placed On Hold — ISO.\n\nPPC will not see it until you Release or Reject.'+(note?'\n\nNote: '+note:''));showTab('dashboard');}
+function vhReject(){const r=prompt('Reason for rejection:','Stock not available in this configuration');if(r){alert('Rejected. Alert sent to RSM · P. Mehta.\nReason: '+r);showTab('dashboard');}}
+function isoRelease(){alert('Released to PPC!\n\nAlert sent to PPC · R. Kumar\nStatus: ISO Released\nPPC SLA: 4 business hours from now');showTab('dashboard');}
+function isoReject(){const r=prompt('Reason for rejection:','Cannot fulfil given production constraints this month');if(r){alert('Rejected. Alert sent to RSM.\nReason: '+r);showTab('dashboard');}}
+// Change #8: PPC commit triggers notification to both VH and ISO
+function ppcCommit(){alert('EDD Committed!\n\nEDD: 30 Jun 2026\nStatus: PPC Committed\n\nNotifications sent to:\n  → VH · A. Reddy\n  → ISO · S. Mehta\n  → RSM · P. Mehta\n\nRush order closed.');showTab('dashboard');}
+
+// Phase 1 placeholder: Stranger-part equivalent suggestion (requires clean MDM)
+// When a Stranger FERT is selected, the system would query MDM for equivalent/alternate
+// FERTs already in stock and suggest them before allowing the rush order to proceed.
+// This requires the T5 MDM / FERT Governance track to be complete.
+
+// Phase 2 placeholder: System-to-system production integration
+// Once PPC commits, the confirmation would push directly to SAP PP / production
+// scheduling system via API, replacing the current twice-daily manual Excel/email process.
+
+// ═══════════ ITEM D: Login Screen ═══════════
+function doLogin(){
+  const user = document.getElementById('login-user')?.value||'';
+  if(!user.trim()){ alert('Please enter a username.'); return; }
+  // Map known demo usernames to personas, default to RSM
+  const userMap = {'p.mehta':'rsm','a.reddy':'vh','s.mehta':'iso','r.kumar':'ppc'};
+  const p = userMap[user.trim().toLowerCase()] || 'rsm';
+  enterApp(p);
+}
+
+function demoLogin(p){
+  enterApp(p);
+}
+
+function enterApp(p){
+  document.getElementById('login-overlay').style.display='none';
+  const shell = document.getElementById('app-shell');
+  shell.style.display='flex';
+  setPersona(p);
+}
+
+// ═══════════ ITEM E1: FERT-level Aggregation (RSM — within own span) ═══════════
+let currentView = 'order'; // 'order' or 'fert'
+
+function setView(v){
+  currentView = v;
+  document.getElementById('vt-order').classList.toggle('active', v==='order');
+  document.getElementById('vt-fert').classList.toggle('active', v==='fert');
+
+  // Toggle visibility: order table + bulk bar vs FERT aggregation
+  const orderWrap = document.querySelector('.ro-table-wrap');
+  const bulkBar = document.getElementById('bulk-bar');
+  const fertWrap = document.getElementById('fert-agg-wrap');
+
+  if(v==='fert'){
+    if(orderWrap) orderWrap.style.display='none';
+    if(bulkBar) bulkBar.style.display='none';
+    fertWrap.classList.add('show');
+    renderFertAgg();
+  } else {
+    if(orderWrap) orderWrap.style.display='';
+    fertWrap.classList.remove('show');
+    renderTable();
+  }
+}
+
+function renderFertAgg(){
+  const filtered = getFilteredData();
+  // Group by FERT code
+  const byFert = {};
+  filtered.forEach(({r})=>{
+    if(!byFert[r.code]) byFert[r.code] = {code:r.code, desc:r.desc, seg:r.seg, orders:[]};
+    byFert[r.code].orders.push(r);
+  });
+
+  const tbody = document.getElementById('fert-agg-tbody');
+  const ferts = Object.values(byFert);
+  if(ferts.length === 0){
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--grey);font-size:11px">No rush orders match the current filters.</td></tr>';
+    return;
+  }
+
+  // Status colors for the mini bar chart
+  const statusColors = {
+    draft:'#B0BEC5', open:'#E65100', hold_vh:'#CE93D8', hold_iso:'#9FA8DA',
+    vh:'#1565C0', iso:'#00695C', ppc:'#1B5E20', rej:'#B71C1C'
+  };
+
+  tbody.innerHTML = ferts.map(f=>{
+    const count = f.orders.length;
+    const totalQty = f.orders.reduce((s,r)=>s+r.qF, 0);
+    const ppcQty = f.orders.reduce((s,r)=>s+(r.qP||0), 0);
+
+    // Status breakdown counts
+    const statusCounts = {};
+    f.orders.forEach(r=>{ statusCounts[r.status] = (statusCounts[r.status]||0)+1; });
+
+    // Mini stacked bar
+    const barParts = Object.entries(statusCounts).map(([st,cnt])=>{
+      const pct = (cnt/count*100).toFixed(0);
+      const color = statusColors[st]||'#999';
+      const label = (STATUS_CFG[st]||{}).label||st;
+      return `<div class="fab-seg" style="width:${pct}%;background:${color}" title="${label}: ${cnt}"></div>`;
+    }).join('');
+
+    // Status breakdown text
+    const breakdownText = Object.entries(statusCounts).map(([st,cnt])=>{
+      const label = (STATUS_CFG[st]||{}).label||st;
+      return `${cnt} ${label.split('—')[0].trim()}`;
+    }).join(' · ');
+
+    return `<tr onclick="drillToFert('${f.code}')">
+      <td><span class="fert-code">${f.code}</span></td>
+      <td style="font-size:10px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.desc}</td>
+      <td><span class="seg seg-${f.seg}">${SEG_LABEL[f.seg]||f.seg}</span></td>
+      <td style="text-align:center"><div class="fert-agg-count">${count}</div></td>
+      <td style="text-align:right"><div class="fert-agg-count">${totalQty}</div></td>
+      <td style="text-align:right"><div class="fert-agg-count">${ppcQty||'—'}</div><div class="fert-agg-sub">${ppcQty?((ppcQty/totalQty*100).toFixed(0)+'% confirmed'):'awaiting'}</div></td>
+      <td><div class="fert-agg-bar">${barParts}</div><div class="fert-agg-sub">${breakdownText}</div></td>
+      <td><button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();drillToFert('${f.code}')">View orders ›</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function drillToFert(fertCode){
+  // Switch to By-Order view, pre-filtered to this FERT code
+  // Use the FERT search field to simulate the filter since there's no dedicated FERT filter dropdown
+  setView('order');
+  // Clear other filters and just show this FERT's orders
+  clearFilters();
+  // Re-filter getFilteredData to only show this FERT by temporarily setting a FERT filter
+  window.__fertDrill = fertCode;
+  renderTable();
+  window.__fertDrill = null;
+}
+
+// Boot: show login screen. App initializes when user logs in via doLogin() or demoLogin().
+// setPersona('rsm'); -- moved into enterApp()
+</script>
+</body>
+</html>

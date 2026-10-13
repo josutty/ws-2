@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fert Intelligence & Governance Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --navy:#172240;--navy-light:#1E2D52;--steel:#4A6FA5;--slate:#64748B;
+  --bg:#F1F5F9;--card:#FFFFFF;--border:#E2E8F0;
+  --accent:#2563EB;--accent-soft:#EFF6FF;
+  --green:#16A34A;--green-bg:#F0FDF4;
+  --amber:#D97706;--amber-bg:#FFFBEB;
+  --red:#DC2626;--red-bg:#FEF2F2;
+  --runner:#0D9488;--repeater:#6366F1;--stranger:#94A3B8;
+  --winner:#16A34A;--stable:#2563EB;--declining:#EA580C;--new-growth:#8B5CF6;--dormant:#9CA3AF;
+  --mono:'JetBrains Mono',monospace;--sans:'Inter',-apple-system,sans-serif;
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--navy);min-height:100vh;display:flex}
+
+/* SIDEBAR */
+.sidebar{width:220px;background:var(--navy);color:#fff;display:flex;flex-direction:column;height:100vh;position:fixed;left:0;top:0;z-index:10}
+.sidebar-brand{padding:20px 16px 12px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.sidebar-brand small{font-size:13px;font-weight:700;letter-spacing:0.06em;color:rgba(255,255,255,0.5);display:block;margin-bottom:4px}
+.sidebar-brand span{font-size:15px;font-weight:600}
+.sidebar-nav{padding:12px 0;flex:1}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;border-left:3px solid transparent;color:rgba(255,255,255,0.6);font-size:13px;transition:all 0.15s}
+.nav-item:hover{background:rgba(255,255,255,0.05);color:#fff}
+.nav-item.active{background:rgba(255,255,255,0.1);border-left-color:var(--accent);color:#fff;font-weight:600}
+.nav-item .icon{font-size:16px;width:20px;text-align:center}
+.sidebar-footer{padding:12px 16px;border-top:1px solid rgba(255,255,255,0.08)}
+.sidebar-footer label{font-size:10px;color:rgba(255,255,255,0.4);font-weight:600;letter-spacing:0.05em;display:block;margin-bottom:6px}
+.sidebar-footer select{width:100%;padding:6px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.08);color:#fff;font-size:12px;outline:none;font-family:var(--sans)}
+.sidebar-footer .meta{font-size:10px;color:rgba(255,255,255,0.35);margin-top:8px}
+
+/* MAIN */
+.main{margin-left:220px;flex:1;padding:24px 28px;max-width:1100px}
+
+/* HEADER */
+.page-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.page-header h1{font-size:22px;font-weight:700;color:var(--navy)}
+.page-header .subtitle{font-size:13px;color:var(--slate);margin-top:4px}
+.readiness-badge{display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:6px;font-size:13px;font-weight:600}
+.readiness-dot{width:10px;height:10px;border-radius:50%}
+
+/* BADGES */
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:0.03em;white-space:nowrap}
+
+/* KPI CARDS */
+.kpi-row{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px 20px;flex:1;min-width:160px}
+.kpi-card .kpi-label{font-size:12px;color:var(--slate);font-weight:500;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.kpi-card .kpi-value{font-size:28px;font-weight:700;letter-spacing:-0.02em}
+.kpi-card .kpi-sub{font-size:11px;color:var(--slate);margin-top:4px}
+
+/* GRID */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px}
+.card-title{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:16px}
+
+/* TABLES */
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table thead th{padding:8px 16px;text-align:left;font-size:11px;font-weight:600;color:var(--slate);border-bottom:1px solid var(--border);letter-spacing:0.03em;background:#F8FAFC}
+.data-table tbody td{padding:10px 16px;border-bottom:1px solid var(--border)}
+.data-table code{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--navy)}
+
+/* TABS */
+.tab-bar{display:flex;gap:0;margin-bottom:20px;border-bottom:2px solid var(--border)}
+.tab-btn{padding:10px 20px;font-size:13px;font-weight:400;color:var(--slate);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;margin-bottom:-2px;transition:all 0.15s;font-family:var(--sans)}
+.tab-btn.active{font-weight:700;color:var(--accent);border-bottom-color:var(--accent)}
+
+/* BUTTONS */
+.btn{padding:8px 20px;font-size:12px;font-weight:600;border:none;border-radius:5px;cursor:pointer;font-family:var(--sans);transition:all 0.15s}
+.btn-primary{color:#fff;background:var(--accent)}
+.btn-outline{color:var(--slate);background:transparent;border:1px solid var(--border)}
+.btn-sm{padding:4px 12px;font-size:11px}
+.btn-accent-soft{color:var(--accent);background:var(--accent-soft);border:1px solid rgba(37,99,235,0.2)}
+
+/* SCORE BAR */
+.score-bar{display:flex;align-items:center;gap:8px;font-size:11px}
+.score-bar .label{color:var(--slate);width:80px;flex-shrink:0}
+.score-bar .track{flex:1;height:6px;background:#E2E8F0;border-radius:3px;overflow:hidden}
+.score-bar .fill{height:100%;border-radius:3px}
+.score-bar .val{font-weight:600;width:32px;text-align:right}
+
+/* DISCOVERY LAYOUT */
+.discovery-grid{display:grid;grid-template-columns:340px 1fr;gap:16px}
+.fert-detail-panel{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;align-self:start}
+.char-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px}
+.char-row .k{color:var(--slate)}
+.char-row .v{font-weight:600;color:var(--navy)}
+
+/* SUGGESTION CARD */
+.suggestion-card{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;transition:all 0.15s;margin-bottom:10px}
+.suggestion-card.selected{border-color:var(--accent)}
+.suggestion-card-main{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer}
+.suggestion-card-expand{padding:0 16px 14px 52px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.checkbox{width:20px;height:20px;border-radius:4px;border:2px solid #CBD5E1;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s}
+.checkbox.checked{border-color:var(--accent);background:var(--accent)}
+.match-score{text-align:center;min-width:60px}
+.match-score .num{font-size:22px;font-weight:700}
+.match-score .lbl{font-size:9px;color:var(--slate)}
+
+/* RELATIONSHIP BUILDER */
+.rel-builder{background:#F8FAFC;border:1px solid var(--border);border-radius:8px;padding:20px;margin-top:20px}
+.trans-options{display:flex;gap:10px;margin-bottom:16px}
+.trans-opt{flex:1;padding:12px 14px;border:2px solid var(--border);border-radius:6px;cursor:pointer;background:var(--card);transition:all 0.15s}
+.trans-opt.active{border-color:var(--accent);background:var(--accent-soft)}
+.trans-opt .t-label{font-size:13px;font-weight:600;color:var(--navy)}
+.trans-opt.active .t-label{color:var(--accent)}
+.trans-opt .t-desc{font-size:11px;color:var(--slate);margin-top:2px}
+.ramp-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:16px}
+.ramp-grid .month-label{font-size:10px;color:var(--slate);text-align:center;margin-bottom:4px}
+.ramp-grid input{width:100%;padding:6px 4px;text-align:center;border:1px solid var(--border);border-radius:4px;font-size:13px;font-weight:600;outline:none;font-family:var(--sans)}
+.history-row{display:flex;gap:8px;margin-bottom:12px;align-items:center}
+.history-row .h-label{font-size:12px;color:var(--slate);margin-right:8px}
+.history-btn{padding:4px 12px;font-size:12px;border-radius:4px;border:1px solid var(--border);background:var(--card);color:var(--navy);cursor:pointer;font-family:var(--sans)}
+
+/* BULK TABLE */
+.bulk-stats{display:flex;gap:12px;margin-bottom:16px;align-items:center}
+.bulk-stat-bar{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:8px 16px;font-size:13px}
+.bulk-stat-bar span{color:var(--slate)}
+.bulk-stat-bar strong{margin:0 2px}
+.bulk-filters{margin-left:auto;display:flex;gap:6px}
+.filter-btn{padding:5px 12px;font-size:12px;border-radius:4px;border:1px solid var(--border);background:var(--card);color:var(--slate);cursor:pointer;font-family:var(--sans);text-transform:capitalize}
+.filter-btn.active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:600}
+
+/* MIGRATION RADAR */
+.radar-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:16px}
+.radar-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+.radar-eyebrow{font-size:10px;font-weight:600;letter-spacing:0.05em;color:var(--slate);margin-bottom:4px}
+.radar-segment{font-size:13px;color:var(--navy);font-weight:500}
+.radar-overlap{font-size:12px;color:var(--slate);margin-top:2px}
+.radar-conf .num{font-size:24px;font-weight:700}
+.radar-conf .lbl{font-size:10px;color:var(--slate)}
+.radar-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center}
+.radar-side{border-radius:6px;padding:12px}
+.radar-side.declining{background:var(--red-bg)}
+.radar-side.rising{background:var(--green-bg)}
+.radar-side-label{font-size:10px;font-weight:600;margin-bottom:6px}
+.radar-arrow{font-size:28px;color:var(--accent);text-align:center}
+
+/* FAMILY EXPLORER */
+.family-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:20px}
+.family-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden}
+.family-card:hover{box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+.family-bg{position:absolute;bottom:0;left:0;right:0;background:rgba(37,99,235,0.04);transition:height 0.3s}
+.family-inner{position:relative}
+.family-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.family-name{font-size:14px;font-weight:700;color:var(--navy)}
+.family-meta{font-size:11px;color:var(--slate);margin-top:2px}
+.family-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.family-stat .num{font-size:22px;font-weight:700}
+.family-stat .lbl{font-size:11px;color:var(--slate)}
+.family-codes{display:flex;gap:4px;flex-wrap:wrap}
+.family-codes code{font-family:var(--mono);font-size:10px;padding:2px 6px;background:#F1F5F9;border-radius:3px;color:var(--slate)}
+.orphan-card{background:var(--red-bg);border:1px dashed rgba(220,38,38,0.3);border-radius:8px;padding:20px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+.orphan-num{font-size:32px;font-weight:700;color:var(--red);margin-bottom:4px}
+
+/* LINEAGE TIMELINE */
+.timeline{position:relative;padding-left:20px;margin-bottom:24px}
+.timeline-line{position:absolute;left:9px;top:0;bottom:0;width:2px;background:var(--border)}
+.timeline-item{position:relative;margin-bottom:16px;padding-left:24px}
+.timeline-dot{position:absolute;left:-11px;top:6px;width:12px;height:12px;border-radius:50%;border:2px solid #fff}
+.timeline-content{background:#F8FAFC;border-radius:6px;padding:12px;border:1px solid var(--border)}
+.timeline-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.timeline-desc{font-size:12px;color:var(--slate);margin-top:4px}
+.timeline-metrics{display:flex;align-items:center;gap:16px;margin-top:8px}
+.timeline-migrate{margin-top:8px;padding:4px 10px;background:var(--amber-bg);border-radius:4px;font-size:11px;color:var(--amber);font-weight:500;display:inline-block}
+
+/* BAR CHART */
+.bar-chart{display:flex;align-items:flex-end;gap:4px;height:100px;padding:0 4px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.bar-val{font-size:10px;font-weight:600;color:var(--navy)}
+.bar-fill{width:100%;border-radius:3px 3px 0 0;border:1px solid rgba(37,99,235,0.3);border-bottom:none;background:rgba(37,99,235,0.15);min-height:4px;transition:height 0.3s}
+.bar-label{font-size:9px;color:var(--slate)}
+
+/* CHAIN VIEW */
+.chain-selector{margin-bottom:16px}
+.chain-selector .lbl{font-size:13px;color:var(--slate);margin-bottom:8px}
+.chain-buttons{display:flex;gap:8px;flex-wrap:wrap}
+.chain-btn{padding:6px 14px;font-size:12px;border-radius:5px;border:1px solid var(--border);background:var(--card);color:var(--navy);cursor:pointer;font-family:var(--sans)}
+.chain-btn.active{font-weight:600;color:var(--accent);background:var(--accent-soft);border-color:var(--accent)}
+.chain-container{display:flex;align-items:center;gap:0;overflow-x:auto;padding-bottom:16px}
+.chain-node{width:200px;flex-shrink:0;background:#F8FAFC;border:2px solid var(--border);border-radius:8px;padding:12px}
+.chain-node.active-node{border-color:var(--green)}
+.chain-node.blocked-node{border-color:rgba(220,38,38,0.4);opacity:0.7}
+.chain-node.new-node{border-color:var(--accent)}
+.chain-node-header{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+.chain-node-desc{font-size:10px;color:var(--slate);margin-bottom:6px;line-height:1.4;height:28px;overflow:hidden}
+.chain-node-footer{display:flex;justify-content:space-between;margin-top:6px;align-items:center}
+.chain-node-date{font-size:10px;color:var(--slate);margin-top:4px}
+.chain-link{display:flex;flex-direction:column;align-items:center;padding:0 8px;min-width:50px;flex-shrink:0}
+.chain-link-line{width:36px;height:2px;background:var(--accent)}
+.chain-link-label{font-size:9px;color:var(--accent);font-weight:600;margin-top:2px}
+
+/* TOGGLE */
+.view-toggle{display:flex;gap:0;border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.toggle-btn{padding:6px 16px;font-size:12px;border:none;cursor:pointer;font-family:var(--sans);background:var(--card);color:var(--slate)}
+.toggle-btn.active{background:var(--accent);color:#fff;font-weight:600}
+
+/* RRS DONUT */
+.rrs-row{display:flex;gap:20px}
+.rrs-item{flex:1;text-align:center}
+.rrs-circle{width:64px;height:64px;border-radius:50%;border:4px solid;display:flex;align-items:center;justify-content:center;margin:0 auto 8px}
+.rrs-circle .num{font-size:20px;font-weight:700}
+.rrs-label{font-size:12px;font-weight:600}
+.rrs-pct{font-size:11px;color:var(--slate)}
+.rrs-bar{margin-top:16px;height:8px;border-radius:4px;overflow:hidden;display:flex}
+
+/* LC BARS */
+.lc-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.lc-row .lc-name{width:80px;font-size:12px;color:var(--slate)}
+.lc-track{flex:1;height:20px;background:#F1F5F9;border-radius:4px;overflow:hidden;position:relative}
+.lc-fill{height:100%;border-radius:4px}
+.lc-val{position:absolute;left:8px;top:2px;font-size:11px;font-weight:600}
+
+/* CONFIRM/REJECT BTNS */
+.btn-confirm{padding:3px 8px;font-size:11px;background:var(--green-bg);color:var(--green);border:1px solid rgba(22,163,74,0.2);border-radius:3px;cursor:pointer;font-weight:600;font-family:var(--sans)}
+.btn-reject{padding:3px 8px;font-size:11px;background:var(--red-bg);color:var(--red);border:1px solid rgba(220,38,38,0.2);border-radius:3px;cursor:pointer;font-weight:600;font-family:var(--sans)}
+</style>
+
+<!--[if gte mso 9]><xml>
+<mso:CustomDocumentProperties>
+<mso:xd_Signature msdt:dt="string"></mso:xd_Signature>
+<mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Editor msdt:dt="string">Mohd. Zakariya</mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Editor>
+<mso:Order msdt:dt="string">25700.0000000000</mso:Order>
+<mso:xd_ProgID msdt:dt="string"></mso:xd_ProgID>
+<mso:_ExtendedDescription msdt:dt="string"></mso:_ExtendedDescription>
+<mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Author msdt:dt="string">Mohd. Zakariya</mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Author>
+<mso:ComplianceAssetId msdt:dt="string"></mso:ComplianceAssetId>
+<mso:TemplateUrl msdt:dt="string"></mso:TemplateUrl>
+<mso:ContentTypeId msdt:dt="string">0x010100915D1156AF89E94CB4E0E819A4FFFAAD</mso:ContentTypeId>
+<mso:TriggerFlowInfo msdt:dt="string"></mso:TriggerFlowInfo>
+<mso:_SourceUrl msdt:dt="string"></mso:_SourceUrl>
+<mso:_SharedFileIndex msdt:dt="string"></mso:_SharedFileIndex>
+<mso:MediaLengthInSeconds msdt:dt="string"></mso:MediaLengthInSeconds>
+<mso:MediaServiceImageTags msdt:dt="string"></mso:MediaServiceImageTags>
+<mso:lcf76f155ced4ddcb4097134ff3c332f msdt:dt="string"></mso:lcf76f155ced4ddcb4097134ff3c332f>
+</mso:CustomDocumentProperties>
+</xml><![endif]-->
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <small>FERT INTELLIGENCE</small>
+    <span>Governance Platform</span>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-item active" data-screen="dashboard" onclick="navigate('dashboard',this)">
+      <span class="icon">◫</span> Dashboard
+    </div>
+    <div class="nav-item" data-screen="discovery" onclick="navigate('discovery',this)">
+      <span class="icon">⬡</span> Lineage Discovery
+    </div>
+    <div class="nav-item" data-screen="explorer" onclick="navigate('explorer',this)">
+      <span class="icon">⊞</span> Family Explorer
+    </div>
+  </div>
+  <div class="sidebar-footer">
+    <label>VIEWING AS</label>
+    <select id="personaSelect" onchange="switchPersona(this.value)">
+      <option value="mdm">Rajkumar — MDM Admin</option>
+      <option value="marketing">Akshay — Marketing</option>
+      <option value="ppc">Hemant — PPC Planning</option>
+    </select>
+    <div class="meta">Data refreshed: Jul 20, 2026 02:00</div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main" id="mainContent"></div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────
+const FERTS=[
+  {id:"F-301901",desc:"3019 HSD 20FT COWL 4x2 BS6 AC",vertical:"HD",mpg:"3019",wb:"4200",engine:"B6-494",fuel:"HSD",tonnage:"16T",body:"Cowl",status:"Active",rrs:"Runner",lifecycle:"Stable",sales:[420,380,410,390,450,470,430,460,480,440,420,460],family:"FAM-019",created:"2022-03-15",blocked:null},
+  {id:"F-301902",desc:"3019 HSD 20FT CAB-CHS 4x2 BS6 AC",vertical:"HD",mpg:"3019",wb:"4200",engine:"B6-494",fuel:"HSD",tonnage:"16T",body:"Cab-Chassis",status:"Active",rrs:"Runner",lifecycle:"Winner",sales:[320,340,380,400,430,450,460,490,520,540,560,580],family:"FAM-019",created:"2022-06-10",blocked:null},
+  {id:"F-301903",desc:"3019 CBC 20FT COWL 4x2 BS6 AC",vertical:"HD",mpg:"3019",wb:"4200",engine:"B6-494",fuel:"CBC",tonnage:"16T",body:"Cowl",status:"Active",rrs:"Repeater",lifecycle:"Stable",sales:[180,170,190,200,185,195,210,205,190,200,215,210],family:"FAM-019",created:"2022-09-01",blocked:null},
+  {id:"F-301904",desc:"3019 HSD 20FT FBV 4x2 BS6 AC",vertical:"HD",mpg:"3019",wb:"4200",engine:"B6-494",fuel:"HSD",tonnage:"16T",body:"Fully-Built",status:"Blocked",rrs:"Stranger",lifecycle:"Declining",sales:[280,250,210,180,150,120,90,60,40,20,10,0],family:"FAM-019",created:"2021-01-20",blocked:"2025-11-01"},
+  {id:"F-211901",desc:"2119 HSD 24FT COWL 4x2 BS6 NAC",vertical:"HD",mpg:"2119",wb:"5200",engine:"B4-394",fuel:"HSD",tonnage:"12T",body:"Cowl",status:"Active",rrs:"Runner",lifecycle:"Stable",sales:[310,300,320,330,340,320,310,340,350,330,320,340],family:"FAM-119",created:"2021-08-12",blocked:null},
+  {id:"F-211902",desc:"2119 CNG 24FT COWL 4x2 BS6 NAC",vertical:"HD",mpg:"2119",wb:"5200",engine:"B4-394C",fuel:"CNG",tonnage:"12T",body:"Cowl",status:"Active",rrs:"Repeater",lifecycle:"Winner",sales:[80,100,120,140,160,190,220,250,280,310,340,380],family:"FAM-119",created:"2023-02-15",blocked:null},
+  {id:"F-PRO801",desc:"PRO8000 HSD 32FT COWL 6x4 BS6 AC",vertical:"HD",mpg:"8000",wb:"6800",engine:"B6-694",fuel:"HSD",tonnage:"31T",body:"Cowl",status:"Active",rrs:"Runner",lifecycle:"Stable",sales:[520,540,530,550,560,540,570,580,560,550,570,590],family:"FAM-800",created:"2020-11-05",blocked:null},
+  {id:"F-BUS401",desc:"SCHOOLBUS 22FT ESC 42SEAT CNG",vertical:"Bus",mpg:"SB-42",wb:"4800",engine:"B4-394C",fuel:"CNG",tonnage:"9T",body:"Fully-Built",status:"Active",rrs:"Repeater",lifecycle:"New Growth",sales:[0,0,0,10,20,40,60,80,100,130,160,200],family:"FAM-SB4",created:"2025-10-01",blocked:null},
+  {id:"F-LMD101",desc:"LMD 14FT HSD COWL 4x2 BS6 NAC",vertical:"LMD",mpg:"LM14",wb:"2800",engine:"B3-294",fuel:"HSD",tonnage:"5T",body:"Cowl",status:"Active",rrs:"Runner",lifecycle:"Declining",sales:[680,650,620,600,580,560,540,520,500,480,460,440],family:"FAM-LM1",created:"2019-04-20",blocked:null},
+  {id:"F-LMD102",desc:"LMD 14FT CNG COWL 4x2 BS6 NAC",vertical:"LMD",mpg:"LM14",wb:"2800",engine:"B3-294C",fuel:"CNG",tonnage:"5T",body:"Cowl",status:"Active",rrs:"Repeater",lifecycle:"Winner",sales:[120,150,180,210,250,290,330,370,410,450,490,540],family:"FAM-LM1",created:"2023-05-10",blocked:null},
+  {id:"F-LMD103",desc:"LMD 14FT HSD COWL 4x2 BS4 NAC",vertical:"LMD",mpg:"LM14",wb:"2800",engine:"B3-294",fuel:"HSD",tonnage:"5T",body:"Cowl",status:"Blocked",rrs:"Stranger",lifecycle:"Dormant",sales:[400,350,300,250,180,120,60,30,10,0,0,0],family:"FAM-LM1",created:"2017-06-15",blocked:"2024-08-01"},
+  {id:"F-301905",desc:"3019 HSD 22FT COWL 4x2 BS6 AC",vertical:"HD",mpg:"3019",wb:"4600",engine:"B6-494",fuel:"HSD",tonnage:"16T",body:"Cowl",status:"Active",rrs:"Repeater",lifecycle:"Stable",sales:[150,160,155,170,165,180,175,185,190,180,195,200],family:"FAM-019",created:"2023-01-20",blocked:null}
+];
+
+const NEW_FERT={id:"F-301906",desc:"3019 HSD 20FT COWL 4x2 BS6 AC PREM",vertical:"HD",mpg:"3019",wb:"4200",engine:"B6-494",fuel:"HSD",tonnage:"16T",body:"Cowl",status:"New",created:"2026-07-18",route:"FRF",projectClass:"Class 1"};
+
+const SUGGESTED=[
+  {...FERTS[0],matchScore:96,charMatch:98,descMatch:91,demandCorr:94,temporal:100},
+  {...FERTS[3],matchScore:88,charMatch:95,descMatch:82,demandCorr:75,temporal:90},
+  {...FERTS[11],matchScore:82,charMatch:90,descMatch:78,demandCorr:72,temporal:85},
+  {...FERTS[2],matchScore:71,charMatch:75,descMatch:68,demandCorr:65,temporal:80}
+];
+
+const BULK=[
+  {fertA:"F-LMD101",fertB:"F-LMD103",score:94,migration:true,suggestion:"Migration",status:"pending"},
+  {fertA:"F-301901",fertB:"F-301904",score:89,migration:true,suggestion:"Ramp-Down",status:"pending"},
+  {fertA:"F-211901",fertB:"F-211902",score:76,migration:false,suggestion:"Parallel",status:"confirmed"},
+  {fertA:"F-LMD102",fertB:"F-LMD103",score:91,migration:true,suggestion:"Successor",status:"pending"},
+  {fertA:"F-301902",fertB:"F-301905",score:73,migration:false,suggestion:"Parallel",status:"confirmed"},
+  {fertA:"F-PRO801",fertB:"F-301901",score:45,migration:false,suggestion:"Different Family",status:"rejected"}
+];
+
+const MIGRATIONS=[
+  {declining:FERTS[10],rising:FERTS[9],overlap:"Jan 2024 – Aug 2024",segment:"LMD / LM14 / HSD→CNG",confidence:92},
+  {declining:FERTS[3],rising:FERTS[1],overlap:"Mar 2025 – Nov 2025",segment:"HD / 3019 / FBV→Cab-Chassis",confidence:87},
+  {declining:FERTS[8],rising:FERTS[9],overlap:"May 2024 – Present",segment:"LMD / LM14 / HSD declining, CNG rising",confidence:78}
+];
+
+const FAMILIES=[
+  {id:"FAM-019",name:"3019 HD 4x2 Family",vertical:"HD",count:5,volume:18420,lifecycle:"Stable",members:["F-301901","F-301902","F-301903","F-301904","F-301905"]},
+  {id:"FAM-119",name:"2119 HD 4x2 Family",vertical:"HD",count:2,volume:8640,lifecycle:"Growing",members:["F-211901","F-211902"]},
+  {id:"FAM-800",name:"PRO8000 HD 6x4 Family",vertical:"HD",count:1,volume:6660,lifecycle:"Stable",members:["F-PRO801"]},
+  {id:"FAM-SB4",name:"SchoolBus 42S CNG Family",vertical:"Bus",count:1,volume:800,lifecycle:"New Growth",members:["F-BUS401"]},
+  {id:"FAM-LM1",name:"LMD 14FT Family",vertical:"LMD",count:3,volume:14280,lifecycle:"Transitioning",members:["F-LMD101","F-LMD102","F-LMD103"]}
+];
+
+const MONTHS=["Aug","Sep","Oct","Nov","Dec","Jan","Feb","Mar","Apr","May","Jun","Jul"];
+
+// ─── STATE ──────────────────────────────────────────────────
+let state = {
+  screen: "dashboard",
+  persona: "mdm",
+  discoveryTab: "new",
+  selected: [],
+  transType: "",
+  expandedCard: null,
+  bulkFilter: "all",
+  explorerView: "clusters",
+  selectedFamily: null
+};
+
+// ─── HELPERS ────────────────────────────────────────────────
+function makeBadge(label, color, bg) {
+  return `<span class="badge" style="color:${color};background:${bg}">${label}</span>`;
+}
+function statusBadge(s) {
+  const m={Active:["var(--green)","var(--green-bg)"],Blocked:["var(--red)","var(--red-bg)"],New:["var(--accent)","var(--accent-soft)"],Dormant:["var(--dormant)","#F3F4F6"]};
+  const[c,b]=m[s]||["var(--slate)","#F1F5F9"];
+  return makeBadge(s,c,b);
+}
+function rrsBadge(r) {
+  const m={Runner:["var(--runner)","#F0FDFA"],Repeater:["var(--repeater)","#EEF2FF"],Stranger:["var(--stranger)","#F8FAFC"]};
+  const[c,b]=m[r]||["var(--slate)","#F1F5F9"];
+  return makeBadge(r,c,b);
+}
+function lcBadge(l) {
+  const m={Winner:["var(--winner)","var(--green-bg)"],Stable:["var(--stable)","var(--accent-soft)"],Declining:["var(--declining)","#FFF7ED"],"New Growth":["var(--new-growth)","#FAF5FF"],Dormant:["var(--dormant)","#F9FAFB"],Transitioning:["var(--amber)","var(--amber-bg)"],Growing:["var(--green)","var(--green-bg)"]};
+  const[c,b]=m[l]||["var(--slate)","#F1F5F9"];
+  return makeBadge(l,c,b);
+}
+function sparklineSVG(data, w=100, h=28, color="var(--accent)") {
+  if(!data||!data.length) return "";
+  const max=Math.max(...data,1);
+  const pts=data.map((v,i)=>`${(i/(data.length-1))*w},${h-(v/max)*(h-4)}`).join(" ");
+  return `<svg width="${w}" height="${h}" style="display:block"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5"/></svg>`;
+}
+function trendArrow(data) {
+  if(!data||data.length<2) return "";
+  const first=data.slice(0,3).reduce((a,b)=>a+b,0)/3;
+  const last=data.slice(-3).reduce((a,b)=>a+b,0)/3;
+  const pct=((last-first)/(first||1)*100).toFixed(0);
+  const up=last>first*1.05, down=last<first*0.95;
+  const color=up?"var(--green)":down?"var(--red)":"var(--slate)";
+  return `<span style="font-size:12px;font-weight:600;color:${color}">${up?"▲":down?"▼":"─"} ${Math.abs(pct)}%</span>`;
+}
+function scoreColor(s){return s>85?"var(--green)":s>70?"var(--amber)":"var(--red)"}
+function sparkColor(lc){return(lc==="Declining"||lc==="Dormant")?"var(--red)":(lc==="Winner"||lc==="New Growth")?"var(--green)":"var(--accent)"}
+function priorityBadge(p){const m={Critical:["var(--red)","var(--red-bg)"],High:["var(--amber)","var(--amber-bg)"],Medium:["var(--accent)","var(--accent-soft)"],Low:["var(--slate)","#F1F5F9"]};const[c,b]=m[p]||["var(--slate)","#F1F5F9"];return makeBadge(p,c,b)}
+function scoreBarHTML(score,label){return`<div class="score-bar"><span class="label">${label}</span><div class="track"><div class="fill" style="width:${score}%;background:${scoreColor(score)}"></div></div><span class="val" style="color:${scoreColor(score)}">${score}%</span></div>`}
+
+// ─── NAVIGATION ─────────────────────────────────────────────
+function navigate(screen, el) {
+  state.screen=screen;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el) el.classList.add('active');
+  render();
+}
+function switchPersona(p){state.persona=p;render();}
+
+// ─── RENDER ─────────────────────────────────────────────────
+function render(){
+  const main=document.getElementById('mainContent');
+  if(state.screen==="dashboard") main.innerHTML=renderDashboard();
+  else if(state.screen==="discovery") main.innerHTML=renderDiscovery();
+  else if(state.screen==="explorer") main.innerHTML=renderExplorer();
+}
+
+// ─── SCREEN 1: DASHBOARD ───────────────────────────────────
+function renderDashboard(){
+  const p=state.persona;
+  const active=FERTS.filter(f=>f.status==="Active").length;
+  const blocked=FERTS.filter(f=>f.status==="Blocked").length;
+  const pLabel={mdm:"MDM Administration View",marketing:"Marketing Planning View",ppc:"PPC / Central Planning View"}[p];
+  const pendingCount={mdm:7,marketing:4,ppc:2}[p];
+
+  const rrs={Runner:FERTS.filter(f=>f.rrs==="Runner").length,Repeater:FERTS.filter(f=>f.rrs==="Repeater").length,Stranger:FERTS.filter(f=>f.rrs==="Stranger").length};
+  const lc={Winner:FERTS.filter(f=>f.lifecycle==="Winner").length,Stable:FERTS.filter(f=>f.lifecycle==="Stable").length,Declining:FERTS.filter(f=>f.lifecycle==="Declining").length,"New Growth":FERTS.filter(f=>f.lifecycle==="New Growth").length,Dormant:FERTS.filter(f=>f.lifecycle==="Dormant").length};
+
+  const tasks=[
+    {fert:"F-301906",type:"Lineage Mapping",owner:"Akshay",age:"2 days",priority:"High"},
+    {fert:"F-BUS402",type:"Lineage Mapping",owner:"Akshay",age:"5 days",priority:"High"},
+    {fert:"F-301903",type:"Characteristic Fix",owner:"Rajkumar",age:"1 day",priority:"Medium"},
+    {fert:"F-LMD101",type:"Retirement Review",owner:"Rohit",age:"12 days",priority:"Medium"},
+    {fert:"F-211902",type:"Grouping Review",owner:"Hemant",age:"3 days",priority:"Low"},
+    {fert:"F-301904",type:"Blocking Confirm",owner:"Rajkumar",age:"8 days",priority:"High"},
+    {fert:"F-PRO802",type:"Lineage Mapping",owner:"Akshay",age:"14 days",priority:"Critical"}
+  ].slice(0, pendingCount);
+
+  const rrsColors={Runner:"var(--runner)",Repeater:"var(--repeater)",Stranger:"var(--stranger)"};
+  const lcColors={Winner:"var(--winner)",Stable:"var(--stable)",Declining:"var(--declining)","New Growth":"var(--new-growth)",Dormant:"var(--dormant)"};
+
+  return `
+  <div class="page-header">
+    <div><h1>Intelligence Dashboard</h1><div class="subtitle">Planning Cycle: August 2026 · ${pLabel}</div></div>
+    <div class="readiness-badge" style="background:var(--amber-bg);border:1px solid rgba(217,119,6,0.15)">
+      <div class="readiness-dot" style="background:var(--amber)"></div>
+      <span style="color:var(--amber)">3 Blockers Remaining</span>
+    </div>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi-card"><div class="kpi-label">◉ Active Ferts</div><div class="kpi-value" style="color:var(--navy)">${active}</div><div class="kpi-sub">Across HD, LMD, Bus</div></div>
+    <div class="kpi-card"><div class="kpi-label">⊘ Blocked Ferts</div><div class="kpi-value" style="color:var(--slate)">${blocked}</div><div class="kpi-sub">Last 3 years</div></div>
+    <div class="kpi-card"><div class="kpi-label">⚠ Unmapped Ferts</div><div class="kpi-value" style="color:var(--amber)">3</div><div class="kpi-sub">Pending lineage</div></div>
+    <div class="kpi-card"><div class="kpi-label">↗ Migrations Detected</div><div class="kpi-value" style="color:var(--accent)">3</div><div class="kpi-sub">This month (auto)</div></div>
+    <div class="kpi-card"><div class="kpi-label">✓ Your Tasks</div><div class="kpi-value" style="color:var(--red)">${pendingCount}</div><div class="kpi-sub">Pending action</div></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">RRS Distribution — Active Ferts</div>
+      <div class="rrs-row">
+        ${Object.entries(rrs).map(([k,v])=>{const c=rrsColors[k];const pct=((v/active)*100).toFixed(0);return`<div class="rrs-item"><div class="rrs-circle" style="border-color:${c};background:${c}10"><span class="num" style="color:${c}">${v}</span></div><div class="rrs-label" style="color:${c}">${k}</div><div class="rrs-pct">${pct}% of active</div></div>`}).join("")}
+      </div>
+      <div class="rrs-bar">
+        ${Object.entries(rrs).map(([k,v])=>`<div style="flex:${v};background:${rrsColors[k]}"></div>`).join("")}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Lifecycle Classification — Active Ferts</div>
+      ${Object.entries(lc).map(([k,v])=>{const c=lcColors[k];return`<div class="lc-row"><span class="lc-name">${k}</span><div class="lc-track"><div class="lc-fill" style="width:${(v/active)*100}%;background:${c}20;border-right:3px solid ${c}"></div><span class="lc-val" style="color:${c}">${v} ferts</span></div></div>`}).join("")}
+    </div>
+  </div>
+
+  <div class="card" style="padding:0;overflow:hidden">
+    <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:13px;font-weight:600;color:var(--navy)">Task Queue — ${pLabel.replace(" View","")}</div>
+      <span style="font-size:11px;color:var(--slate)">${tasks.length} pending</span>
+    </div>
+    <table class="data-table">
+      <thead><tr>${["Fert Code","Task Type","Owner","Age","Priority",""].map(h=>`<th>${h}</th>`).join("")}</tr></thead>
+      <tbody>
+        ${tasks.map(t=>`<tr>
+          <td><code>${t.fert}</code></td>
+          <td style="color:var(--slate)">${t.type}</td>
+          <td style="color:var(--slate)">${t.owner}</td>
+          <td><span style="color:${parseInt(t.age)>7?"var(--red)":parseInt(t.age)>3?"var(--amber)":"var(--slate)"};font-weight:600">${t.age}</span></td>
+          <td>${priorityBadge(t.priority)}</td>
+          <td><button class="btn-sm btn-accent-soft">Open</button></td>
+        </tr>`).join("")}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+// ─── SCREEN 2: DISCOVERY ───────────────────────────────────
+function renderDiscovery(){
+  const tab=state.discoveryTab;
+  return `
+  <div class="page-header"><div><h1>Fert Lineage Discovery</h1><div class="subtitle">AI-powered predecessor matching, bulk discovery, and demand migration detection</div></div></div>
+
+  <div class="tab-bar">
+    <button class="tab-btn ${tab==="new"?"active":""}" onclick="state.discoveryTab='new';render()">New Fert Mapping</button>
+    <button class="tab-btn ${tab==="bulk"?"active":""}" onclick="state.discoveryTab='bulk';render()">Bulk Discovery</button>
+    <button class="tab-btn ${tab==="radar"?"active":""}" onclick="state.discoveryTab='radar';render()">Migration Radar</button>
+  </div>
+
+  ${tab==="new"?renderNewFertTab():""}
+  ${tab==="bulk"?renderBulkTab():""}
+  ${tab==="radar"?renderRadarTab():""}`;
+}
+
+function renderNewFertTab(){
+  const chars=[["Vertical",NEW_FERT.vertical],["MPG",NEW_FERT.mpg],["Wheelbase",NEW_FERT.wb+"mm"],["Engine",NEW_FERT.engine],["Fuel",NEW_FERT.fuel],["Tonnage",NEW_FERT.tonnage],["Body",NEW_FERT.body],["Route",NEW_FERT.route],["Project Class",NEW_FERT.projectClass]];
+  const sel=state.selected;
+
+  return `<div class="discovery-grid">
+    <div class="fert-detail-panel">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        ${makeBadge("NEW FERT","#fff","var(--accent)")}
+        <span style="font-size:11px;color:var(--slate)">Created Jul 18, 2026</span>
+      </div>
+      <code style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--navy);display:block;margin-bottom:4px">${NEW_FERT.id}</code>
+      <div style="font-size:13px;color:var(--slate);margin-bottom:16px;line-height:1.5">${NEW_FERT.desc}</div>
+      <div style="font-size:10px;font-weight:600;letter-spacing:0.05em;color:var(--slate);margin-bottom:8px">CHARACTERISTICS</div>
+      ${chars.map(([k,v])=>`<div class="char-row"><span class="k">${k}</span><span class="v">${v}</span></div>`).join("")}
+    </div>
+
+    <div>
+      <div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:12px">AI-Suggested Predecessors <span style="font-weight:400;color:var(--slate)">— ranked by composite match</span></div>
+      ${SUGGESTED.map(sp=>{
+        const isSel=sel.includes(sp.id);
+        const isExp=state.expandedCard===sp.id;
+        return `<div class="suggestion-card ${isSel?"selected":""}">
+          <div class="suggestion-card-main" onclick="toggleSelect('${sp.id}')">
+            <div class="checkbox ${isSel?"checked":""}">${isSel?'<span style="color:#fff;font-size:12px;font-weight:700">✓</span>':""}</div>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;gap:8px">
+                <code style="font-family:var(--mono);font-size:12px;font-weight:600;color:var(--navy)">${sp.id}</code>
+                ${statusBadge(sp.status)} ${rrsBadge(sp.rrs)} ${lcBadge(sp.lifecycle)}
+              </div>
+              <div style="font-size:12px;color:var(--slate);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sp.desc}</div>
+            </div>
+            ${sparklineSVG(sp.sales,80,24,sparkColor(sp.lifecycle))}
+            <div class="match-score">
+              <div class="num" style="color:${scoreColor(sp.matchScore)}">${sp.matchScore}%</div>
+              <div class="lbl">MATCH</div>
+            </div>
+            <button onclick="event.stopPropagation();toggleExpand('${sp.id}')" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--slate);padding:4px">${isExp?"▾":"▸"}</button>
+          </div>
+          ${isExp?`<div class="suggestion-card-expand">
+            ${scoreBarHTML(sp.charMatch,"Characteristics")}
+            ${scoreBarHTML(sp.descMatch,"Description")}
+            ${scoreBarHTML(sp.demandCorr,"Demand Corr.")}
+            ${scoreBarHTML(sp.temporal,"Temporal")}
+          </div>`:""}
+        </div>`;
+      }).join("")}
+
+      ${sel.length>0?renderRelBuilder():""}
+    </div>
+  </div>`;
+}
+
+function renderRelBuilder(){
+  const tt=state.transType;
+  return `<div class="rel-builder">
+    <div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:12px">Define Relationship — ${state.selected.length} predecessor${state.selected.length>1?"s":""} selected</div>
+    <div class="trans-options">
+      <div class="trans-opt ${tt==="migration"?"active":""}" onclick="state.transType='migration';render()">
+        <div class="t-label">Migration</div><div class="t-desc">Full replacement — old fert retires</div>
+      </div>
+      <div class="trans-opt ${tt==="ramp"?"active":""}" onclick="state.transType='ramp';render()">
+        <div class="t-label">Ramp Up / Down</div><div class="t-desc">Gradual transition over time</div>
+      </div>
+      <div class="trans-opt ${tt==="parallel"?"active":""}" onclick="state.transType='parallel';render()">
+        <div class="t-label">Parallel</div><div class="t-desc">Both ferts continue indefinitely</div>
+      </div>
+    </div>
+    ${tt==="ramp"?`<div>
+      <div style="font-size:12px;font-weight:600;color:var(--slate);margin-bottom:8px">Month-wise Demand Split (New Fert %)</div>
+      <div class="ramp-grid">
+        ${["Aug'26","Sep'26","Oct'26","Nov'26","Dec'26","Jan'27"].map(m=>`<div><div class="month-label">${m}</div><input type="number" min="0" max="100" placeholder="%"></div>`).join("")}
+      </div>
+    </div>`:""}
+    <div class="history-row">
+      <span class="h-label">History Treatment:</span>
+      ${["Full carry-forward","Selective","None"].map(h=>`<button class="history-btn">${h}</button>`).join("")}
+    </div>
+    <button class="btn btn-primary" ${!tt?'disabled style="opacity:0.5;cursor:not-allowed"':""}>Submit for Approval →</button>
+  </div>`;
+}
+
+function renderBulkTab(){
+  const f=state.bulkFilter;
+  const filtered=f==="all"?BULK:BULK.filter(b=>b.status===f);
+  return `
+  <div class="bulk-stats">
+    <div class="bulk-stat-bar">
+      <span>Analyzed:</span> <strong style="color:var(--navy)">2,347</strong>
+      <span style="margin-left:12px">Proposed:</span> <strong style="color:var(--accent)">1,890</strong>
+      <span style="margin-left:12px">Confirmed:</span> <strong style="color:var(--green)">1,204</strong>
+      <span style="margin-left:12px">Pending:</span> <strong style="color:var(--amber)">643</strong>
+    </div>
+    <div class="bulk-filters">
+      ${["all","pending","confirmed","rejected"].map(fl=>`<button class="filter-btn ${f===fl?"active":""}" onclick="state.bulkFilter='${fl}';render()">${fl}</button>`).join("")}
+    </div>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table class="data-table">
+      <thead><tr>${["","Fert A","Fert B","Match Score","Migration","Suggested Type","Status","Actions"].map(h=>`<th>${h}</th>`).join("")}</tr></thead>
+      <tbody>
+        ${filtered.map(b=>`<tr>
+          <td><input type="checkbox"></td>
+          <td><code>${b.fertA}</code></td>
+          <td><code>${b.fertB}</code></td>
+          <td><div style="display:flex;align-items:center;gap:6px"><div style="width:40px;height:6px;background:#E2E8F0;border-radius:3px;overflow:hidden"><div style="width:${b.score}%;height:100%;background:${scoreColor(b.score)};border-radius:3px"></div></div><span style="font-weight:600;font-size:12px;color:${scoreColor(b.score)}">${b.score}%</span></div></td>
+          <td>${b.migration?makeBadge("Yes","var(--green)","var(--green-bg)"):makeBadge("No","var(--slate)","#F1F5F9")}</td>
+          <td style="font-size:12px;color:var(--navy)">${b.suggestion}</td>
+          <td>${makeBadge(b.status,b.status==="confirmed"?"var(--green)":b.status==="rejected"?"var(--red)":"var(--amber)",b.status==="confirmed"?"var(--green-bg)":b.status==="rejected"?"var(--red-bg)":"var(--amber-bg)")}</td>
+          <td>${b.status==="pending"?'<div style="display:flex;gap:4px"><button class="btn-confirm">Confirm</button><button class="btn-reject">Reject</button></div>':""}</td>
+        </tr>`).join("")}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function renderRadarTab(){
+  return MIGRATIONS.map(md=>`
+  <div class="radar-card">
+    <div class="radar-header">
+      <div>
+        <div class="radar-eyebrow">DETECTED DEMAND MIGRATION</div>
+        <div class="radar-segment">${md.segment}</div>
+        <div class="radar-overlap">Overlap period: ${md.overlap}</div>
+      </div>
+      <div class="radar-conf" style="text-align:center">
+        <div class="num" style="color:${md.confidence>85?"var(--green)":"var(--amber)"}">${md.confidence}%</div>
+        <div class="lbl">CONFIDENCE</div>
+      </div>
+    </div>
+    <div class="radar-grid">
+      <div class="radar-side declining">
+        <div class="radar-side-label" style="color:var(--red)">▼ DECLINING</div>
+        <code style="font-family:var(--mono);font-size:12px;font-weight:600;color:var(--navy)">${md.declining.id}</code>
+        <div style="font-size:11px;color:var(--slate);margin-top:2px;margin-bottom:8px">${md.declining.desc}</div>
+        ${sparklineSVG(md.declining.sales,140,30,"var(--red)")}
+        <div style="display:flex;gap:6px;margin-top:6px">${statusBadge(md.declining.status)} ${rrsBadge(md.declining.rrs)}</div>
+      </div>
+      <div class="radar-arrow">→</div>
+      <div class="radar-side rising">
+        <div class="radar-side-label" style="color:var(--green)">▲ RISING</div>
+        <code style="font-family:var(--mono);font-size:12px;font-weight:600;color:var(--navy)">${md.rising.id}</code>
+        <div style="font-size:11px;color:var(--slate);margin-top:2px;margin-bottom:8px">${md.rising.desc}</div>
+        ${sparklineSVG(md.rising.sales,140,30,"var(--green)")}
+        <div style="display:flex;gap:6px;margin-top:6px">${statusBadge(md.rising.status)} ${rrsBadge(md.rising.rrs)}</div>
+      </div>
+    </div>
+    <div style="margin-top:16px;display:flex;gap:8px">
+      <button class="btn btn-primary">Establish Lineage →</button>
+      <button class="btn btn-outline">Dismiss</button>
+    </div>
+  </div>`).join("");
+}
+
+// ─── SCREEN 3: EXPLORER ────────────────────────────────────
+function renderExplorer(){
+  const v=state.explorerView;
+  const sf=state.selectedFamily;
+  return `
+  <div class="page-header">
+    <div><h1>Fert Family Explorer</h1><div class="subtitle">Visualize lineage chains, family clusters, and demand rollups across the fert universe</div></div>
+    <div class="view-toggle">
+      <button class="toggle-btn ${v==="clusters"?"active":""}" onclick="state.explorerView='clusters';state.selectedFamily=null;render()">Cluster Map</button>
+      <button class="toggle-btn ${v==="chain"?"active":""}" onclick="state.explorerView='chain';render()">Lineage Chain</button>
+    </div>
+  </div>
+  ${v==="clusters"?(!sf?renderClusterGrid():renderFamilyDetail()):""}
+  ${v==="chain"?renderChainView():""}`;
+}
+
+function renderClusterGrid(){
+  const maxVol=Math.max(...FAMILIES.map(f=>f.volume));
+  return `<div class="family-grid">
+    ${FAMILIES.map(fam=>{
+      const ratio=fam.volume/maxVol;
+      return `<div class="family-card" onclick="state.selectedFamily='${fam.id}';render()">
+        <div class="family-bg" style="height:${ratio*40}%"></div>
+        <div class="family-inner">
+          <div class="family-header">
+            <div><div class="family-name">${fam.name}</div><div class="family-meta">${fam.id} · ${fam.vertical}</div></div>
+            ${lcBadge(fam.lifecycle)}
+          </div>
+          <div class="family-stats">
+            <div class="family-stat"><div class="num" style="color:var(--navy)">${fam.count}</div><div class="lbl">Fert codes</div></div>
+            <div class="family-stat"><div class="num" style="color:var(--accent)">${(fam.volume/1000).toFixed(1)}K</div><div class="lbl">12M volume</div></div>
+          </div>
+          <div class="family-codes">
+            ${fam.members.slice(0,3).map(m=>`<code>${m}</code>`).join("")}
+            ${fam.members.length>3?`<span style="font-size:10px;color:var(--slate);padding:2px 4px">+${fam.members.length-3} more</span>`:""}
+          </div>
+        </div>
+      </div>`;
+    }).join("")}
+    <div class="orphan-card">
+      <div class="orphan-num">3</div>
+      <div style="font-size:13px;font-weight:600;color:var(--red);margin-bottom:2px">Orphan Ferts</div>
+      <div style="font-size:11px;color:var(--slate)">Unmapped, no family assigned</div>
+      <button class="btn-sm" style="margin-top:12px;color:var(--red);background:#fff;border:1px solid rgba(220,38,38,0.3);border-radius:4px;cursor:pointer;padding:6px 16px;font-size:11px;font-weight:600;font-family:var(--sans)">Review & Assign</button>
+    </div>
+  </div>`;
+}
+
+function renderFamilyDetail(){
+  const fam=FAMILIES.find(f=>f.id===state.selectedFamily);
+  if(!fam) return "";
+  const ferts=FERTS.filter(f=>fam.members.includes(f.id)).sort((a,b)=>new Date(a.created)-new Date(b.created));
+  const monthTotals=MONTHS.map((_,mi)=>ferts.reduce((s,f)=>s+(f.sales[mi]||0),0));
+  const maxTotal=Math.max(...monthTotals,1);
+
+  return `
+  <button class="btn-sm btn-accent-soft" style="margin-bottom:16px" onclick="state.selectedFamily=null;render()">← Back to all families</button>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+      <div>
+        <div style="font-size:18px;font-weight:700;color:var(--navy)">${fam.name}</div>
+        <div style="font-size:12px;color:var(--slate);margin-top:2px">${fam.id} · ${fam.count} fert codes · ${(fam.volume/1000).toFixed(1)}K units (12M)</div>
+      </div>
+      ${lcBadge(fam.lifecycle)}
+    </div>
+
+    <div style="font-size:12px;font-weight:600;color:var(--slate);margin-bottom:12px">Lineage Timeline</div>
+    <div class="timeline">
+      <div class="timeline-line"></div>
+      ${ferts.map((f,i)=>{
+        const dotColor=f.status==="Active"?"var(--green)":f.status==="Blocked"?"var(--red)":"var(--accent)";
+        return `<div class="timeline-item">
+          <div class="timeline-dot" style="background:${dotColor};box-shadow:0 0 0 2px ${dotColor}"></div>
+          <div class="timeline-content">
+            <div class="timeline-top">
+              <code style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--navy)">${f.id}</code>
+              ${statusBadge(f.status)} ${rrsBadge(f.rrs)} ${lcBadge(f.lifecycle)}
+              <span style="font-size:11px;color:var(--slate);margin-left:auto">Created ${f.created}${f.blocked?" · Blocked "+f.blocked:""}</span>
+            </div>
+            <div class="timeline-desc">${f.desc}</div>
+            <div class="timeline-metrics">
+              ${sparklineSVG(f.sales,120,24,sparkColor(f.lifecycle))}
+              ${trendArrow(f.sales)}
+              <span style="font-size:12px;color:var(--navy);font-weight:600">${f.sales.reduce((a,b)=>a+b,0).toLocaleString()} units (12M)</span>
+            </div>
+            ${f.status==="Blocked"&&i<ferts.length-1?`<div class="timeline-migrate">↓ Migrated to ${ferts[i+1].id}</div>`:""}
+          </div>
+        </div>`;
+      }).join("")}
+    </div>
+
+    <div style="font-size:12px;font-weight:600;color:var(--slate);margin-bottom:12px">Aggregate Family Demand (12 Months)</div>
+    <div class="bar-chart">
+      ${MONTHS.map((m,mi)=>`<div class="bar-col">
+        <span class="bar-val">${monthTotals[mi]}</span>
+        <div class="bar-fill" style="height:${(monthTotals[mi]/maxTotal)*70}px"></div>
+        <span class="bar-label">${m}</span>
+      </div>`).join("")}
+    </div>
+  </div>`;
+}
+
+function renderChainView(){
+  const sf=state.selectedFamily;
+  const fam=sf?FAMILIES.find(f=>f.id===sf):null;
+  const ferts=fam?FERTS.filter(f=>fam.members.includes(f.id)).sort((a,b)=>new Date(a.created)-new Date(b.created)):[];
+
+  return `
+  <div class="chain-selector">
+    <div class="lbl">Select a family to view its lineage chain:</div>
+    <div class="chain-buttons">
+      ${FAMILIES.map(f=>`<button class="chain-btn ${sf===f.id?"active":""}" onclick="state.selectedFamily='${f.id}';render()">${f.name} (${f.count})</button>`).join("")}
+    </div>
+  </div>
+  ${fam?`<div class="card" style="overflow-x:auto">
+    <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:16px">${fam.name} — Lineage Chain</div>
+    <div class="chain-container">
+      ${ferts.map((f,i)=>{
+        const nodeClass=f.status==="Active"?"active-node":f.status==="Blocked"?"blocked-node":"new-node";
+        return `<div style="display:flex;align-items:center">
+          <div class="chain-node ${nodeClass}">
+            <div class="chain-node-header">
+              <code style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--navy)">${f.id}</code>
+              ${statusBadge(f.status)}
+            </div>
+            <div class="chain-node-desc">${f.desc}</div>
+            ${sparklineSVG(f.sales,176,28,sparkColor(f.lifecycle))}
+            <div class="chain-node-footer">${rrsBadge(f.rrs)} ${trendArrow(f.sales)}</div>
+            <div class="chain-node-date">${f.created}</div>
+          </div>
+          ${i<ferts.length-1?'<div class="chain-link"><div class="chain-link-line"></div><span class="chain-link-label">NEXT</span></div>':""}
+        </div>`;
+      }).join("")}
+    </div>
+  </div>`:""}`;
+}
+
+// ─── INTERACTION HANDLERS ───────────────────────────────────
+function toggleSelect(id){
+  const i=state.selected.indexOf(id);
+  if(i>-1) state.selected.splice(i,1); else state.selected.push(id);
+  render();
+}
+function toggleExpand(id){
+  state.expandedCard=state.expandedCard===id?null:id;
+  render();
+}
+
+// ─── INIT ───────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>

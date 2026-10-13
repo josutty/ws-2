@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VECV S&OP Planning Portal — Phase 0</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ── */
+:root {
+  --ink:       #0F1923;
+  --ink-mid:   #1E2E3D;
+  --ink-light: #2C4159;
+  --rule:      #D4DCE5;
+  --rule-lt:   #EBF0F5;
+  --bg:        #F2F5F8;
+  --surface:   #FFFFFF;
+  --surface2:  #F7F9FB;
+  --surface3:  #EEF2F6;
+
+  --blue:      #1A5FAB;
+  --blue-lt:   #E8F0FA;
+  --blue-mid:  #2D6FC4;
+  --teal:      #0E7C7B;
+  --teal-lt:   #E4F5F5;
+  --green:     #1E6B35;
+  --green-lt:  #E6F4EB;
+  --amber:     #92520A;
+  --amber-lt:  #FDF3E3;
+  --red:       #9B1C1C;
+  --red-lt:    #FEF0F0;
+  --grey:      #5A6A7A;
+  --grey-lt:   #EEF1F4;
+
+  --p0-accent: #B45309;   /* warm amber — Phase 0 badge */
+  --p0-lt:     #FEF9EC;
+  --p1-accent: #1A5FAB;   /* blue — Phase 1 */
+  --p1-lt:     #E8F0FA;
+
+  --font:  'Inter', system-ui, sans-serif;
+  --mono:  'JetBrains Mono', monospace;
+
+  --r: 4px;
+  --shadow: 0 1px 3px rgba(15,25,35,0.08);
+  --shadow-md: 0 2px 8px rgba(15,25,35,0.12);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); font-size: 13px; color: var(--ink); background: var(--bg); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+/* ── TOP CHROME ── */
+.topbar {
+  height: 44px; background: var(--ink); border-bottom: 1px solid var(--ink-light);
+  display: flex; align-items: center; padding: 0 16px; gap: 20px; flex-shrink: 0;
+}
+.brand { font-weight: 600; font-size: 13px; color: #fff; letter-spacing: 0.02em; white-space: nowrap; }
+.brand span { color: #7AB3E8; }
+.cycle-tag {
+  background: var(--ink-light); border: 1px solid #3A5570; border-radius: 3px;
+  padding: 2px 10px; font-size: 11px; color: #A8C4DC; font-family: var(--mono); white-space: nowrap;
+}
+.phase-toggle {
+  display: flex; gap: 4px; background: var(--ink-mid); border-radius: 3px; padding: 3px;
+}
+.phase-btn {
+  padding: 3px 12px; border-radius: 2px; font-size: 11px; font-weight: 500; cursor: pointer;
+  border: none; background: transparent; color: #7A9AB8; transition: all 0.15s;
+}
+.phase-btn.active { background: var(--ink-light); color: #fff; }
+
+.cycle-bar {
+  flex: 1; display: flex; align-items: center; gap: 0; padding: 0 12px;
+}
+.cy-step { display: flex; align-items: center; gap: 0; flex: 1; }
+.cy-node {
+  display: flex; flex-direction: column; align-items: center; gap: 1px; min-width: 52px; cursor: pointer;
+}
+.cy-dot {
+  width: 18px; height: 18px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 600; font-family: var(--mono);
+}
+.cy-dot.done  { background: var(--teal); color: #fff; }
+.cy-dot.active{ background: var(--blue); color: #fff; box-shadow: 0 0 0 3px rgba(26,95,171,0.25); }
+.cy-dot.pend  { background: #2C4159; color: #5A7A96; border: 1px solid #3A5570; }
+.cy-label { font-size: 9px; color: #7A9AB8; white-space: nowrap; }
+.cy-label.active { color: #7AB3E8; }
+.cy-date  { font-size: 8px; color: #4A6A88; font-family: var(--mono); }
+.cy-line  { flex: 1; height: 1px; background: #2C4159; margin-bottom: 14px; }
+.cy-line.done { background: var(--teal); }
+
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.countdown-pill {
+  background: #7C2D12; border: 1px solid #92400E; border-radius: 3px;
+  padding: 3px 10px; font-family: var(--mono); font-size: 11px; color: #FED7AA; white-space: nowrap;
+}
+.user-pill {
+  display: flex; align-items: center; gap: 6px; background: var(--ink-light); border-radius: 16px; padding: 3px 10px 3px 5px;
+}
+.avatar { width: 24px; height: 24px; border-radius: 50%; background: var(--blue); display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: #fff; }
+.user-info { display: flex; flex-direction: column; }
+.user-name { font-size: 11px; color: #fff; font-weight: 500; line-height: 1.2; }
+.user-role { font-size: 9px; color: #7AB3E8; line-height: 1.2; }
+
+/* ── SCREEN TABS ── */
+.screen-nav {
+  height: 36px; background: var(--surface); border-bottom: 2px solid var(--rule);
+  display: flex; align-items: stretch; padding: 0 16px; gap: 2px; flex-shrink: 0;
+  box-shadow: var(--shadow);
+}
+.screen-tab {
+  display: flex; align-items: center; gap: 6px; padding: 0 14px;
+  font-size: 12px; font-weight: 500; color: var(--grey); cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -2px; white-space: nowrap;
+  transition: all 0.12s;
+}
+.screen-tab:hover { color: var(--ink); }
+.screen-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+.screen-tab .tab-badge {
+  font-size: 9px; padding: 1px 5px; border-radius: 8px; font-weight: 600;
+}
+.tab-badge.p0-only { background: var(--p0-lt); color: var(--p0-accent); }
+.tab-badge.p1-only { background: var(--grey-lt); color: var(--grey); }
+
+/* ── MAIN LAYOUT ── */
+.main { display: flex; flex: 1; overflow: hidden; }
+
+/* ── FILTER SIDEBAR ── */
+.sidebar {
+  width: 180px; background: var(--surface); border-right: 1px solid var(--rule);
+  display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; padding: 12px 0;
+}
+.sidebar-section { margin-bottom: 16px; }
+.sidebar-section-label {
+  font-size: 9px; font-weight: 600; color: var(--grey); letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 0 12px 6px; display: block;
+}
+.sidebar-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 5px 12px; font-size: 12px; color: var(--ink-mid); cursor: pointer;
+  border-left: 2px solid transparent; transition: all 0.1s;
+}
+.sidebar-item:hover { background: var(--surface2); color: var(--ink); }
+.sidebar-item.active { background: var(--blue-lt); color: var(--blue); border-left-color: var(--blue); font-weight: 500; }
+.sidebar-count { font-size: 10px; color: var(--grey); font-family: var(--mono); }
+.sidebar-count.warn { color: var(--amber); }
+
+.sidebar-status { margin: 0 10px 12px; }
+.status-row { display: flex; align-items: center; gap: 6px; padding: 4px 0; border-bottom: 1px solid var(--rule-lt); }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.dot-green  { background: var(--teal); }
+.dot-amber  { background: #D97706; }
+.dot-red    { background: #DC2626; animation: blink 1.4s infinite; }
+.dot-grey   { background: var(--rule); }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.status-label { font-size: 10px; color: var(--ink-mid); flex: 1; }
+.status-pct { font-size: 9px; font-family: var(--mono); color: var(--grey); }
+
+/* ── CONTENT ── */
+.content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+/* ── PAGE HEADER ── */
+.page-hdr {
+  background: var(--surface); border-bottom: 1px solid var(--rule);
+  padding: 10px 16px; display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+  box-shadow: var(--shadow);
+}
+.page-title { font-size: 15px; font-weight: 600; color: var(--ink); }
+.page-sub { font-size: 11px; color: var(--grey); margin-top: 1px; }
+.phase-badge {
+  padding: 2px 8px; border-radius: 3px; font-size: 10px; font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.phase-badge.p0 { background: var(--p0-lt); color: var(--p0-accent); border: 1px solid #FDE68A; }
+.phase-badge.p1 { background: var(--p1-lt); color: var(--p1-accent); border: 1px solid #BFDBFE; }
+.page-hdr-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+.btn {
+  height: 30px; padding: 0 14px; border-radius: var(--r); font-size: 12px; font-weight: 500;
+  cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--font); transition: all 0.12s;
+}
+.btn-primary { background: var(--blue); color: #fff; }
+.btn-primary:hover { background: var(--blue-mid); }
+.btn-secondary { background: var(--surface); color: var(--ink-mid); border: 1px solid var(--rule); }
+.btn-secondary:hover { background: var(--surface2); }
+.btn-success { background: var(--green); color: #fff; }
+.btn-amber { background: #D97706; color: #fff; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ── WORKBOOK TOOLBAR ── */
+.wk-toolbar {
+  background: var(--surface2); border-bottom: 1px solid var(--rule);
+  padding: 6px 16px; display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+}
+.wk-filter {
+  height: 26px; padding: 0 8px; border: 1px solid var(--rule); border-radius: var(--r);
+  background: var(--surface); color: var(--ink); font-size: 11px; font-family: var(--font); cursor: pointer;
+}
+.wk-filter:focus { outline: none; border-color: var(--blue); }
+.wk-search {
+  height: 26px; padding: 0 8px 0 28px; border: 1px solid var(--rule); border-radius: var(--r);
+  background: var(--surface); color: var(--ink); font-size: 11px; font-family: var(--font);
+  width: 160px; position: relative;
+}
+.search-wrap { position: relative; }
+.search-icon { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--grey); pointer-events: none; }
+.wk-divider { width: 1px; height: 18px; background: var(--rule); }
+.wk-label { font-size: 11px; color: var(--grey); }
+
+/* ── NOTICE BARS ── */
+.notice {
+  margin: 8px 16px 0; padding: 7px 12px; border-radius: var(--r);
+  font-size: 11px; display: flex; align-items: center; gap: 8px;
+  border-left: 3px solid;
+}
+.notice.warn   { background: var(--amber-lt); border-color: #D97706; color: var(--amber); }
+.notice.info   { background: var(--blue-lt);  border-color: var(--blue); color: var(--blue); }
+.notice.ok     { background: var(--green-lt); border-color: var(--teal); color: var(--teal); }
+.notice.p0note { background: var(--p0-lt);    border-color: var(--p0-accent); color: var(--p0-accent); }
+.notice strong { font-weight: 600; }
+.notice-action { margin-left: auto; font-size: 10px; cursor: pointer; text-decoration: underline; white-space: nowrap; }
+
+/* ── MAIN GRID SCROLL ── */
+.grid-scroll { flex: 1; overflow: auto; padding: 8px 16px 16px; }
+.grid-scroll::-webkit-scrollbar { width: 5px; height: 5px; }
+.grid-scroll::-webkit-scrollbar-track { background: transparent; }
+.grid-scroll::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 3px; }
+
+/* ── PLANNING TABLE ── */
+.ptable { border-collapse: collapse; width: 100%; font-size: 12px; background: var(--surface); border-radius: var(--r); box-shadow: var(--shadow); }
+
+/* Column group headers */
+.ptable .cg-hdr { background: var(--ink); color: #fff; text-align: center; font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 5px 8px; }
+.ptable .cg-ref  { background: var(--surface3); }
+.ptable .cg-inp  { background: var(--blue); }
+.ptable .cg-inp-p1 { background: var(--ink-mid); }
+.ptable .cg-calc { background: #0A4A2E; }
+
+/* Row headers */
+.ptable th {
+  position: sticky; top: 0; z-index: 10;
+  padding: 6px 8px; text-align: right; font-size: 10px; font-weight: 600;
+  color: var(--grey); border-bottom: 2px solid var(--rule); background: var(--surface2);
+  white-space: nowrap; letter-spacing: 0.04em; text-transform: uppercase;
+}
+.ptable th.left { text-align: left; }
+.ptable th.sticky-col { position: sticky; left: 0; z-index: 20; background: var(--surface2); }
+.ptable th.sticky-col2 { position: sticky; left: 80px; z-index: 20; background: var(--surface2); }
+.ptable th.sticky-col3 { position: sticky; left: 260px; z-index: 20; background: var(--surface2); }
+
+/* Cells */
+.ptable td { padding: 5px 8px; border-bottom: 1px solid var(--rule-lt); vertical-align: middle; }
+.ptable tr:hover td { background: #F0F5FA; }
+.ptable tr.sub-total td { background: var(--surface3); font-weight: 500; }
+.ptable tr.sub-total:hover td { background: #E4EAF0; }
+
+.td-sticky  { position: sticky; left: 0; z-index: 5; background: var(--surface); }
+.td-sticky2 { position: sticky; left: 80px; z-index: 5; background: var(--surface); }
+.td-sticky3 { position: sticky; left: 260px; z-index: 5; background: var(--surface); }
+.ptable tr:hover .td-sticky,
+.ptable tr:hover .td-sticky2,
+.ptable tr:hover .td-sticky3 { background: #F0F5FA; }
+
+/* FERT code */
+.fert-code { font-family: var(--mono); font-size: 11px; color: #1A5FAB; white-space: nowrap; }
+.fert-desc { font-size: 11px; color: var(--ink); white-space: nowrap; max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
+.seg-pill {
+  display: inline-block; padding: 1px 5px; border-radius: 2px; font-size: 9px; font-weight: 700;
+}
+.seg-R { background: var(--green-lt); color: var(--green); }
+.seg-S { background: var(--amber-lt); color: var(--amber); }
+.seg-D { background: var(--red-lt);   color: var(--red); }
+
+/* Reference columns */
+.ref-val { text-align: right; font-family: var(--mono); font-size: 11px; color: #4A6A88; }
+
+/* Input cells */
+.indent-inp {
+  width: 64px; padding: 3px 6px; border: 1px solid var(--rule);
+  border-radius: 2px; font-family: var(--mono); font-size: 11px; text-align: right;
+  color: var(--ink); background: var(--surface); transition: border-color 0.1s;
+}
+.indent-inp:focus { outline: none; border-color: var(--blue); background: var(--blue-lt); }
+.indent-inp.flag  { border-color: #D97706; background: var(--amber-lt); }
+.indent-inp.alert { border-color: #DC2626; background: var(--red-lt); }
+.indent-inp.p1dim { background: var(--grey-lt); color: var(--rule); border-color: var(--rule-lt); cursor: not-allowed; }
+
+/* Phase 1 greyed columns */
+.td-p1 { background: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(0,0,0,0.02) 4px, rgba(0,0,0,0.02) 8px); }
+.p1-placeholder { font-size: 9px; color: #A0B4C4; font-style: italic; white-space: nowrap; }
+.th-p1 { background: var(--grey-lt) !important; color: #A0B4C4 !important; }
+
+/* Delta chips */
+.delta { display: inline-block; font-family: var(--mono); font-size: 10px; padding: 1px 4px; border-radius: 2px; }
+.delta-up   { background: var(--red-lt); color: var(--red); }
+.delta-dn   { background: var(--green-lt); color: var(--green); }
+.delta-flat { background: var(--grey-lt); color: var(--grey); }
+
+/* Flag icons */
+.flag-cell { text-align: center; }
+.flag-icon { font-size: 12px; cursor: help; }
+
+/* Calc columns */
+.calc-val { text-align: right; font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--ink); }
+.calc-pos  { color: var(--green); }
+.calc-neg  { color: var(--red); }
+
+/* ── BOTTOM SUMMARY BAR ── */
+.summary-bar {
+  background: var(--surface); border-top: 1px solid var(--rule);
+  padding: 6px 16px; display: flex; align-items: center; gap: 24px;
+  flex-shrink: 0; box-shadow: 0 -1px 3px rgba(15,25,35,0.06);
+}
+.sum-item { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; }
+.sum-label { font-size: 9px; color: var(--grey); text-transform: uppercase; letter-spacing: 0.06em; }
+.sum-value { font-family: var(--mono); font-size: 14px; font-weight: 500; color: var(--ink); }
+.sum-value.ok    { color: var(--teal); }
+.sum-value.warn  { color: #D97706; }
+.sum-value.alert { color: #DC2626; }
+.sum-divider { width: 1px; height: 28px; background: var(--rule); }
+.sum-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+/* ── SCREENS ── */
+.screen { display: none; }
+.screen.active { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+/* ── ISO NETTING PANEL ── */
+.netting-panel {
+  margin: 8px 16px; background: var(--surface); border: 1px solid var(--rule);
+  border-radius: var(--r); padding: 12px 16px; flex-shrink: 0;
+}
+.netting-title { font-size: 11px; font-weight: 600; color: var(--ink); margin-bottom: 10px; }
+.netting-formula {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  font-family: var(--mono); font-size: 13px;
+}
+.nf-val { color: var(--blue); font-weight: 500; }
+.nf-op  { color: var(--grey); }
+.nf-label { font-size: 9px; color: var(--grey); display: block; text-align: center; margin-top: 1px; }
+.nf-result { color: var(--green); font-size: 16px; font-weight: 600; }
+.nf-block { display: flex; flex-direction: column; align-items: center; }
+.data-age { font-size: 10px; color: var(--grey); margin-top: 8px; }
+.data-age.fresh { color: var(--teal); }
+.data-age.stale { color: var(--red); }
+
+/* ── PHASE 0 NOTICE RIBBON ── */
+.p0-ribbon {
+  background: var(--p0-lt); border-bottom: 1px solid #FDE68A;
+  padding: 4px 16px; font-size: 10px; color: var(--p0-accent);
+  display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+}
+.p0-ribbon strong { font-weight: 600; }
+.p0-ribbon span { color: #92400E; }
+
+/* ── TABS WITHIN SCREEN ── */
+.inner-tabs { display: flex; gap: 1px; padding: 0 16px; background: var(--surface2); border-bottom: 1px solid var(--rule); flex-shrink: 0; }
+.inner-tab { padding: 7px 14px; font-size: 11px; color: var(--grey); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.1s; }
+.inner-tab:hover { color: var(--ink); }
+.inner-tab.active { color: var(--blue); border-bottom-color: var(--blue); font-weight: 500; }
+.inner-tab.dimmed { color: #C0CCDA; cursor: not-allowed; }
+
+/* ── OVERRIDE LOG ── */
+.override-row {
+  display: flex; align-items: center; gap: 8px; padding: 5px 0;
+  border-bottom: 1px solid var(--rule-lt); font-size: 11px;
+}
+.ov-fert { font-family: var(--mono); color: var(--blue); width: 88px; flex-shrink: 0; }
+.ov-from { font-family: var(--mono); color: var(--grey); text-decoration: line-through; }
+.ov-to   { font-family: var(--mono); color: var(--ink); font-weight: 500; }
+.ov-arr  { color: var(--grey); }
+.ov-reason {
+  flex: 1; padding: 2px 6px; border: 1px solid var(--rule); border-radius: 2px;
+  font-size: 10px; background: var(--surface); color: var(--ink); font-family: var(--font);
+}
+.ov-reason.missing { border-color: #D97706; background: var(--amber-lt); }
+.ov-who { font-size: 10px; color: var(--grey); white-space: nowrap; }
+
+/* ── DEALER SUBMISSION ── */
+.subm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.subm-card { background: var(--surface2); border: 1px solid var(--rule); border-radius: var(--r); padding: 7px 10px; }
+.subm-name { font-size: 11px; color: var(--ink-mid); margin-bottom: 4px; }
+.subm-bar-bg { height: 4px; background: var(--rule); border-radius: 2px; overflow: hidden; margin-bottom: 3px; }
+.subm-bar-fill { height: 100%; border-radius: 2px; }
+.subm-pct { font-family: var(--mono); font-size: 10px; color: var(--grey); }
+
+</style>
+
+<!--[if gte mso 9]><xml>
+<mso:CustomDocumentProperties>
+<mso:xd_Signature msdt:dt="string"></mso:xd_Signature>
+<mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Editor msdt:dt="string">Mohd. Zakariya</mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Editor>
+<mso:Order msdt:dt="string">9400.00000000000</mso:Order>
+<mso:xd_ProgID msdt:dt="string"></mso:xd_ProgID>
+<mso:_ExtendedDescription msdt:dt="string"></mso:_ExtendedDescription>
+<mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Author msdt:dt="string">Mohd. Zakariya</mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Author>
+<mso:ComplianceAssetId msdt:dt="string"></mso:ComplianceAssetId>
+<mso:TemplateUrl msdt:dt="string"></mso:TemplateUrl>
+<mso:ContentTypeId msdt:dt="string">0x010100915D1156AF89E94CB4E0E819A4FFFAAD</mso:ContentTypeId>
+<mso:TriggerFlowInfo msdt:dt="string"></mso:TriggerFlowInfo>
+<mso:_SourceUrl msdt:dt="string"></mso:_SourceUrl>
+<mso:_SharedFileIndex msdt:dt="string"></mso:_SharedFileIndex>
+<mso:MediaLengthInSeconds msdt:dt="string"></mso:MediaLengthInSeconds>
+<mso:MediaServiceImageTags msdt:dt="string"></mso:MediaServiceImageTags>
+<mso:lcf76f155ced4ddcb4097134ff3c332f msdt:dt="string"></mso:lcf76f155ced4ddcb4097134ff3c332f>
+</mso:CustomDocumentProperties>
+</xml><![endif]-->
+</head>
+<body>
+
+<!-- ── TOP BAR ── -->
+<div class="topbar">
+  <div class="brand">VECV<span>plan</span></div>
+  <div class="cycle-tag">S&amp;OP Cycle — Jul 2026</div>
+
+  <div class="phase-toggle">
+    <button class="phase-btn active" onclick="setPhase(0)">Phase 0</button>
+    <button class="phase-btn" onclick="setPhase(1)">Phase 1</button>
+  </div>
+
+  <!-- Cycle timeline -->
+  <div class="cycle-bar">
+    <div class="cy-step">
+      <div class="cy-node" onclick="switchScreen('dealer')">
+        <div class="cy-dot done">✓</div>
+        <div class="cy-label">Dealer</div>
+        <div class="cy-date">15 Jul</div>
+      </div>
+      <div class="cy-line done"></div>
+    </div>
+    <div class="cy-step">
+      <div class="cy-node" onclick="switchScreen('csm')">
+        <div class="cy-dot done">✓</div>
+        <div class="cy-label">CSM</div>
+        <div class="cy-date">16 Jul</div>
+      </div>
+      <div class="cy-line done"></div>
+    </div>
+    <div class="cy-step">
+      <div class="cy-node" onclick="switchScreen('rsm')">
+        <div class="cy-dot active">●</div>
+        <div class="cy-label active">RSM</div>
+        <div class="cy-date">17 Jul</div>
+      </div>
+      <div class="cy-line"></div>
+    </div>
+    <div class="cy-step">
+      <div class="cy-node" onclick="switchScreen('vh')">
+        <div class="cy-dot pend">4</div>
+        <div class="cy-label">VH</div>
+        <div class="cy-date">18 Jul</div>
+      </div>
+      <div class="cy-line"></div>
+    </div>
+    <div class="cy-step">
+      <div class="cy-node" onclick="switchScreen('iso')">
+        <div class="cy-dot pend">5</div>
+        <div class="cy-label">ISO</div>
+        <div class="cy-date">19 Jul</div>
+      </div>
+      <div class="cy-line"></div>
+    </div>
+    <div class="cy-node">
+      <div class="cy-dot pend">6</div>
+      <div class="cy-label">PPC</div>
+      <div class="cy-date">22 Jul</div>
+    </div>
+  </div>
+
+  <div class="topbar-right">
+    <div class="countdown-pill" id="countdown">Cut-off 02:14:38</div>
+    <div class="user-pill">
+      <div class="avatar">RK</div>
+      <div class="user-info">
+        <div class="user-name">Rajiv Kumar</div>
+        <div class="user-role">RSM · North</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SCREEN TABS ── -->
+<div class="screen-nav">
+  <div class="screen-tab active" id="tab-dealer" onclick="switchScreen('dealer')">
+    Screen 1 — Dealer Indent
+    <span class="tab-badge p0-only">LIVE</span>
+  </div>
+  <div class="screen-tab" id="tab-csm" onclick="switchScreen('csm')">
+    Screen 2 — CSM Review
+    <span class="tab-badge p0-only">LIVE</span>
+  </div>
+  <div class="screen-tab" id="tab-rsm" onclick="switchScreen('rsm')">
+    Screen 3 — RSM Review
+    <span class="tab-badge p0-only">LIVE</span>
+  </div>
+  <div class="screen-tab" id="tab-vh" onclick="switchScreen('vh')">
+    Screen 4 — VH Moderation
+    <span class="tab-badge p0-only">LIVE</span>
+  </div>
+  <div class="screen-tab" id="tab-iso" onclick="switchScreen('iso')">
+    Screen 5 — ISO Consolidation
+    <span class="tab-badge p0-only">LIVE</span>
+  </div>
+</div>
+
+<!-- ── MAIN ── -->
+<div class="main">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <span class="sidebar-section-label">Vertical</span>
+      <div class="sidebar-item active">LMD <span class="sidebar-count">42 FERTs</span></div>
+      <div class="sidebar-item">HD <span class="sidebar-count warn">18</span></div>
+      <div class="sidebar-item">Bus <span class="sidebar-count">11</span></div>
+      <div class="sidebar-item">All <span class="sidebar-count">71</span></div>
+    </div>
+    <div class="sidebar-section">
+      <span class="sidebar-section-label">Segment</span>
+      <div class="sidebar-item active">All segments</div>
+      <div class="sidebar-item">Runner only</div>
+      <div class="sidebar-item">Flagged only</div>
+    </div>
+    <div class="sidebar-section">
+      <span class="sidebar-section-label">Dealer status</span>
+      <div class="sidebar-status">
+        <div class="status-row">
+          <div class="status-dot dot-green"></div>
+          <div class="status-label">Submitted</div>
+          <div class="status-pct">52</div>
+        </div>
+        <div class="status-row">
+          <div class="status-dot dot-amber"></div>
+          <div class="status-label">In progress</div>
+          <div class="status-pct">6</div>
+        </div>
+        <div class="status-row">
+          <div class="status-dot dot-red"></div>
+          <div class="status-label">Not started</div>
+          <div class="status-pct">2</div>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <span class="sidebar-section-label">Quick nav</span>
+      <div class="sidebar-item">Flagged rows <span class="sidebar-count warn">3</span></div>
+      <div class="sidebar-item">Overrides <span class="sidebar-count warn">2</span></div>
+      <div class="sidebar-item">Export CSV</div>
+    </div>
+  </div>
+
+  <!-- ══════ SCREEN: DEALER ══════ -->
+  <div class="screen active" id="screen-dealer">
+    <div class="p0-ribbon" id="p0-ribbon-dealer">
+      <strong>Phase 0</strong> — Excluded columns are greyed. <span>System Recommended Indent, Statistical Forecast, Safety Stock Norm, Alerts will activate in Phase 1 (Aug 2026).</span>
+    </div>
+    <div class="page-hdr">
+      <div>
+        <div class="page-title">Dealer Indent — LMD Vertical</div>
+        <div class="page-sub">Jul 2026 · M1 weekly + M2/M3 monthly · Cut-off 15 Jul 23:59 · Dealer: Sharma Motors, Delhi NCR</div>
+      </div>
+      <span class="phase-badge p0" id="badge-dealer">Phase 0 · MVP</span>
+      <div class="page-hdr-right">
+        <button class="btn btn-secondary">Save draft</button>
+        <button class="btn btn-success">Submit indent ↑</button>
+      </div>
+    </div>
+    <div class="wk-toolbar">
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input class="wk-search" type="text" placeholder="Search FERT...">
+      </div>
+      <select class="wk-filter"><option>All segments</option><option>Runner</option><option>Slogger</option></select>
+      <div class="wk-divider"></div>
+      <span class="wk-label">Showing 6 of 42 LMD FERTs</span>
+    </div>
+    <div class="notice warn">
+      <strong>2 days until cut-off.</strong> 6 FERTs have no input yet. Submit by 15 Jul 23:59 or your CSM will be notified.
+      <span class="notice-action">Jump to empty →</span>
+    </div>
+    <div class="grid-scroll">
+      <table class="ptable">
+        <thead>
+          <tr>
+            <th colspan="3" class="cg-hdr" style="text-align:left">FERT</th>
+            <th colspan="3" class="cg-hdr cg-ref">Reference Data (Phase 0)</th>
+            <th colspan="3" class="cg-hdr" style="background:#4A6A88;font-size:9px" id="p1-ref-hdr">— Phase 1 Reference Columns —</th>
+            <th colspan="4" class="cg-hdr cg-inp">M1 Input (Weekly)</th>
+            <th colspan="2" class="cg-hdr cg-inp" style="background:#1E4A8A">M2 / M3</th>
+            <th colspan="2" class="cg-hdr cg-calc">Totals</th>
+          </tr>
+          <tr>
+            <th class="left sticky-col" style="min-width:80px">Code</th>
+            <th class="left sticky-col2" style="min-width:180px">Description</th>
+            <th class="left sticky-col3" style="min-width:60px">Seg</th>
+            <th style="min-width:72px">3M Avg</th>
+            <th style="min-width:72px">6M Avg</th>
+            <th style="min-width:72px">ABP Target</th>
+            <th class="th-p1" style="min-width:80px" id="th-sysrec">Sys Rec Indent</th>
+            <th class="th-p1" style="min-width:72px" id="th-statfc">Stat Forecast</th>
+            <th class="th-p1" style="min-width:72px" id="th-ssnorm">SS Norm</th>
+            <th style="min-width:72px">W1 Input</th>
+            <th style="min-width:72px">W2 Input</th>
+            <th style="min-width:72px">W3 Input</th>
+            <th style="min-width:72px">W4 Input</th>
+            <th style="min-width:72px">M2 Input</th>
+            <th style="min-width:72px">M3 Input</th>
+            <th style="min-width:72px">M1 Total</th>
+            <th style="min-width:72px">vs 6M Avg</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Row 1 -->
+          <tr>
+            <td class="td-sticky"><span class="fert-code">V4130CAF</span></td>
+            <td class="td-sticky2"><span class="fert-desc">LMD 4130 CNG Flatbed</span></td>
+            <td class="td-sticky3"><span class="seg-pill seg-R">R</span></td>
+            <td class="ref-val">84</td><td class="ref-val">91</td><td class="ref-val">95</td>
+            <td class="td-p1"><span class="p1-placeholder">Aug 2026</span></td>
+            <td class="td-p1"><span class="p1-placeholder">Aug 2026</span></td>
+            <td class="td-p1"><span class="p1-placeholder">Aug 2026</span></td>
+            <td><input class="indent-inp" value="24" type="number"></td>
+            <td><input class="indent-inp" value="23" type="number"></td>
+            <td><input class="indent-inp" value="23" type="number"></td>
+            <td><input class="indent-inp" value="22" type="number"></td>
+            <td><input class="indent-inp" value="88" type="number"></td>
+            <td><input class="indent-inp" value="82" type="number"></td>
+            <td class="calc-val calc-pos">92</td>
+            <td><span class="delta delta-up">+1%</span></td>
+          </tr>
+          <!-- Row 2 -->
+          <tr>
+            <td class="td-sticky"><span class="fert-code">V4030DZL</span></td>
+            <td class="td-sticky2"><span class="fert-desc">LMD 4030 Diesel Tipper</span></td>
+            <td class="td-sticky3"><span class="seg-pill seg-R">R</span></td>
+            <td class="ref-val">71</td><td class="ref-val">78</td><td class="ref-val">80</td>
+            <td class="td-p1"><span class="p1-placeholder">Aug 2026</span></td>
+            <td class="td-p1"><span class="p1-placeholder">Aug 2026</span></td>
+            <td class="td-p1"><span class="p1-placeholder">Aug 2026</span></td>
+            <td><input class="indent-inp" value="19" type="number"></td>
+            <td><input class="indent-inp" value="18" type="number"></td>
+            <td><input class="indent-inp" value="18" type="number"></td>
+            <td><input class="indent-inp" value="18" type="number"></td>
+            <td><input class="indent-inp" value="70" type="number"></td>
+            <td><input class="indent-inp" value="65" type="number"></td>
+            <td class="calc-val">73</td>
+            <td><span class="delta delta-dn">-6%</span></td>
+          </tr>
+          <!-- Row 3 — flagged -->
+          <tr>
+            <td class="td-sticky"><span class="fert-code">V5530TKR</span></td>
+            <td class="td-sticky2"><span class="fert-desc">LMD 5530 Tractor</span></td>
+            <td class="td-sticky3"><span class="seg-pill seg-S">S</span></td>
+            <td class="ref-val">42</td><td class="ref-val">48</td><td class="ref-val">52</td>
+            <td class="td-p1"><span class="p1-placeholder">Aug 2026</span></td>
+            <td class="td-p1"><span class="p1-placeholder">Aug 2026</span></td>
+            <td class="td-p1"><span class="p1-placeholder">Aug 2026</span></td>
+            <td><input class="indent-inp flag" value="9" type="number" title="Below 6M average"></td>
+            <td><input class="indent-inp flag" value="8" type="number"></td>
+            <td><input class="indent-inp flag" value="8" type="number"></td>
+            <td><input class="indent-inp flag" value="8" type="number"></td>
+            <td><input class="indent-inp" value="35" type="number"></td>
+            <td><input class="indent-inp" value="32" type="number"></td>
+            <td class="calc-val calc-neg">33</td>
+            <td><span class="delta delta-up">-31%</span></td>
+          </tr>
+          <!-- Row 4 -->
+          <tr>
+            <td class="td-sticky"><span class="fert-code">V4025EXP</span></td>
+            <td class="td-sticky2"><span class="fert-desc">LMD 4025 Export Variant</span></td>
+            <td class="td-sticky3"><span class="seg-pill seg-S">S</span></td>
+            <td class="ref-val">28</td><td class="ref-val">31</td><td class="ref-val">33</td>
+            <td class="td-p1"><span class="p1-placeholder">Aug 2026</span></td>
+            <td class="td-p1"><span class="p1-placeholder">Aug 2026</span></td>
+            <td class="td-p1"><span class="p1-placeholder">Aug 2026</span></td>
+            <td><input class="indent-inp" value="8" type="number"></td>
+            <td><input class="indent-inp" value="8" type="number"></td>
+            <td><input class="indent-inp" value="7" type="number"></td>
+            <td><input class="indent-inp" value="7" type="number"></td>
+            <td><input class="indent-inp" value="28" type="number"></td>
+            <td><input class="indent-inp" value="26" type="number"></td>
+            <td class="calc-val">30</td>
+            <td><span class="delta delta-dn">-3%</span></td>
+          </tr>
+          <!-- Row 5 — dagger -->
+          <tr>
+            <td class="td-sticky"><span class="fert-code">V6030HDT</span></td>
+            <td class="td-sticky2"><span class="fert-desc">LMD 6030 Heavy Duty Tipper</span></td>
+            <td class="td-sticky3"><span class="seg-pill seg-D">D</span></td>
+            <td class="ref-val">12</td><td class="ref-val">14</td><td class="ref-val">15</td>
+            <td class="td-p1"><span class="p1-placeholder">Aug 2026</span></td>
+            <td class="td-p1"><span class="p1-placeholder">Aug 2026</span></td>
+            <td class="td-p1"><span class="p1-placeholder">Aug 2026</span></td>
+            <td><input class="indent-inp" value="4" type="number"></td>
+            <td><input class="indent-inp" value="4" type="number"></td>
+            <td><input class="indent-inp" value="3" type="number"></td>
+            <td><input class="indent-inp" value="3" type="number"></td>
+            <td><input class="indent-inp" value="12" type="number"></td>
+            <td><input class="indent-inp" value="11" type="number"></td>
+            <td class="calc-val">14</td>
+            <td><span class="delta delta-flat">0%</span></td>
+          </tr>
+          <!-- Sub-total -->
+          <tr class="sub-total">
+            <td class="td-sticky" colspan="3"><strong>LMD Total (6 of 42 shown)</strong></td>
+            <td class="ref-val"><strong>237</strong></td><td class="ref-val"><strong>262</strong></td><td class="ref-val"><strong>275</strong></td>
+            <td class="td-p1" colspan="3"></td>
+            <td class="ref-val"><strong>64</strong></td>
+            <td class="ref-val"><strong>61</strong></td>
+            <td class="ref-val"><strong>59</strong></td>
+            <td class="ref-val"><strong>58</strong></td>
+            <td class="ref-val"><strong>233</strong></td>
+            <td class="ref-val"><strong>216</strong></td>
+            <td class="calc-val"><strong>242</strong></td>
+            <td><span class="delta delta-dn">-8%</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="summary-bar">
+      <div class="sum-item"><div class="sum-label">M1 Total</div><div class="sum-value">242</div></div>
+      <div class="sum-divider"></div>
+      <div class="sum-item"><div class="sum-label">vs 6M Avg</div><div class="sum-value warn">-8%</div></div>
+      <div class="sum-divider"></div>
+      <div class="sum-item"><div class="sum-label">vs ABP</div><div class="sum-value warn">88%</div></div>
+      <div class="sum-divider"></div>
+      <div class="sum-item"><div class="sum-label">Flagged rows</div><div class="sum-value alert">1</div></div>
+      <div class="sum-divider"></div>
+      <div class="sum-item"><div class="sum-label">Submission</div><div class="sum-value ok">Draft saved</div></div>
+      <div class="sum-right">
+        <span style="font-size:10px;color:var(--grey)">Last saved 14:32 IST</span>
+        <button class="btn btn-success">Submit indent ↑</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ SCREEN: CSM ══════ -->
+  <div class="screen" id="screen-csm">
+    <div class="p0-ribbon" id="p0-ribbon-csm"><strong>Phase 0</strong> — <span>Alert rules, Market Share report, EPS tab and IB/IS order review will activate in Phase 1.</span></div>
+    <div class="page-hdr">
+      <div><div class="page-title">CSM Demand Review — Delhi NCR Cluster</div>
+      <div class="page-sub">Jul 2026 · Reviews dealer indents + CSM enrichment · Cut-off 16 Jul 23:59 · CSM: Priya Mehta</div></div>
+      <span class="phase-badge p0" id="badge-csm">Phase 0 · MVP</span>
+      <div class="page-hdr-right">
+        <button class="btn btn-secondary">Export</button>
+        <button class="btn btn-success">Submit to RSM ↑</button>
+      </div>
+    </div>
+    <div class="inner-tabs">
+      <div class="inner-tab active">LMD Indent</div>
+      <div class="inner-tab">HD Indent</div>
+      <div class="inner-tab">Bus</div>
+      <div class="inner-tab dimmed" title="Phase 1">EPS (Phase 1)</div>
+      <div class="inner-tab dimmed" title="Phase 1">IB/IS Orders (Phase 1)</div>
+    </div>
+    <div class="wk-toolbar">
+      <select class="wk-filter"><option>All dealers (6)</option><option>Sharma Motors</option><option>Delhi Auto</option></select>
+      <select class="wk-filter"><option>All FERTs</option><option>Runner only</option></select>
+      <div class="wk-divider"></div>
+      <span class="wk-label">Cluster: Delhi NCR · 6 dealers · 42 LMD FERTs</span>
+    </div>
+    <div class="notice warn"><strong>Dealer submission incomplete.</strong> UP West: 2 dealers not yet submitted. Cut-off was 15 Jul. <span class="notice-action">Chase dealers →</span></div>
+    <div class="grid-scroll">
+      <table class="ptable">
+        <thead>
+          <tr>
+            <th colspan="3" class="cg-hdr" style="text-align:left">FERT</th>
+            <th colspan="3" class="cg-hdr cg-ref">Reference</th>
+            <th colspan="3" class="cg-hdr" style="background:#4A6A88;font-size:9px">— Phase 1 Columns —</th>
+            <th colspan="3" class="cg-hdr" style="background:#2C5F8A">Dealer Layer (read-only)</th>
+            <th colspan="4" class="cg-hdr cg-inp">CSM Input</th>
+            <th colspan="1" class="cg-hdr cg-calc">Delta</th>
+          </tr>
+          <tr>
+            <th class="left sticky-col">Code</th>
+            <th class="left sticky-col2">Description</th>
+            <th class="sticky-col3">Seg</th>
+            <th>3M Avg</th><th>6M Avg</th><th>ABP</th>
+            <th class="th-p1">Sys Rec</th>
+            <th class="th-p1">Alert</th>
+            <th class="th-p1">Mkt Share</th>
+            <th>Dealer M1</th><th>Dealer M2</th><th>Dealer M3</th>
+            <th>CSM M1</th><th>CSM M2</th><th>CSM M3</th>
+            <th>Override reason</th>
+            <th>CSM vs Dlr</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="td-sticky"><span class="fert-code">V4130CAF</span></td>
+            <td class="td-sticky2"><span class="fert-desc">LMD 4130 CNG Flatbed</span></td>
+            <td class="td-sticky3"><span class="seg-pill seg-R">R</span></td>
+            <td class="ref-val">310</td><td class="ref-val">330</td><td class="ref-val">345</td>
+            <td class="td-p1"><span class="p1-placeholder">Aug</span></td>
+            <td class="td-p1"><span class="p1-placeholder">—</span></td>
+            <td class="td-p1"><span class="p1-placeholder">—</span></td>
+            <td class="ref-val" style="color:var(--ink)">318</td>
+            <td class="ref-val" style="color:var(--ink)">295</td>
+            <td class="ref-val" style="color:var(--ink)">280</td>
+            <td><input class="indent-inp" value="325" type="number"></td>
+            <td><input class="indent-inp" value="300" type="number"></td>
+            <td><input class="indent-inp" value="285" type="number"></td>
+            <td><input style="width:110px;padding:2px 5px;border:1px solid var(--rule);border-radius:2px;font-size:10px;color:var(--ink)" placeholder="Reason (optional)"></td>
+            <td><span class="delta delta-up">+2%</span></td>
+          </tr>
+          <tr>
+            <td class="td-sticky"><span class="fert-code">V4030DZL</span></td>
+            <td class="td-sticky2"><span class="fert-desc">LMD 4030 Diesel Tipper</span></td>
+            <td class="td-sticky3"><span class="seg-pill seg-R">R</span></td>
+            <td class="ref-val">268</td><td class="ref-val">290</td><td class="ref-val">300</td>
+            <td class="td-p1"><span class="p1-placeholder">Aug</span></td>
+            <td class="td-p1"><span class="p1-placeholder">—</span></td>
+            <td class="td-p1"><span class="p1-placeholder">—</span></td>
+            <td class="ref-val" style="color:var(--ink)">275</td>
+            <td class="ref-val" style="color:var(--ink)">262</td>
+            <td class="ref-val" style="color:var(--ink)">250</td>
+            <td><input class="indent-inp" value="275" type="number"></td>
+            <td><input class="indent-inp" value="262" type="number"></td>
+            <td><input class="indent-inp" value="250" type="number"></td>
+            <td><input style="width:110px;padding:2px 5px;border:1px solid var(--rule);border-radius:2px;font-size:10px;color:var(--ink)" placeholder="Same as dealer"></td>
+            <td><span class="delta delta-flat">0%</span></td>
+          </tr>
+          <tr>
+            <td class="td-sticky"><span class="fert-code">V5530TKR</span></td>
+            <td class="td-sticky2"><span class="fert-desc">LMD 5530 Tractor</span></td>
+            <td class="td-sticky3"><span class="seg-pill seg-S">S</span></td>
+            <td class="ref-val">158</td><td class="ref-val">172</td><td class="ref-val">180</td>
+            <td class="td-p1"><span class="p1-placeholder">Aug</span></td>
+            <td class="td-p1"><span class="p1-placeholder">—</span></td>
+            <td class="td-p1"><span class="p1-placeholder">—</span></td>
+            <td class="ref-val" style="color:var(--red)">124</td>
+            <td class="ref-val" style="color:var(--red)">115</td>
+            <td class="ref-val" style="color:var(--red)">110</td>
+            <td><input class="indent-inp flag" value="148" type="number"></td>
+            <td><input class="indent-inp" value="138" type="number"></td>
+            <td><input class="indent-inp" value="130" type="number"></td>
+            <td><select style="width:110px;padding:2px 5px;border:1px solid #D97706;border-radius:2px;font-size:10px;background:var(--amber-lt)"><option>Select reason</option><option selected>Low dealer participation</option><option>Market downturn</option></select></td>
+            <td><span class="delta delta-up">+19%</span></td>
+          </tr>
+          <tr class="sub-total">
+            <td class="td-sticky" colspan="3"><strong>Cluster Total (3 of 42)</strong></td>
+            <td class="ref-val"><strong>736</strong></td><td class="ref-val"><strong>792</strong></td><td class="ref-val"><strong>825</strong></td>
+            <td class="td-p1" colspan="3"></td>
+            <td class="ref-val"><strong>717</strong></td><td class="ref-val"><strong>672</strong></td><td class="ref-val"><strong>640</strong></td>
+            <td class="calc-val"><strong>748</strong></td>
+            <td class="calc-val"><strong>700</strong></td>
+            <td class="calc-val"><strong>665</strong></td>
+            <td></td>
+            <td><span class="delta delta-up">+4%</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="summary-bar">
+      <div class="sum-item"><div class="sum-label">CSM M1 Total</div><div class="sum-value">748</div></div>
+      <div class="sum-divider"></div>
+      <div class="sum-item"><div class="sum-label">vs Dealer Total</div><div class="sum-value warn">+4%</div></div>
+      <div class="sum-divider"></div>
+      <div class="sum-item"><div class="sum-label">vs ABP</div><div class="sum-value warn">91%</div></div>
+      <div class="sum-divider"></div>
+      <div class="sum-item"><div class="sum-label">Overrides</div><div class="sum-value">1 with reason</div></div>
+      <div class="sum-divider"></div>
+      <div class="sum-item"><div class="sum-label">Dealer submission</div><div class="sum-value warn">4 of 6</div></div>
+      <div class="sum-right">
+        <button class="btn btn-success">Submit to RSM ↑</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ SCREEN: RSM ══════ -->
+  <div class="screen" id="screen-rsm">
+    <div class="p0-ribbon" id="p0-ribbon-rsm"><strong>Phase 0</strong> — <span>Alert rules (ABP deviation, pipeline comparison), TIV/market share columns activate in Phase 1.</span></div>
+    <div class="page-hdr">
+      <div><div class="page-title">RSM Demand Review — North Region · LMD Vertical</div>
+      <div class="page-sub">Jul 2026 · Reviews CSM + dealer layers · Override at FERT or region level · Cut-off 17 Jul 23:59</div></div>
+      <span class="phase-badge p0" id="badge-rsm">Phase 0 · MVP</span>
+      <div class="page-hdr-right">
+        <select class="wk-filter" style="height:30px">
+          <option>All clusters</option><option>Delhi NCR</option><option>Punjab</option>
+        </select>
+        <button class="btn btn-success">Submit to VH ↑</button>
+      </div>
+    </div>
+    <div class="wk-toolbar">
+      <select class="wk-filter"><option>LMD</option><option>HD</option><option>Bus</option></select>
+      <select class="wk-filter"><option>All segments</option><option>Runner</option></select>
+      <div class="wk-divider"></div>
+      <span class="wk-label">North Region · 4 clusters · 42 LMD FERTs · Cut-off in 02h 14m</span>
+    </div>
+    <div class="notice info"><strong>CSM inputs received</strong> for 3 of 4 clusters. Haridwar cluster pending — auto-submit fires at 16 Jul 23:59. <span class="notice-action">View status →</span></div>
+    <div class="grid-scroll">
+      <table class="ptable">
+        <thead>
+          <tr>
+            <th colspan="3" class="cg-hdr" style="text-align:left">FERT</th>
+            <th colspan="3" class="cg-hdr cg-ref">Reference</th>
+            <th colspan="2" class="cg-hdr" style="background:#4A6A88;font-size:9px">— Phase 1 —</th>
+            <th colspan="3" class="cg-hdr" style="background:#2C5F8A">CSM Layer (read-only)</th>
+            <th colspan="4" class="cg-hdr cg-inp">RSM Input</th>
+            <th colspan="2" class="cg-hdr cg-calc">Analysis</th>
+          </tr>
+          <tr>
+            <th class="left sticky-col">Code</th>
+            <th class="left sticky-col2">Description</th>
+            <th class="sticky-col3">Seg</th>
+            <th>3M Avg</th><th>6M Avg</th><th>ABP</th>
+            <th class="th-p1">Alert</th>
+            <th class="th-p1">TIV / MS</th>
+            <th>CSM M1</th><th>CSM M2</th><th>CSM M3</th>
+            <th>RSM M1</th><th>RSM M2</th><th>RSM M3</th>
+            <th>Override reason</th>
+            <th>RSM vs CSM</th>
+            <th>vs ABP</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="td-sticky"><span class="fert-code">V4130CAF</span></td>
+            <td class="td-sticky2"><span class="fert-desc">LMD 4130 CNG Flatbed</span></td>
+            <td class="td-sticky3"><span class="seg-pill seg-R">R</span></td>
+            <td class="ref-val">1,240</td><td class="ref-val">1,310</td><td class="ref-val">1,380</td>
+            <td class="td-p1"><span class="p1-placeholder">—</span></td>
+            <td class="td-p1"><span class="p1-placeholder">—</span></td>
+            <td class="ref-val" style="color:var(--ink)">1,280</td>
+            <td class="ref-val" style="color:var(--ink)">1,195</td>
+            <td class="ref-val" style="color:var(--ink)">1,140</td>
+            <td><input class="indent-inp" value="1295" type="number" style="width:72px"></td>
+            <td><input class="indent-inp" value="1210" type="number" style="width:72px"></td>
+            <td><input class="indent-inp" value="1155" type="number" style="width:72px"></td>
+            <td><input style="width:120px;padding:2px 5px;border:1px solid var(--rule);border-radius:2px;font-size:10px" placeholder="Reason if changed"></td>
+            <td><span class="delta delta-up">+1%</span></td>
+            <td><span class="delta delta-dn">94%</span></td>
+          </tr>
+          <tr>
+            <td class="td-sticky"><span class="fert-code">V5530TKR</span></td>
+            <td class="td-sticky2"><span class="fert-desc">LMD 5530 Tractor</span></td>
+            <td class="td-sticky3"><span class="seg-pill seg-S">S</span></td>
+            <td class="ref-val">592</td><td class="ref-val">630</td><td class="ref-val">672</td>
+            <td class="td-p1"><span class="p1-placeholder">—</span></td>
+            <td class="td-p1"><span class="p1-placeholder">—</span></td>
+            <td class="ref-val" style="color:var(--red)">504</td>
+            <td class="ref-val" style="color:var(--red)">470</td>
+            <td class="ref-val" style="color:var(--red)">448</td>
+            <td><input class="indent-inp flag" value="540" type="number" style="width:72px"></td>
+            <td><input class="indent-inp" value="505" type="number" style="width:72px"></td>
+            <td><input class="indent-inp" value="480" type="number" style="width:72px"></td>
+            <td><select style="width:120px;padding:2px 5px;border:1px solid #D97706;border-radius:2px;font-size:10px;background:var(--amber-lt)"><option>Select reason</option><option selected>Comp. pressure Q3</option></select></td>
+            <td><span class="delta delta-up">+7%</span></td>
+            <td><span class="delta delta-up">80%</span></td>
+          </tr>
+          <tr class="sub-total">
+            <td class="td-sticky" colspan="3"><strong>North Region Total (2 of 42)</strong></td>
+            <td class="ref-val"><strong>1,832</strong></td><td class="ref-val"><strong>1,940</strong></td><td class="ref-val"><strong>2,052</strong></td>
+            <td class="td-p1" colspan="2"></td>
+            <td class="ref-val"><strong>1,784</strong></td><td class="ref-val"><strong>1,665</strong></td><td class="ref-val"><strong>1,588</strong></td>
+            <td class="calc-val"><strong>1,835</strong></td>
+            <td class="calc-val"><strong>1,715</strong></td>
+            <td class="calc-val"><strong>1,635</strong></td>
+            <td></td>
+            <td><span class="delta delta-up">+3%</span></td>
+            <td><span class="delta delta-dn">89%</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="summary-bar">
+      <div class="sum-item"><div class="sum-label">RSM M1 Total</div><div class="sum-value">1,835</div></div>
+      <div class="sum-divider"></div>
+      <div class="sum-item"><div class="sum-label">vs CSM</div><div class="sum-value ok">+3%</div></div>
+      <div class="sum-divider"></div>
+      <div class="sum-item"><div class="sum-label">vs ABP</div><div class="sum-value warn">89%</div></div>
+      <div class="sum-divider"></div>
+      <div class="sum-item"><div class="sum-label">Overrides w/ reason</div><div class="sum-value">1 of 1</div></div>
+      <div class="sum-right">
+        <span style="font-size:10px;color:var(--grey)">Cut-off 17 Jul 23:59</span>
+        <button class="btn btn-success">Submit to VH ↑</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ SCREEN: VH ══════ -->
+  <div class="screen" id="screen-vh">
+    <div class="p0-ribbon" id="p0-ribbon-vh"><strong>Phase 0</strong> — <span>Revenue/GM columns, days-of-coverage stock review, VH alert rules activate in Phase 1.</span></div>
+    <div class="page-hdr">
+      <div><div class="page-title">Vertical Head Moderation — LMD Vertical · All Regions</div>
+      <div class="page-sub">Jul 2026 · Final sales-side moderation before ISO · Cut-off 18 Jul 23:59 · VH: Arun Joshi</div></div>
+      <span class="phase-badge p0" id="badge-vh">Phase 0 · MVP</span>
+      <div class="page-hdr-right">
+        <button class="btn btn-secondary">Print view</button>
+        <button class="btn btn-success">Submit to ISO ↑</button>
+      </div>
+    </div>
+    <div class="wk-toolbar">
+      <select class="wk-filter"><option>All regions (5)</option><option>North</option><option>South</option><option>West</option><option>East</option></select>
+      <select class="wk-filter"><option>LMD</option></select>
+      <div class="wk-divider"></div>
+      <span class="wk-label">All 5 regions · 42 LMD FERTs · RSM inputs received 5/5</span>
+    </div>
+    <div class="notice ok"><strong>All RSM inputs received.</strong> 5 of 5 regions submitted. Review and moderate before 18 Jul 23:59.</div>
+    <div class="grid-scroll">
+      <table class="ptable">
+        <thead>
+          <tr>
+            <th colspan="3" class="cg-hdr" style="text-align:left">FERT</th>
+            <th colspan="3" class="cg-hdr cg-ref">Reference</th>
+            <th colspan="3" class="cg-hdr" style="background:#4A6A88;font-size:9px">— Phase 1 —</th>
+            <th colspan="3" class="cg-hdr" style="background:#2C5F8A">Sales Hierarchy (read-only)</th>
+            <th colspan="4" class="cg-hdr cg-inp">VH Input</th>
+            <th colspan="2" class="cg-hdr cg-calc">Analysis</th>
+          </tr>
+          <tr>
+            <th class="left sticky-col">Code</th>
+            <th class="left sticky-col2">Description</th>
+            <th class="sticky-col3">Seg</th>
+            <th>3M Avg</th><th>6M Avg</th><th>ABP</th>
+            <th class="th-p1">Revenue</th>
+            <th class="th-p1">GM%</th>
+            <th class="th-p1">Days Cover</th>
+            <th>Dealer M1</th><th>CSM M1</th><th>RSM M1</th>
+            <th>VH M1</th><th>VH M2</th><th>VH M3</th>
+            <th>Override reason</th>
+            <th>VH vs RSM</th>
+            <th>vs ABP</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="td-sticky"><span class="fert-code">V4130CAF</span></td>
+            <td class="td-sticky2"><span class="fert-desc">LMD 4130 CNG Flatbed</span></td>
+            <td class="td-sticky3"><span class="seg-pill seg-R">R</span></td>
+            <td class="ref-val">5,840</td><td class="ref-val">6,210</td><td class="ref-val">6,900</td>
+            <td class="td-p1"><span class="p1-placeholder">—</span></td>
+            <td class="td-p1"><span class="p1-placeholder">—</span></td>
+            <td class="td-p1"><span class="p1-placeholder">—</span></td>
+            <td class="ref-val" style="color:var(--ink)">5,980</td>
+            <td class="ref-val" style="color:var(--ink)">6,050</td>
+            <td class="ref-val" style="color:var(--ink)">6,120</td>
+            <td><input class="indent-inp" value="6200" type="number" style="width:72px"></td>
+            <td><input class="indent-inp" value="5800" type="number" style="width:72px"></td>
+            <td><input class="indent-inp" value="5500" type="number" style="width:72px"></td>
+            <td><select style="width:120px;padding:2px 5px;border:1px solid var(--rule);border-radius:2px;font-size:10px"><option selected>Positive market signal</option></select></td>
+            <td><span class="delta delta-up">+1%</span></td>
+            <td><span class="delta delta-dn">90%</span></td>
+          </tr>
+          <tr>
+            <td class="td-sticky"><span class="fert-code">V5530TKR</span></td>
+            <td class="td-sticky2"><span class="fert-desc">LMD 5530 Tractor</span></td>
+            <td class="td-sticky3"><span class="seg-pill seg-S">S</span></td>
+            <td class="ref-val">2,780</td><td class="ref-val">2,960</td><td class="ref-val">3,360</td>
+            <td class="td-p1"><span class="p1-placeholder">—</span></td>
+            <td class="td-p1"><span class="p1-placeholder">—</span></td>
+            <td class="td-p1"><span class="p1-placeholder">—</span></td>
+            <td class="ref-val" style="color:var(--red)">2,420</td>
+            <td class="ref-val" style="color:var(--red)">2,380</td>
+            <td class="ref-val" style="color:var(--red)">2,540</td>
+            <td><input class="indent-inp flag" value="2640" type="number" style="width:72px"></td>
+            <td><input class="indent-inp" value="2480" type="number" style="width:72px"></td>
+            <td><input class="indent-inp" value="2380" type="number" style="width:72px"></td>
+            <td><select style="width:120px;padding:2px 5px;border:1px solid #D97706;border-radius:2px;font-size:10px;background:var(--amber-lt)"><option selected>Comp. headwinds</option></select></td>
+            <td><span class="delta delta-up">+4%</span></td>
+            <td><span class="delta delta-up">79%</span></td>
+          </tr>
+          <tr class="sub-total">
+            <td class="td-sticky" colspan="3"><strong>LMD Vertical Total</strong></td>
+            <td class="ref-val"><strong>8,620</strong></td><td class="ref-val"><strong>9,170</strong></td><td class="ref-val"><strong>10,260</strong></td>
+            <td class="td-p1" colspan="3"></td>
+            <td class="ref-val"><strong>8,400</strong></td><td class="ref-val"><strong>8,430</strong></td><td class="ref-val"><strong>8,660</strong></td>
+            <td class="calc-val"><strong>8,840</strong></td>
+            <td class="calc-val"><strong>8,280</strong></td>
+            <td class="calc-val"><strong>7,880</strong></td>
+            <td></td>
+            <td><span class="delta delta-up">+2%</span></td>
+            <td><span class="delta delta-up">86%</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="summary-bar">
+      <div class="sum-item"><div class="sum-label">VH M1 Total</div><div class="sum-value">8,840</div></div>
+      <div class="sum-divider"></div>
+      <div class="sum-item"><div class="sum-label">vs RSM</div><div class="sum-value ok">+2%</div></div>
+      <div class="sum-divider"></div>
+      <div class="sum-item"><div class="sum-label">vs ABP</div><div class="sum-value warn">86%</div></div>
+      <div class="sum-divider"></div>
+      <div class="sum-item"><div class="sum-label">RSM inputs</div><div class="sum-value ok">5/5</div></div>
+      <div class="sum-right">
+        <button class="btn btn-success">Submit to ISO ↑</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ SCREEN: ISO ══════ -->
+  <div class="screen" id="screen-iso">
+    <div class="p0-ribbon" id="p0-ribbon-iso"><strong>Phase 0</strong> — <span>IS/IB tabs, CKD, EPS, WIP/RGP netting, automated SS norm, backlog management activate in Phase 1.</span></div>
+    <div class="page-hdr">
+      <div><div class="page-title">ISO Moderation & Demand Consolidation</div>
+      <div class="page-sub">Jul 2026 · All layers consolidated · Net production plan to PPC · Cut-off 19 Jul 00:00</div></div>
+      <span class="phase-badge p0" id="badge-iso">Phase 0 · MVP</span>
+      <div class="page-hdr-right">
+        <button class="btn btn-secondary">Export plan CSV</button>
+        <button class="btn btn-success" onclick="alert('Final plan submitted to PPC.')">Release to PPC ↑</button>
+      </div>
+    </div>
+    <div class="inner-tabs">
+      <div class="inner-tab active">Consolidation & Netting</div>
+      <div class="inner-tab dimmed">IS Demand (Phase 1)</div>
+      <div class="inner-tab dimmed">IB Demand (Phase 1)</div>
+      <div class="inner-tab dimmed">CKD / EPS (Phase 1)</div>
+    </div>
+
+    <!-- Netting formula -->
+    <div class="netting-panel">
+      <div class="netting-title">Demand Netting — LMD Vertical · Jul 2026</div>
+      <div class="netting-formula">
+        <div class="nf-block">
+          <span class="nf-val">9,950</span>
+          <span class="nf-label">VH Final Indent</span>
+        </div>
+        <span class="nf-op">+</span>
+        <div class="nf-block">
+          <input class="indent-inp" value="420" type="number" style="width:72px;text-align:center" title="Manually entered by ISO in Phase 0">
+          <span class="nf-label" style="color:var(--amber)">Safety Stock (manual)</span>
+        </div>
+        <span class="nf-op">−</span>
+        <div class="nf-block">
+          <span class="nf-val" style="color:var(--teal)">1,214</span>
+          <span class="nf-label">FG on Hand (SAP)</span>
+        </div>
+        <span class="nf-op" style="font-size:18px">=</span>
+        <div class="nf-block">
+          <span class="nf-result">9,156</span>
+          <span class="nf-label" style="color:var(--green)">Net Production Req.</span>
+        </div>
+        <div style="margin-left:20px;padding-left:20px;border-left:1px solid var(--rule)">
+          <div class="data-age fresh">FG data: Today 06:14 IST ✓</div>
+          <div style="font-size:10px;color:var(--amber);margin-top:4px">Phase 1: WIP + RGP also netted, SS norm auto-calculated</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="notice warn"><strong>2 VH indents not yet received.</strong> HD Vertical (auto-submit 18 Jul 23:59 pending) and Bus Vertical (submitted). Cannot release to PPC until all verticals submitted or ISO overrides.</div>
+
+    <div class="grid-scroll">
+      <table class="ptable">
+        <thead>
+          <tr>
+            <th colspan="3" class="cg-hdr" style="text-align:left">FERT</th>
+            <th colspan="2" class="cg-hdr cg-ref">Reference</th>
+            <th colspan="4" class="cg-hdr" style="background:#2C5F8A">All Layers (read-only)</th>
+            <th colspan="3" class="cg-hdr cg-inp">ISO Override</th>
+            <th colspan="3" class="cg-hdr cg-calc">Netting Output</th>
+          </tr>
+          <tr>
+            <th class="left sticky-col">Code</th>
+            <th class="left sticky-col2">Description</th>
+            <th class="sticky-col3">Seg</th>
+            <th>3M Avg</th><th>ABP</th>
+            <th>Dealer M1</th><th>CSM M1</th><th>RSM M1</th><th>VH M1</th>
+            <th>ISO Override M1</th><th>Override reason</th><th>Final M1</th>
+            <th>FG on Hand</th><th>SS Qty</th><th>Net Prod Req</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="td-sticky"><span class="fert-code">V4130CAF</span></td>
+            <td class="td-sticky2"><span class="fert-desc">LMD 4130 CNG Flatbed</span></td>
+            <td class="td-sticky3"><span class="seg-pill seg-R">R</span></td>
+            <td class="ref-val">5,840</td><td class="ref-val">6,900</td>
+            <td class="ref-val">5,980</td><td class="ref-val">6,050</td><td class="ref-val">6,120</td>
+            <td class="ref-val" style="color:var(--ink);font-weight:500">6,200</td>
+            <td><input class="indent-inp" placeholder="—" type="number" style="width:80px"></td>
+            <td><input style="width:100px;padding:2px 5px;border:1px solid var(--rule);border-radius:2px;font-size:10px" placeholder="Reason if used"></td>
+            <td class="calc-val" style="color:var(--blue);font-weight:600">6,200</td>
+            <td class="ref-val" style="color:var(--teal)">312</td>
+            <td class="ref-val">60</td>
+            <td class="calc-val calc-pos" style="font-size:13px"><strong>5,948</strong></td>
+          </tr>
+          <tr>
+            <td class="td-sticky"><span class="fert-code">V5530TKR</span></td>
+            <td class="td-sticky2"><span class="fert-desc">LMD 5530 Tractor</span></td>
+            <td class="td-sticky3"><span class="seg-pill seg-S">S</span></td>
+            <td class="ref-val">2,780</td><td class="ref-val">3,360</td>
+            <td class="ref-val">2,420</td><td class="ref-val">2,380</td><td class="ref-val">2,540</td>
+            <td class="ref-val" style="color:var(--red);font-weight:500">2,640</td>
+            <td><input class="indent-inp flag" value="2800" type="number" style="width:80px" title="ISO increased vs VH"></td>
+            <td><select style="width:100px;padding:2px 5px;border:1px solid #D97706;border-radius:2px;font-size:10px;background:var(--amber-lt)"><option selected>Low dealer sub.</option></select></td>
+            <td class="calc-val" style="color:var(--blue);font-weight:600">2,800</td>
+            <td class="ref-val" style="color:var(--teal)">186</td>
+            <td class="ref-val">35</td>
+            <td class="calc-val calc-pos"><strong>2,649</strong></td>
+          </tr>
+          <tr class="sub-total">
+            <td class="td-sticky" colspan="3"><strong>LMD Total</strong></td>
+            <td class="ref-val"><strong>8,620</strong></td><td class="ref-val"><strong>10,260</strong></td>
+            <td class="ref-val"><strong>8,400</strong></td><td class="ref-val"><strong>8,430</strong></td><td class="ref-val"><strong>8,660</strong></td>
+            <td class="ref-val"><strong>8,840</strong></td>
+            <td colspan="2"></td>
+            <td class="calc-val"><strong>9,000</strong></td>
+            <td class="ref-val"><strong>498</strong></td>
+            <td class="ref-val"><strong>95</strong></td>
+            <td class="calc-val" style="font-size:14px;color:var(--green)"><strong>8,597</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="summary-bar">
+      <div class="sum-item"><div class="sum-label">Final M1 (all verticals)</div><div class="sum-value">9,950</div></div>
+      <div class="sum-divider"></div>
+      <div class="sum-item"><div class="sum-label">FG on Hand</div><div class="sum-value ok">1,214</div></div>
+      <div class="sum-divider"></div>
+      <div class="sum-item"><div class="sum-label">SS (manual)</div><div class="sum-value warn">420</div></div>
+      <div class="sum-divider"></div>
+      <div class="sum-item"><div class="sum-label">Net Prod Req</div><div class="sum-value ok" style="font-size:18px">9,156</div></div>
+      <div class="sum-divider"></div>
+      <div class="sum-item"><div class="sum-label">VH inputs</div><div class="sum-value warn">2/3 pending</div></div>
+      <div class="sum-right">
+        <button class="btn btn-amber" disabled>Release blocked — 2 VH pending</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end main -->
+
+<script>
+let currentPhase = 0;
+let currentScreen = 'dealer';
+const screens = ['dealer','csm','rsm','vh','iso'];
+
+function switchScreen(name) {
+  screens.forEach(s => {
+    document.getElementById('screen-'+s).classList.toggle('active', s===name);
+    document.getElementById('tab-'+s).classList.toggle('active', s===name);
+  });
+  currentScreen = name;
+}
+
+function setPhase(p) {
+  currentPhase = p;
+  document.querySelectorAll('.phase-btn').forEach((b,i) => b.classList.toggle('active', i===p));
+
+  // Toggle Phase 1 columns
+  const p1Hidden = (p===0);
+  document.querySelectorAll('.td-p1').forEach(el => {
+    el.style.opacity = p1Hidden ? '0.45' : '1';
+  });
+  document.querySelectorAll('.th-p1').forEach(el => {
+    el.style.opacity = p1Hidden ? '0.5' : '1';
+    el.style.color = p1Hidden ? '#A0B4C4' : 'var(--ink)';
+    el.style.background = p1Hidden ? 'var(--grey-lt)' : 'var(--surface2)';
+    if (!p1Hidden) { el.style.fontWeight='600'; }
+  });
+  document.querySelectorAll('.p1-placeholder').forEach(el => {
+    el.textContent = p1Hidden ? 'Aug 2026' : '—';
+    el.style.fontStyle = p1Hidden ? 'italic' : 'normal';
+    el.style.color = p1Hidden ? '#A0B4C4' : 'var(--grey)';
+  });
+  document.querySelectorAll('.p0-ribbon').forEach(el => {
+    el.style.display = p1Hidden ? 'flex' : 'none';
+  });
+  document.querySelectorAll('[id^="badge-"]').forEach(el => {
+    if (p===1) { el.textContent='Phase 1 · Full Build'; el.className='phase-badge p1'; }
+    else { el.textContent='Phase 0 · MVP'; el.className='phase-badge p0'; }
+  });
+  document.querySelectorAll('.inner-tab.dimmed').forEach(el => {
+    if (p===1) { el.classList.remove('dimmed'); }
+    else { el.classList.add('dimmed'); }
+  });
+
+  // Show/hide P1 ref header text
+  const refHdr = document.getElementById('p1-ref-hdr');
+  if (refHdr) refHdr.textContent = p1Hidden ? '— Phase 1 Reference Columns —' : 'System Reference Columns';
+}
+
+// Countdown
+function updateCountdown() {
+  const el = document.getElementById('countdown');
+  const now = new Date();
+  const cutoff = new Date(now); cutoff.setHours(23,59,59);
+  let diff = Math.max(0, cutoff - now);
+  const h = String(Math.floor(diff/3600000)).padStart(2,'0');
+  const m = String(Math.floor(diff%3600000/60000)).padStart(2,'0');
+  const s = String(Math.floor(diff%60000/1000)).padStart(2,'0');
+  el.textContent = `Cut-off ${h}:${m}:${s}`;
+}
+setInterval(updateCountdown, 1000);
+updateCountdown();
+</script>
+</body>
+</html>

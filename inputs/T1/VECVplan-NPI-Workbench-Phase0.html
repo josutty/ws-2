@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VECVplan — NPI Workbench (Phase 0)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0D1B2A;--ink2:#1A2E42;--ink3:#2C4159;--grey:#5A6E82;--grey-lt:#E8EDF2;
+  --rule:#D1DAE3;--rule-lt:#EBF0F5;--bg:#F0F4F8;--surface:#FFFFFF;--s2:#F7F9FB;
+  --navy:#0B2545;--blue:#1565C0;--blue-lt:#E3EEFF;--blue-mid:#1976D2;
+  --lmd:#1565C0;--lmd-lt:#E3EEFF;--hd:#6A1B9A;--hd-lt:#F3E5F5;--bus:#00695C;--bus-lt:#E0F2F1;
+  --green:#1B5E20;--green-lt:#E8F5E9;--amber:#E65100;--amber-lt:#FFF3E0;--red:#B71C1C;--red-lt:#FEECEC;--teal:#00695C;
+  --run:#2E7D32;--run-lt:#E8F5E9;--slog:#E65100;--slog-lt:#FFF3E0;--dag:#C62828;--dag-lt:#FEECEC;
+  --enrich:#0277BD;--enrich-lt:#E1F5FE;
+  --font:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;--r:4px;
+  --sh:0 1px 3px rgba(13,27,42,.08);--sh2:0 2px 8px rgba(13,27,42,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);font-size:13px;color:var(--ink);background:var(--bg);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+/* LOGIN */
+#loginScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;
+  background:linear-gradient(135deg,var(--navy) 0%,#1A3A6B 60%,#0E6B8A 100%);position:relative;overflow:hidden;}
+#loginScreen::before{content:'';position:absolute;top:-20%;right:-10%;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(21,101,192,.25),transparent 70%);}
+#loginScreen::after{content:'';position:absolute;bottom:-15%;left:-5%;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(0,105,92,.2),transparent 70%);}
+.login-wrap{display:flex;gap:20px;position:relative;z-index:1;align-items:stretch;}
+.login-card{background:var(--surface);border-radius:12px;width:520px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;}
+.login-header{background:var(--navy);padding:24px 30px 20px;display:flex;align-items:center;gap:12px;}
+.login-logo{font-size:21px;font-weight:700;color:#fff;}
+.login-logo span{color:#7AB3E8;}
+.login-badge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:4px;padding:3px 10px;font-size:10px;color:#A8C4DC;margin-left:auto;}
+.login-body{padding:24px 30px;}
+.login-title{font-size:17px;font-weight:700;margin-bottom:4px;}
+.login-sub{font-size:12px;color:var(--grey);margin-bottom:20px;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--ink2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.03em;}
+.field input,.field select{width:100%;height:38px;padding:0 12px;border:1.5px solid var(--rule);border-radius:var(--r);font-size:13px;font-family:var(--font);color:var(--ink);}
+.field input:focus,.field select:focus{outline:none;border-color:var(--blue);background:var(--blue-lt);}
+.login-divider{display:flex;align-items:center;gap:10px;margin:18px 0;color:var(--grey);font-size:11px;}
+.login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:var(--rule);}
+.vertical-pills{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px;}
+.vpill{border:1.5px solid var(--rule);border-radius:6px;padding:9px 6px;text-align:center;cursor:pointer;transition:all .15s;}
+.vpill.lmd{border-color:var(--lmd);background:var(--lmd-lt);}
+.vpill.hd{border-color:var(--hd);background:var(--hd-lt);}
+.vpill.bus{border-color:var(--bus);background:var(--bus-lt);}
+.vpill-name{font-size:12px;font-weight:700;margin-bottom:1px;}
+.vpill.lmd .vpill-name{color:var(--lmd);}
+.vpill.hd .vpill-name{color:var(--hd);}
+.vpill.bus .vpill-name{color:var(--bus);}
+.vpill-sub{font-size:8px;color:var(--grey);}
+.subvert-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;}
+.svpill{border:1.5px solid var(--rule);border-radius:14px;padding:5px 12px;font-size:11px;font-weight:600;color:var(--ink2);cursor:pointer;transition:all .12s;}
+.svpill.active{border-color:var(--blue);background:var(--blue-lt);color:var(--blue);}
+.svpill:hover{border-color:var(--blue);}
+.login-btn{width:100%;height:40px;background:var(--blue);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);transition:background .12s;}
+.login-btn:hover{background:var(--blue-mid);}
+.login-note{font-size:10px;color:var(--grey);text-align:center;margin-top:12px;line-height:1.5;}
+.login-tabs{display:flex;border-bottom:1px solid var(--rule);}
+.login-tab{flex:1;padding:14px;text-align:center;cursor:pointer;font-size:13px;font-weight:600;color:var(--grey);border-bottom:2px solid transparent;transition:all .15s;}
+.login-tab.active{color:var(--blue);border-bottom-color:var(--blue);background:#FAFCFF;}
+.login-panel{padding:24px 30px;}
+.login-lane-hdr{font-size:10px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.login-role-grid{display:grid;gap:8px;margin-bottom:16px;}
+.login-role-grid.cols-2{grid-template-columns:1fr 1fr;}
+.login-role-grid.cols-3{grid-template-columns:1fr 1fr 1fr;}
+.login-role{border:1px solid var(--rule);border-radius:6px;padding:10px 12px;cursor:pointer;transition:all .12s;}
+.login-role:hover{border-color:var(--blue);background:var(--blue-lt);}
+.login-role-name{font-size:13px;font-weight:600;color:var(--ink);}
+.login-role-desc{font-size:10px;color:var(--grey);margin-top:2px;}
+.login-role.coco{border-color:#E0F2F1;background:#F7FDFC;}
+.login-role.coco:hover{border-color:var(--teal);}
+.login-role.coco .login-role-name{color:var(--teal);}
+.login-role.iso{border-color:#E1F5FE;background:#F8FDFF;}
+.login-role.iso:hover{border-color:var(--enrich);}
+.login-role.iso .login-role-name{color:var(--enrich);}
+.login-sep{display:flex;align-items:center;gap:10px;margin:16px 0;color:var(--grey);font-size:11px;}
+.login-sep::before,.login-sep::after{content:'';flex:1;height:1px;background:var(--rule);}
+
+/* APP */
+.app{display:none;flex-direction:column;height:100vh;}
+.app.active{display:flex;}
+.topbar{height:46px;background:var(--navy);border-bottom:1px solid var(--ink3);display:flex;align-items:center;padding:0 14px;gap:14px;flex-shrink:0;}
+.brand{font-weight:700;font-size:13px;color:#fff;white-space:nowrap;}
+.brand span{color:#7AB3E8;}
+.divpipe{width:1px;height:20px;background:var(--ink3);}
+.persona-switch{display:flex;align-items:center;gap:6px;background:var(--ink2);border-radius:6px;padding:3px;}
+.psw-label{font-size:8px;color:#5A7A96;text-transform:uppercase;letter-spacing:.08em;padding:0 4px;}
+.psw-btn{padding:4px 11px;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;border:none;background:transparent;color:#7A9AB8;transition:all .12s;font-family:var(--font);}
+.psw-btn.active{background:var(--blue);color:#fff;}
+.vtabs{display:flex;gap:2px;flex:1;}
+.vtab{display:flex;align-items:center;gap:6px;padding:0 13px;height:46px;font-size:11px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;transition:all .12s;color:#A8C4DC;white-space:nowrap;}
+.vtab:hover{color:#fff;background:rgba(255,255,255,.06);}
+.vtab.active{color:#fff;border-bottom-color:#fff;}
+.vtab .vdot{width:8px;height:8px;border-radius:2px;}
+.vtab-sub{font-size:9px;opacity:.7;}
+.phase-switch{display:flex;gap:3px;background:var(--ink2);border-radius:5px;padding:3px;}
+.ph-btn{padding:3px 11px;border-radius:3px;font-size:10px;font-weight:600;cursor:pointer;border:none;background:transparent;color:#7A9AB8;transition:all .12s;font-family:var(--font);}
+.ph-btn.active{background:var(--ink3);color:#fff;}
+.user-pill{display:flex;align-items:center;gap:6px;background:var(--ink3);border-radius:14px;padding:3px 10px 3px 4px;}
+.avatar{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;}
+.user-name{font-size:10px;color:#fff;font-weight:500;}
+.user-role{font-size:9px;color:#7AB3E8;}
+
+/* CYCLE BAR */
+.cycle-bar{background:var(--ink2);padding:0 16px;height:44px;display:flex;align-items:center;gap:14px;flex-shrink:0;border-bottom:1px solid #1A3A56;}
+.cycle-toggle{display:flex;gap:0;background:var(--navy);border-radius:7px;padding:3px;border:1px solid #1A3A56;}
+.cyc-btn{padding:4px 14px;border-radius:5px;font-size:11px;font-weight:600;border:none;background:transparent;color:#7A9AB8;display:flex;align-items:center;gap:6px;cursor:pointer;font-family:var(--font);}
+.cyc-btn.active{background:var(--blue);color:#fff;}
+.cyc-btn:disabled{opacity:.38;cursor:not-allowed;}
+.cyc-badge{font-size:8px;padding:1px 5px;border-radius:7px;background:rgba(255,255,255,.18);}
+.cycle-info{font-size:10px;color:#9DBDDB;}
+.cutoff-pill{margin-left:auto;display:flex;align-items:center;gap:8px;background:#7C2D12;border:1px solid #9A4318;border-radius:6px;padding:3px 12px;}
+.cutoff-mono{font-family:var(--mono,monospace);font-size:10px;color:#FBC99A;}
+.cutoff-lbl{font-size:9px;color:#E8A877;text-transform:uppercase;letter-spacing:.05em;}
+
+/* SCREEN TABS */
+.screen-tabs{background:var(--surface);border-bottom:2px solid var(--rule);display:flex;padding:0 16px;gap:2px;flex-shrink:0;box-shadow:var(--sh);}
+.stab{display:flex;align-items:center;gap:6px;padding:9px 14px;font-size:12px;font-weight:500;color:var(--grey);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .12s;white-space:nowrap;}
+.stab:hover{color:var(--ink);}
+.stab.active{color:var(--blue);border-bottom-color:var(--blue);}
+.stab-badge{font-size:9px;padding:1px 6px;border-radius:8px;font-weight:700;}
+.sb-open{background:var(--amber-lt);color:var(--amber);}
+.sb-lock{background:var(--green-lt);color:var(--green);}
+
+/* FILTER BAR */
+/* ══ WORKSPACE: collapsible left filter rail + main content ══ */
+.workspace{flex:1;display:flex;overflow:hidden;min-height:0;}
+.sidebar{width:236px;flex-shrink:0;background:linear-gradient(180deg,#0B1D33 0%,#0D2540 100%);border-right:1px solid #16324f;display:flex;flex-direction:column;overflow:hidden;transition:width .18s cubic-bezier(.4,0,.2,1);}
+.sidebar.collapsed{width:44px;}
+.sidebar-head{height:42px;flex-shrink:0;display:flex;align-items:center;gap:8px;padding:0 12px;border-bottom:1px solid #16324f;}
+.sidebar-head .sb-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7FA8CC;white-space:nowrap;overflow:hidden;flex:1;}
+.sb-collapse-btn{width:24px;height:24px;flex-shrink:0;border:none;border-radius:5px;background:rgba(255,255,255,.06);color:#9FC0DD;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:background .12s;}
+.sb-collapse-btn:hover{background:rgba(255,255,255,.14);}
+.sidebar-body{flex:1;overflow-y:auto;overflow-x:hidden;padding:6px 0 20px;}
+.sidebar-body::-webkit-scrollbar{width:5px;}
+.sidebar-body::-webkit-scrollbar-thumb{background:#1E4266;border-radius:3px;}
+.sidebar.collapsed .sidebar-body,.sidebar.collapsed .sb-title{display:none;}
+.sb-collapsed-icons{display:none;flex-direction:column;align-items:center;gap:14px;padding:14px 0;}
+.sidebar.collapsed .sb-collapsed-icons{display:flex;}
+.sb-collapsed-icons .ci{color:#5F86AB;font-size:15px;cursor:pointer;}
+.sb-group{border-bottom:1px solid rgba(255,255,255,.05);padding:2px 0;}
+.sb-group-hd{display:flex;align-items:center;gap:6px;padding:9px 14px 7px;cursor:pointer;user-select:none;}
+.sb-group-hd .ca{font-size:9px;color:#5F86AB;transition:transform .15s;}
+.sb-group.closed .ca{transform:rotate(-90deg);}
+.sb-group-hd .lbl{font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#6E96BC;flex:1;}
+.sb-group-hd .val{font-size:9px;color:#4E7297;font-weight:500;white-space:nowrap;}
+.sb-group-body{padding:2px 12px 12px;}
+.sb-group.closed .sb-group-body{display:none;}
+.sb-chips{display:flex;flex-wrap:wrap;gap:5px;}
+.sb-chip{padding:4px 10px;border-radius:13px;font-size:10.5px;font-weight:500;border:1px solid #274b6e;background:rgba(255,255,255,.03);color:#A9C6E0;cursor:pointer;transition:all .12s;white-space:nowrap;}
+.sb-chip:hover{border-color:#3D6690;color:#DCEAF6;}
+.sb-chip.on{background:#2B6CB8;border-color:#2B6CB8;color:#fff;font-weight:600;}
+.sb-chip.on-R{background:#2E7D32;border-color:#2E7D32;color:#fff;}
+.sb-chip.on-S{background:#C77700;border-color:#C77700;color:#fff;}
+.sb-chip.on-D{background:#C62828;border-color:#C62828;color:#fff;}
+.sb-select{width:100%;height:30px;padding:0 8px;border:1px solid #274b6e;border-radius:5px;background:#0F2C49;color:#CFE2F1;font-size:11px;font-family:var(--font);}
+.sb-select:focus{outline:none;border-color:#3D82C4;}
+.sb-search{width:100%;height:30px;padding:0 10px;border:1px solid #274b6e;border-radius:5px;background:#0F2C49;color:#CFE2F1;font-size:11px;font-family:var(--font);}
+.sb-search::placeholder{color:#5A7FA3;}
+.sb-search:focus{outline:none;border-color:#3D82C4;}
+.sb-clear{margin:10px 14px 0;padding:7px;border:1px solid #274b6e;border-radius:5px;background:rgba(255,255,255,.04);color:#9FC0DD;font-size:10.5px;font-weight:600;cursor:pointer;text-align:center;transition:background .12s;}
+.sb-clear:hover{background:rgba(255,255,255,.1);}
+.main-content{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+
+/* Top strip inside each screen: search + view toggle + count (table-shaping controls) */
+.filterbar{background:var(--s2);border-bottom:1px solid var(--rule);padding:7px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;}
+.fil{display:flex;flex-direction:column;gap:3px;}
+.fil label{font-size:8px;color:var(--grey);text-transform:uppercase;letter-spacing:.06em;font-weight:600;}
+.fil select,.fil input[type=text]{height:28px;padding:0 8px;border:1.5px solid var(--rule);border-radius:4px;background:#fff;font-size:11.5px;font-family:var(--font);color:var(--ink);min-width:110px;}
+.fil select:focus,.fil input:focus{outline:none;border-color:var(--blue);}
+.fil-search input{padding-left:8px;min-width:220px;}
+.fil-divider{width:1px;height:28px;background:var(--rule);margin:0 3px;}
+.seg-chips{display:flex;gap:4px;align-items:center;}
+.seg-chip{padding:5px 10px;border-radius:12px;font-size:10px;font-weight:600;border:1.5px solid var(--rule);background:#fff;color:var(--grey);cursor:pointer;transition:all .12s;}
+.seg-chip.on-all{background:var(--ink2);color:#fff;border-color:transparent;}
+.seg-chip.on-R{background:#1E6B35;color:#fff;border-color:transparent;}
+.seg-chip.on-S{background:#C77700;color:#fff;border-color:transparent;}
+.seg-chip.on-D{background:#B71C1C;color:#fff;border-color:transparent;}
+.fil-clear{height:28px;padding:0 10px;border:1.5px solid var(--rule);border-radius:4px;background:#fff;font-size:11px;color:var(--grey);cursor:pointer;}
+.active-filter-pills{display:flex;gap:5px;flex-wrap:wrap;align-items:center;}
+.af-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:11px;font-size:10px;font-weight:500;background:var(--blue-lt);color:var(--blue);border:1px solid #BBD6F5;}
+.af-pill .x{cursor:pointer;font-weight:700;opacity:.6;}
+.af-pill .x:hover{opacity:1;}
+.result-count{font-size:10px;color:var(--grey);margin-left:auto;white-space:nowrap;}
+.result-count strong{color:var(--ink);font-family:var(--mono);}
+
+/* PAGE HEADER */
+.content{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.page-hdr{background:linear-gradient(180deg,#fff,#FBFCFE);border-bottom:1px solid var(--rule);padding:11px 18px;display:flex;align-items:center;gap:12px;flex-shrink:0;box-shadow:0 1px 2px rgba(13,27,42,.04);}
+.page-title{font-size:15.5px;font-weight:700;letter-spacing:-.2px;}
+.page-sub{font-size:11px;color:var(--grey);margin-top:2px;}
+.page-hdr-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.phase-badge{padding:2px 8px;border-radius:3px;font-size:9px;font-weight:700;letter-spacing:.04em;background:var(--amber-lt);color:var(--amber);border:1px solid #FED7AA;}
+
+/* SUB-VERT NAV */
+.sv-nav{display:flex;gap:8px;padding:9px 16px;background:var(--s2);border-bottom:1px solid var(--rule);flex-shrink:0;overflow-x:auto;align-items:center;}
+.sv-label{font-size:9px;color:var(--grey);text-transform:uppercase;letter-spacing:.06em;font-weight:600;white-space:nowrap;}
+.sv-chip{padding:5px 14px;border-radius:16px;font-size:11px;font-weight:500;cursor:pointer;border:1.5px solid var(--rule);background:var(--surface);color:var(--grey);white-space:nowrap;transition:all .12s;}
+.sv-chip:hover{border-color:var(--blue);color:var(--blue);}
+.sv-chip.active{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:600;}
+
+/* NOTICE */
+.notice{margin:8px 16px 0;padding:7px 12px;border-radius:var(--r);font-size:11px;display:flex;align-items:center;gap:8px;border-left:3px solid;flex-shrink:0;}
+.notice.warn{background:var(--amber-lt);border-color:var(--amber);color:var(--amber);}
+.notice.info{background:var(--blue-lt);border-color:var(--blue);color:var(--blue);}
+.notice.lock{background:var(--green-lt);border-color:var(--green);color:var(--green);}
+.notice.readonly{background:#FFF8E1;border-color:#F9A825;color:#6B4A12;}
+.notice.reminder-urgent{background:#FEECEC;border-color:#B71C1C;color:#7A0E0E;}
+.notice.reminder-info{background:#F5F5F5;border-color:#9E9E9E;color:#555;}
+.notice strong{font-weight:600;}
+
+/* GRID */
+.grid-scroll{flex:1;overflow:auto;padding:12px 18px 18px;background:var(--bg);}
+.grid-scroll::-webkit-scrollbar{width:8px;height:8px;}
+.grid-scroll::-webkit-scrollbar-thumb{background:#C3CFDB;border-radius:4px;}
+.grid-scroll::-webkit-scrollbar-thumb:hover{background:#A9B9C9;}
+
+/* ── STICKY FIRST 3 COLS ── Phase 0 freeze panes */
+.ptable{border-collapse:collapse;font-size:11px;background:var(--surface);border-radius:6px;box-shadow:0 1px 4px rgba(13,27,42,.07);width:100%;}
+.ptable .cg{text-align:center;font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 6px;color:#fff;}
+.ptable .cg-fert{background:var(--ink);}
+.ptable .cg-dealer{background:#37474F;}
+.ptable .cg-ref{background:#455A64;}
+.ptable .cg-readonly{background:#546E7A;}
+.ptable .cg-csm{background:#00838F;}
+.ptable .cg-enrich{background:var(--enrich);}
+.ptable .cg-inp{background:var(--blue);}
+.ptable .cg-fut{background:var(--ink2);}
+.ptable .cg-p1{background:#90A4AE;font-size:8px;}
+.ptable .cg-netting{background:#0A4A2E;}
+.ptable .cg-is{background:#7C2D12;}
+
+.ptable th{position:sticky;top:0;z-index:10;padding:5px 6px;text-align:right;font-size:9px;font-weight:600;color:var(--ink3);border-bottom:2px solid var(--rule);background:var(--s2);white-space:nowrap;letter-spacing:.03em;text-transform:uppercase;}
+.ptable th.left{text-align:left;}
+.ptable th.th-p1{background:var(--grey-lt)!important;color:#B0BEC5!important;}
+
+/* Freeze left columns */
+.ptable th.sticky-col,.ptable td.sticky-col{position:sticky;left:0;z-index:5;background:var(--surface);}
+.ptable th.sticky-col{z-index:15;background:var(--s2);}
+.ptable th.sticky-col2{left:90px;}
+.ptable th.sticky-col3{left:260px;}
+.ptable td.sticky-col2{left:90px;}
+.ptable td.sticky-col3{left:260px;}
+.ptable td.sticky-col,.ptable td.sticky-col2,.ptable td.sticky-col3{box-shadow:2px 0 4px rgba(0,0,0,.06);}
+
+.ptable td{padding:5px 6px;border-bottom:1px solid var(--rule-lt);vertical-align:middle;}
+.ptable tr:hover td{background:#F5F9FE;}
+.ptable tr:hover td.sticky-col,.ptable tr:hover td.sticky-col2,.ptable tr:hover td.sticky-col3{background:#EEF4FC;}
+.ptable tr.subtotal td{background:var(--s2);font-weight:600;}
+.ptable tr.added td{background:var(--enrich-lt);}
+
+.fert-code{font-family:var(--mono);font-size:10px;color:var(--blue);}
+.fert-desc{font-size:10px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.seg{display:inline-block;padding:1px 5px;border-radius:2px;font-size:8px;font-weight:700;}
+.seg-R{background:var(--run-lt);color:var(--run);}
+.seg-S{background:var(--slog-lt);color:var(--slog);}
+.seg-D{background:var(--dag-lt);color:var(--dag);}
+.ref-val{text-align:right;font-family:var(--mono);color:#4A6880;}
+.ro-val{text-align:right;font-family:var(--mono);color:#546E7A;background:#FAFBFC;}
+.csm-val{text-align:right;font-family:var(--mono);color:#00838F;}
+.calc-val{text-align:right;font-family:var(--mono);font-weight:500;}
+
+.inp{width:54px;padding:3px 5px;border:1px solid var(--rule);border-radius:2px;font-family:var(--mono);font-size:10px;text-align:right;color:var(--ink);background:var(--surface);}
+.inp:focus{outline:none;border-color:var(--blue);background:var(--blue-lt);}
+.inp.enrich{border-color:#B3E5FC;background:#F5FCFF;}
+.inp.w1{border-color:#FFCC80;}
+.inp.w1:focus{border-color:var(--amber);background:var(--amber-lt);}
+.inp.iso-ov{border-color:var(--blue);background:#EFF6FF;width:60px;}
+.inp.ss{border-color:#2E7D32;background:#F0FFF4;width:54px;}
+.inp[readonly]{background:var(--s2);color:var(--grey);cursor:not-allowed;border-color:var(--rule-lt);}
+.inp.carried{border-left:3px solid #90CAF9;}
+.var-badge{display:inline-block;font-size:8px;font-family:var(--mono);font-weight:600;padding:0 3px;border-radius:3px;margin-left:1px;vertical-align:middle;}
+.var-badge.pos{color:#1B5E20;background:#E8F5E9;}
+.var-badge.neg{color:#B71C1C;background:#FEECEC;}
+
+/* ══ WORKBOOK DESIGN SYSTEM (Claude Design merge) — additive classes only, does not touch
+   the shared .cg-* classes above (those are still used by COCO) or any row/aggregation logic. ══ */
+.wb-th{text-align:center;font:700 9px/1.3 Inter,sans-serif;letter-spacing:.1em;text-transform:uppercase;padding:7px 6px;}
+.wb-th-neutral{background:#F7F9FB;color:#5B6B7C;}
+.wb-th-teal{background:#F1F7F6;color:#00695C;}
+.wb-th-readonly{background:#F2F4F6;color:#5B6B7C;}
+.wb-th-edit{background:#E6F0FB;color:#1565C0;border-top:2px solid #1565C0;}
+.wb-th-fert{background:#0D1B2A;color:#fff;}
+.wb-pill{display:inline-block;font:700 8px/1 'JetBrains Mono',monospace;letter-spacing:.04em;padding:2px 6px;border-radius:8px;margin-left:6px;vertical-align:middle;text-transform:none;}
+.wb-pill-edit{background:#1565C0;color:#fff;}
+.wb-pill-readonly{background:transparent;border:1px solid #DDE2E7;color:#78909C;}
+/* Legend bar — explains editable/read-only/carried/aging colors once, above the grid */
+.wb-legend{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:7px 16px;background:#FAFBFC;border-bottom:1px solid var(--rule-lt);font:500 10px/1 Inter,sans-serif;color:#5B6B7C;}
+.wb-legend .wl-item{display:flex;align-items:center;gap:5px;}
+.wb-legend .wl-swatch{display:inline-block;width:10px;height:10px;border-radius:2px;}
+/* Carry-forward badge — small ↻ pill next to the input, replaces plain tooltip-only affordance */
+.wb-carry-badge{display:inline-block;font:700 8px/1 'JetBrains Mono',monospace;color:#1565C0;background:#E3EEFA;border:1px solid #C5DCF3;border-radius:8px;padding:1px 4px;margin-right:3px;vertical-align:middle;cursor:default;}
+/* Sticky grand-total column on the right, mirrors the sticky identity columns on the left */
+.ptable th.sticky-col-r,.ptable td.sticky-col-r{position:sticky;right:0;z-index:5;background:#EAF0F6;border-left:2px solid #0D1B2A;}
+.ptable th.sticky-col-r{z-index:15;}
+/* Graduated aging bands — lighter step between 60-90D and 90-180D than the flat 2-tone split before */
+.wb-age-ok{color:#2E7D32;}
+.wb-age-60{background:#FFF7EC;color:#C25E00;}
+.wb-age-180{background:#FFEFD9;color:#B05A00;}
+.wb-age-over{background:#FBDDDD;border:1px solid #E9B9B9;color:#C62828;font-weight:700;}
+/* Refined input focus state to match the tinted design language */
+.inp:focus{outline:2px solid #1565C0;border-color:#1565C0!important;background:#fff!important;}
+/* GROUP BY pill buttons */
+.wb-gb-pill{height:28px;padding:0 12px;border-radius:14px;font:600 10px/1 Inter,sans-serif;cursor:pointer;border:1.5px solid var(--rule);background:#fff;color:var(--grey);}
+.wb-gb-pill.active{border-color:#1565C0;background:#1565C0;color:#fff;}
+.var-badge.zero{display:none;}
+
+.td-p1{background:repeating-linear-gradient(45deg,transparent,transparent 4px,rgba(0,0,0,.02) 4px,rgba(0,0,0,.02) 8px);}
+.p1-ph{font-size:8px;color:#B0BEC5;font-style:italic;white-space:nowrap;}
+.delta{display:inline-block;font-family:var(--mono);font-size:9px;padding:1px 4px;border-radius:2px;}
+.d-up{background:var(--red-lt);color:var(--red);}
+.d-dn{background:var(--green-lt);color:var(--green);}
+.d-fl{background:#E8EDF2;color:#3A4A5A;}
+.sub-status{display:inline-block;padding:1px 6px;border-radius:8px;font-size:8px;font-weight:600;}
+.ss-in{background:var(--green-lt);color:var(--green);}
+.ss-pend{background:var(--amber-lt);color:var(--amber);}
+
+/* OWNERSHIP BANNER (IB) */
+.ownership-bar{background:var(--ink2);border-bottom:1px solid var(--ink3);padding:5px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.own-label{font-size:9px;color:#7A9AB8;text-transform:uppercase;letter-spacing:.06em;}
+.own-stage{display:flex;align-items:center;gap:6px;}
+.own-pill{padding:3px 10px;border-radius:10px;font-size:10px;font-weight:700;}
+.own-active{background:var(--teal);color:#fff;}
+.own-done{background:#1A3A2A;color:#6DBFAB;}
+.own-pend{background:var(--ink3);color:#5A7A96;}
+.own-arrow{color:var(--ink3);font-size:12px;}
+.own-window{font-size:10px;color:#FBC99A;background:#7C2D12;border-radius:4px;padding:2px 8px;margin-left:auto;font-family:var(--mono);}
+
+/* SUM BAR */
+.sum-bar{background:var(--surface);border-top:1px solid var(--rule);padding:6px 16px;display:flex;align-items:center;gap:18px;flex-shrink:0;box-shadow:0 -1px 3px rgba(13,27,42,.06);}
+.si{display:flex;flex-direction:column;gap:1px;}
+.si-label{font-size:8px;color:var(--grey);text-transform:uppercase;letter-spacing:.06em;}
+.si-val{font-family:var(--mono);font-size:14px;font-weight:500;}
+.si-val.ok{color:var(--teal);}
+.si-val.warn{color:var(--amber);}
+.sb-divider{width:1px;height:28px;background:var(--rule);}
+.sb-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+
+/* ZONE SYSTEM — numbered section headers for Summary */
+.zone{padding:0 18px 0;}
+.zone-hdr{display:flex;align-items:center;gap:10px;padding:18px 0 10px;}
+.zone-hdr:first-child{padding-top:14px;}
+.zone-label{font:700 10px/1 'JetBrains Mono',var(--mono),monospace;letter-spacing:.16em;color:#78909C;text-transform:uppercase;white-space:nowrap;}
+.zone-rule{flex:1;height:1px;background:#DCE4EB;}
+
+/* KPI ROW — asymmetric 12-col grid for Summary */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:11px;padding:14px 18px;flex-shrink:0;}
+.kpi-row.zoned{grid-template-columns:repeat(12,1fr);padding:0;gap:12px;}
+.kpi-row.zoned .kpi-span-5{grid-column:span 5;}
+.kpi-row.zoned .kpi-span-4{grid-column:span 4;}
+.kpi-row.zoned .kpi-span-3{grid-column:span 3;}
+.kpi-row.zoned .kpi-span-6{grid-column:span 6;}
+.kpi-row-secondary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:0;}
+
+.kpi{position:relative;background:#fff;border:1px solid #DDE5EC;border-radius:4px;padding:18px 20px;box-shadow:0 1px 2px rgba(13,27,42,.05);overflow:hidden;transition:box-shadow .15s;}
+.kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:0;background:transparent;}
+.kpi:hover{box-shadow:0 3px 10px rgba(13,27,42,.08);}
+.kpi.kpi-primary{border-left:3px solid #1565C0;}
+.kpi.kpi-accent-teal{border-left:3px solid #00695C;}
+.kpi.kpi-accent-amber{border-left:3px solid #F57C00;}
+
+/* Segmented bar charts inside KPI cards */
+.seg-bar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:#EEF2F5;margin:8px 0 4px;}
+.seg-bar .seg{height:100%;transition:width .3s;}
+.seg-bar .seg:first-child{border-radius:5px 0 0 5px;}
+.seg-bar .seg:last-child{border-radius:0 5px 5px 0;}
+.seg-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;}
+.seg-legend-item{font-size:9px;color:var(--grey);display:flex;align-items:center;gap:3px;}
+.seg-legend-dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
+
+/* Mini sparkline bars for accuracy card */
+.spark-bars{display:flex;align-items:flex-end;gap:3px;height:28px;margin:6px 0 2px;}
+.spark-bar{width:10px;border-radius:2px 2px 0 0;transition:height .3s;}
+
+/* Attention band — flagged dealers (matched to Claude Design reference) */
+.attention-band{margin:0 18px;padding:14px 18px;border-radius:4px;border:1px solid #F5DCBE;border-left:3px solid #F57C00;background:#FFF8F0;display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+.attention-band .ab-flag{font-size:16px;color:#F57C00;}
+.attention-band .ab-title{font:700 15px/1 Inter,sans-serif;color:#0D1B2A;}
+.attention-band .ab-sub{font:500 12px/1 Inter,sans-serif;color:#8A6A44;}
+.attention-band .ab-detail{display:flex;gap:8px;flex-wrap:wrap;}
+.attention-band .ab-dealer{display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid #EBD8C0;border-radius:3px;padding:6px 10px;font:500 12px/1 Inter,sans-serif;color:#0D1B2A;white-space:nowrap;}
+.attention-band .ab-pct{font:600 11px/1 'JetBrains Mono',var(--mono),monospace;}
+.attention-band .ab-pct.over{color:#C62828;}
+.attention-band .ab-pct.under{color:#F57C00;}
+.attention-band .ab-link{margin-left:auto;font:600 12px/1 Inter,sans-serif;color:#C25E00;cursor:pointer;white-space:nowrap;}
+#wbTable.hide-dealer-grp .grp-dealer{display:none;}
+#wbTable.hide-csm-grp .grp-csm{display:none;}
+.grp-collapse-btn{cursor:pointer;font-size:9px;opacity:.8;margin-left:6px;padding:0 4px;border:1px solid rgba(255,255,255,.5);border-radius:3px;}
+.grp-collapse-btn:hover{opacity:1;background:rgba(255,255,255,.15);}
+.exp-toggle{user-select:none;}
+.kpi-label{font:700 10px/1 Inter,sans-serif;letter-spacing:.13em;color:#5B6B7C;text-transform:uppercase;}
+.kpi-val{font:600 21px/1 'JetBrains Mono',var(--mono),monospace;margin-top:8px;letter-spacing:-.03em;color:#0D1B2A;font-variant-numeric:tabular-nums;}
+.kpi-val.ok{color:#2E7D32;}
+.kpi-val.warn{color:#F57C00;}
+.kpi-sub{font:500 11px/1.4 Inter,sans-serif;color:#78909C;margin-top:8px;}
+/* Delta badge pill — matching reference */
+.delta-pill{display:inline-flex;align-items:center;gap:5px;font:600 12px/1 'JetBrains Mono',var(--mono),monospace;padding:6px 9px;border-radius:3px;margin-top:10px;}
+.delta-pill.neg{color:#C62828;background:#FDECEC;border:1px solid #F6D2D2;}
+.delta-pill.pos{color:#2E7D32;background:#EDF6EE;border:1px solid #CFE6D2;}
+.delta-pill.zero{color:#5B6B7C;background:#F7F9FB;border:1px solid #DDE5EC;}
+
+/* SCREEN SWITCHING */
+.screen{display:none;}
+.screen.active{display:flex;flex-direction:column;flex:1;overflow:hidden;}
+.summary-scroll{flex:1;overflow-y:auto;overflow-x:hidden;}
+
+/* MTO */
+.mto-subnav{display:flex;gap:2px;padding:8px 16px 0;background:#fff;border-bottom:1px solid var(--rule);}
+.mto-tab{padding:8px 16px;border-radius:7px 7px 0 0;font-size:12px;font-weight:600;color:var(--grey);background:var(--s2);border:1px solid var(--rule);border-bottom:none;display:flex;align-items:center;gap:7px;cursor:pointer;}
+.mto-tab .mdot{width:8px;height:8px;border-radius:50%;}
+.mto-tab.active-ib{background:#fff;color:#00695C;border-top:2.5px solid #00695C;}
+.mto-tab.active-is{background:#fff;color:#7C2D12;border-top:2.5px solid #7C2D12;}
+.mto-tab.active-eps{background:#fff;color:#5D4037;border-top:2.5px solid #5D4037;}
+
+/* IS read-only badge */
+.is-readonly-banner{background:#FFF8E1;border-bottom:2px solid #F9A825;padding:6px 16px;font-size:11px;color:#6B4A12;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.is-readonly-icon{font-size:14px;}
+
+/* S&OP 1B */
+.b1-notice{display:none;margin:0 16px;padding:7px 12px;border-radius:4px;font-size:11px;background:#FFF4E0;border-left:3px solid #B7791F;color:#6B4A12;flex-shrink:0;}
+
+/* COCO */
+.coco-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+
+/* MODALS */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(13,27,42,.5);z-index:100;align-items:center;justify-content:center;}
+.modal-bg.active{display:flex;}
+.modal{background:var(--surface);border-radius:10px;width:520px;max-height:70vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;}
+.modal-hdr{padding:16px 20px;border-bottom:1px solid var(--rule);display:flex;align-items:center;}
+.modal-hdr h3{font-size:15px;font-weight:700;}
+.modal-close{margin-left:auto;cursor:pointer;color:var(--grey);font-size:18px;background:none;border:none;}
+.modal-search{padding:12px 20px;border-bottom:1px solid var(--rule);}
+.modal-search input{width:100%;height:36px;padding:0 12px;border:1.5px solid var(--rule);border-radius:var(--r);font-size:12px;font-family:var(--font);}
+.modal-list{overflow-y:auto;padding:8px 0;}
+.modal-item{display:flex;align-items:center;gap:10px;padding:8px 20px;cursor:pointer;}
+.modal-item:hover{background:var(--s2);}
+.modal-ftr{padding:12px 20px;border-top:1px solid var(--rule);display:flex;justify-content:flex-end;gap:8px;}
+
+/* BTNS */
+.btn{height:30px;padding:0 13px;border-radius:var(--r);font-size:12px;font-weight:500;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:5px;font-family:var(--font);transition:all .12s;white-space:nowrap;}
+.btn-primary{background:var(--blue);color:#fff;}
+.btn-secondary{background:var(--surface);color:var(--ink2);border:1px solid var(--rule);}
+.btn-secondary:hover{background:var(--s2);}
+.btn-success{background:var(--green);color:#fff;}
+.btn-copy{background:var(--enrich);color:#fff;}
+.btn-add{background:var(--surface);color:var(--enrich);border:1px solid var(--enrich);}
+.btn-sm{height:26px;padding:0 10px;font-size:11px;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+</style>
+
+<!--[if gte mso 9]><xml>
+<mso:CustomDocumentProperties>
+<mso:xd_Signature msdt:dt="string"></mso:xd_Signature>
+<mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Editor msdt:dt="string">Mohd. Zakariya</mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Editor>
+<mso:Order msdt:dt="string">29400.0000000000</mso:Order>
+<mso:xd_ProgID msdt:dt="string"></mso:xd_ProgID>
+<mso:_ExtendedDescription msdt:dt="string"></mso:_ExtendedDescription>
+<mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Author msdt:dt="string">Mohd. Zakariya</mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Author>
+<mso:ComplianceAssetId msdt:dt="string"></mso:ComplianceAssetId>
+<mso:TemplateUrl msdt:dt="string"></mso:TemplateUrl>
+<mso:ContentTypeId msdt:dt="string">0x010100915D1156AF89E94CB4E0E819A4FFFAAD</mso:ContentTypeId>
+<mso:TriggerFlowInfo msdt:dt="string"></mso:TriggerFlowInfo>
+<mso:_SourceUrl msdt:dt="string"></mso:_SourceUrl>
+<mso:_SharedFileIndex msdt:dt="string"></mso:_SharedFileIndex>
+<mso:MediaLengthInSeconds msdt:dt="string"></mso:MediaLengthInSeconds>
+<mso:MediaServiceImageTags msdt:dt="string"></mso:MediaServiceImageTags>
+<mso:lcf76f155ced4ddcb4097134ff3c332f msdt:dt="string"></mso:lcf76f155ced4ddcb4097134ff3c332f>
+</mso:CustomDocumentProperties>
+</xml><![endif]-->
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="loginScreen">
+  <div class="login-wrap" style="flex-direction:column;align-items:center;">
+    <div style="text-align:center;margin-bottom:20px;position:relative;z-index:1;">
+      <div class="login-logo">VECV<span>plan</span></div>
+      <div style="font-size:11px;color:#A8C4DC;margin-top:4px;">NPI Workbench · New Product Introduction</div>
+      <div style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:3px 10px;">
+        <span style="font-size:10px;color:#7AB3E8">S&OP cycle</span>
+        <span style="font-size:10px;color:#fff;font-weight:600">Jul 2026</span>
+      </div>
+    </div>
+    <div class="login-card">
+      <div class="login-panel" id="lpanel-npi" style="display:block;">
+        <div style="font-size:12px;color:var(--grey);margin-bottom:16px;">Sign in through VECVNet SSO. NPI is a single-owner login — no cascade, same pattern as ISO for Institutional Sales.</div>
+        <div class="login-role-grid cols-2">
+          <div class="login-role iso" onclick="login('npi')"><div class="login-role-name">NPI Team</div><div class="login-role-desc">Uploads &amp; maintains the NPI vehicle plan end-to-end</div></div>
+        </div>
+        <button class="login-btn" style="background:var(--navy);margin-top:18px;" onclick="login('npi')">Sign in with VECVNet (SSO)</button>
+        <div class="login-note">Netting into the combined supply plan happens outside this app in Phase 0 — same as ISO. Need the private dealer / CSM / RSM / VH / ISO workbench, COCO, IB, or IS instead? <a href="VECVplan-Demand-Planning-Workbench-Phase0.html" style="color:var(--blue)">Go to the main workbench &rarr;</a></div>
+      </div>
+    </div>
+    <div style="margin-top:16px;font-size:10px;color:rgba(168,196,220,.5);position:relative;z-index:1;">Phase 0 · MVP</div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div class="app" id="app">
+  <div class="topbar">
+    <div class="brand">VECV<span>plan</span> <span style="color:#7AB3E8">· NPI</span></div>
+    <div class="divpipe"></div>
+    <div style="flex:1"></div>
+    <a class="btn" href="VECVplan-Demand-Planning-Workbench-Phase0.html" style="height:28px;padding:0 12px;font-size:11px;background:rgba(255,255,255,.08);color:#A8C4DC;border:1px solid rgba(255,255,255,.15);text-decoration:none;" title="Private dealer / CSM / RSM / VH / ISO workbench">← Main workbench</a>
+    <div class="user-pill">
+      <div class="avatar" id="avatar">NPI</div>
+      <div><div class="user-name">NPI / PMO</div><div class="user-role">Single owner</div></div>
+    </div>
+    <button class="btn" onclick="logout()" style="height:28px;padding:0 12px;font-size:11px;background:rgba(255,255,255,.08);color:#A8C4DC;border:1px solid rgba(255,255,255,.15);">⎋ Sign out</button>
+  </div>
+
+  <!-- CYCLE BAR -->
+  <div class="cycle-bar">
+    <div class="cycle-toggle">
+      <button class="cyc-btn active" id="cyc1" onclick="setCycle('1A')">S&OP-1A <span class="cyc-badge">Main Cycle</span></button>
+      <button class="cyc-btn" id="cyc2" onclick="setCycle('1B')">S&OP-1B <span class="cyc-badge">Revision</span></button>
+    </div>
+    <span class="cycle-info" id="cycleInfo"></span>
+    <div style="flex:1"></div>
+    <button class="btn btn-add" id="submitBtn" onclick="submitCycle()">Submit plan</button>
+    <button class="btn btn-secondary" id="reopenBtn" onclick="reopenCycle()" style="display:none;">Reopen for reference-code correction</button>
+  </div>
+
+  <div id="alertBanner" style="display:none;"></div>
+
+  <div class="workspace">
+    <aside class="sidebar" id="appSidebar">
+      <div class="sidebar-head">
+        <span class="sb-title">Filters</span>
+        <button class="sb-collapse-btn" id="sbCollapseBtn" onclick="toggleSidebar()" title="Collapse filters">‹</button>
+      </div>
+      <div class="sb-collapsed-icons" onclick="toggleSidebar()"><span class="ci" title="Expand filters">⚟</span></div>
+      <div class="sidebar-body" id="sidebarBody"></div>
+    </aside>
+
+    <div class="main-content">
+      <div class="screen active" id="screen-workbook">
+        <div class="page-hdr">
+          <div><div class="page-title" id="wbTitle">NPI Vehicle Plan</div><div class="page-sub" id="wbSub">S&OP-1A · week-wise current month + forward months</div></div>
+          <span class="phase-badge">Phase 0 · MVP</span>
+          <div class="page-hdr-right"><button class="btn btn-secondary" onclick="toggleReport()">Consolidated demand view</button></div>
+        </div>
+        <div id="wbFilterbar" class="filterbar"></div>
+        <div class="result-count" id="resultCount"></div>
+        <div class="grid-scroll"><table class="ptable" id="npiTable" style="min-width:1100px"><thead id="npiHead"></thead><tbody id="npiBody"></tbody></table></div>
+        <div class="sum-bar" id="npiSumBar"></div>
+      </div>
+
+      <div class="screen" id="screen-report">
+        <div class="page-hdr">
+          <div><div class="page-title">Consolidated Demand — NPI alongside verticals</div><div class="page-sub">Read-only rollup, no cascade — visibility only</div></div>
+          <div class="page-hdr-right"><button class="btn btn-secondary" onclick="toggleReport()">← Back to workbook</button></div>
+        </div>
+        <div class="grid-scroll"><table class="ptable" id="reportTable" style="min-width:700px"></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.ref-badge{display:inline-block;background:#C77700;color:#fff;font-size:9px;font-weight:700;border-radius:3px;padding:1px 5px;margin-left:5px;letter-spacing:.03em;}
+.mbom-y{color:#0B7A3B;font-weight:600;}
+.mbom-n{color:#B3261E;font-weight:600;}
+.npi-input{width:52px;text-align:right;border:1px solid var(--rule);border-radius:4px;padding:3px 5px;font-size:12px;font-family:'JetBrains Mono',monospace;}
+.npi-input:disabled{background:var(--grey-lt);color:var(--grey);border-color:transparent;}
+.ref-input{width:96px;border:1px solid #C77700;border-radius:4px;padding:3px 5px;font-size:11px;}
+.ref-input:disabled{border-color:var(--rule);background:var(--grey-lt);color:var(--grey);}
+#alertBanner{background:#FFF6E9;border-bottom:1px solid #F0D8A8;color:#6B4A12;font-size:12px;padding:8px 20px;}
+</style>
+
+<script>
+// ══ DATA MODEL ══
+// Source: user-provided "S&OP 1 NPI Vehicle Plan - Import" sheet (Category/Project Code/Engine/FERT/
+// FERT Description/MBOM/Month Plan/W1-W4/Oct26/Nov26/Build Stage/Need/Marketing Approval-Liquidation
+// Plan/Mkt Qty/Remarks), extended per transcript with an EBOM status column and a non-mandatory
+// Reference FERT Code field for rows where MBOM isn't available yet (Workshop SNOP-20260728_085019UTC,
+// ~01:29-01:47). Reference code rows are flagged; once submitted, only the FERT/reference-code field
+// stays editable — quantities freeze (transcript: "no quantity change... only that update will be freeze").
+const NPI_DATA=[
+  {id:1,cat:"HD",proj:"Pro 3019",eng:"E694",fert:"99108363",desc:"Pro3019 S 32FT CWC BSVI CNG NGB 6S PRM",ebom:"Y",mbom:"Y",ref:"",w1:1,w2:0,w3:0,w4:0,m2:1,m3:0,stage:"C-Build",need:"Project",mkt:"",mktQty:0,remarks:""},
+  {id:2,cat:"HD",proj:"Pro 6028",eng:"MDE8",fert:"91408025",desc:"Pro 6028XPT G BSVI DWPRM 11X20 16BB SE",ebom:"Y",mbom:"Y",ref:"",w1:1,w2:0,w3:0,w4:0,m2:1,m3:0,stage:"C-Build",need:"Project",mkt:"Seeding",mktQty:0,remarks:""},
+  {id:3,cat:"HD",proj:"Pro 6028",eng:"MDE8",fert:"91408026",desc:"Pro 6028XPT G BSVI DWPRM 11R20 16BB SE",ebom:"Y",mbom:"Y",ref:"",w1:1,w2:0,w3:0,w4:0,m2:1,m3:0,stage:"C-Build",need:"Project",mkt:"Seeding",mktQty:0,remarks:""},
+  {id:4,cat:"HD",proj:"Pro 6028",eng:"MDE8",fert:"91408030",desc:"Pro 6028XPT G BSVI DW PRM 11X20 CBC",ebom:"Y",mbom:"Y",ref:"",w1:1,w2:0,w3:0,w4:0,m2:1,m3:0,stage:"C-Build",need:"Project",mkt:"Seeding",mktQty:0,remarks:""},
+  {id:5,cat:"HD",proj:"Pro 6028",eng:"MDE8",fert:"91408031",desc:"Pro 6028XPT G BSVI DW PRM 11R20 CBC",ebom:"Y",mbom:"Y",ref:"",w1:1,w2:0,w3:0,w4:0,m2:1,m3:0,stage:"C-Build",need:"Project",mkt:"Seeding",mktQty:0,remarks:""},
+  {id:6,cat:"LMD",proj:"Pro 2049",eng:"E494",fert:"",desc:"Pro2049 D BSVI 14FT CBC (FERT pending)",ebom:"Y",mbom:"N",ref:"REF-2049-14FT",w1:2,w2:1,w3:0,w4:0,m2:3,m3:2,stage:"Proto",need:"Project",mkt:"",mktQty:0,remarks:"MBOM release expected next fortnight"},
+  {id:7,cat:"LMD",proj:"Pro 2049",eng:"E494",fert:"",desc:"Pro2049 D BSVI 17FT CBC (FERT pending)",ebom:"Y",mbom:"N",ref:"REF-2049-17FT",w1:1,w2:1,w3:0,w4:0,m2:2,m3:1,stage:"Proto",need:"Project",mkt:"",mktQty:0,remarks:"MBOM release expected next fortnight"},
+  {id:8,cat:"Bus",proj:"Skyline Pro",eng:"E497",fert:"93502210",desc:"Skyline Pro 12M AC BSVI Staff",ebom:"Y",mbom:"Y",ref:"",w1:0,w2:1,w3:1,w4:0,m2:2,m3:2,stage:"C-Build",need:"Project",mkt:"Seeding",mktQty:0,remarks:""},
+  {id:9,cat:"Bus",proj:"Starline",eng:"E497",fert:"",desc:"Starline 9M CNG BSVI Staff (no EBOM yet)",ebom:"N",mbom:"N",ref:"",w1:0,w2:0,w3:1,w4:1,m2:2,m3:2,stage:"Concept",need:"Project",mkt:"",mktQty:0,remarks:"EBOM not released — FERT code only, no reference possible yet"},
+  {id:10,cat:"HD",proj:"Pro 8028",eng:"MDE10",fert:"91508112",desc:"Pro 8028 6x4 Tipper BSVI",ebom:"Y",mbom:"Y",ref:"",w1:1,w2:1,w3:0,w4:0,m2:1,m3:1,stage:"C-Build",need:"Project",mkt:"Seeding",mktQty:0,remarks:""},
+  {id:11,cat:"LMD",proj:"Pro 3015",eng:"E494",fert:"",desc:"Pro3015 M SLP CBC BS3 TY (EBOM avail, MBOM pending)",ebom:"Y",mbom:"N",ref:"REF-3015-SLP",w1:0,w2:2,w3:1,w4:0,m2:2,m3:1,stage:"Proto",need:"Regulation",mkt:"",mktQty:0,remarks:"Reference part tied up with PPC parallel process"},
+  {id:12,cat:"Bus",proj:"Skyline Pro",eng:"E497",fert:"93502215",desc:"Skyline Pro 9M Non-AC BSVI Staff",ebom:"Y",mbom:"Y",ref:"",w1:1,w2:0,w3:0,w4:1,m2:1,m3:1,stage:"C-Build",need:"Project",mkt:"",mktQty:0,remarks:""},
+];
+
+let cycle="1A"; // '1A' | '1B'
+let submitted={"1A":false,"1B":false};
+let showReport=false;
+let sidebarCollapsed=false;
+const sbGroupState={};
+
+let fCat=new Set(), fStage=new Set(), fNeed=new Set(), fMbom=new Set(), fEbom=new Set(), fRefOnly=false, fSearch="";
+
+function login(p){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').classList.add('active');
+  render();
+}
+function logout(){
+  document.getElementById('app').classList.remove('active');
+  document.getElementById('loginScreen').style.display='flex';
+}
+function toggleSidebar(){
+  sidebarCollapsed=!sidebarCollapsed;
+  const sb=document.getElementById('appSidebar');
+  sb.classList.toggle('collapsed',sidebarCollapsed);
+  document.getElementById('sbCollapseBtn').textContent=sidebarCollapsed?'›':'‹';
+}
+function toggleSbGroup(key){
+  sbGroupState[key]=sbGroupState[key]==='closed'?'open':'closed';
+  buildSidebar();
+}
+function chip(label,active,cls,onclick){
+  return `<button class="sb-chip${active?' on'+(cls?'-'+cls:''):''}" onclick="${onclick}">${label}</button>`;
+}
+function sbGroup(key,label,valSummary,bodyHtml){
+  const closed=sbGroupState[key]==='closed';
+  return `<div class="sb-group${closed?' closed':''}">
+    <div class="sb-group-hd" onclick="toggleSbGroup('${key}')">
+      <span class="ca">▼</span><span class="lbl">${label}</span><span class="val">${valSummary||''}</span>
+    </div>
+    <div class="sb-group-body">${bodyHtml}</div>
+  </div>`;
+}
+
+function setCycle(c){
+  cycle=c;
+  document.getElementById('cyc1').classList.toggle('active',c==='1A');
+  document.getElementById('cyc2').classList.toggle('active',c==='1B');
+  document.getElementById('cycleInfo').textContent=c==='1A'
+    ? "Main planning cycle · cutoff ~15th · change window 16th to month-end"
+    : "Revision cycle · window 1st to 15th · only reference-FERT correction, no quantity change";
+  render();
+}
+function submitCycle(){
+  submitted[cycle]=true;
+  render();
+}
+function reopenCycle(){
+  submitted[cycle]=false;
+  render();
+}
+function toggleReport(){
+  showReport=!showReport;
+  document.getElementById('screen-workbook').classList.toggle('active',!showReport);
+  document.getElementById('screen-report').classList.toggle('active',showReport);
+  if(showReport)renderReport();
+}
+
+function isRefRow(d){ return d.mbom==='N'; }
+
+function applyFilters(rows){
+  return rows.filter(d=>{
+    if(fCat.size && !fCat.has(d.cat))return false;
+    if(fStage.size && !fStage.has(d.stage))return false;
+    if(fNeed.size && !fNeed.has(d.need))return false;
+    if(fMbom.size && !fMbom.has(d.mbom))return false;
+    if(fEbom.size && !fEbom.has(d.ebom))return false;
+    if(fRefOnly && !isRefRow(d))return false;
+    if(fSearch){
+      const s=fSearch.toLowerCase();
+      if(!((d.fert||"").toLowerCase().includes(s)||(d.desc||"").toLowerCase().includes(s)||(d.proj||"").toLowerCase().includes(s)))return false;
+    }
+    return true;
+  });
+}
+
+function getScopedRows(){ return NPI_DATA; }
+
+function fld(key){
+  return {cat:"Category",stage:"Build Stage",need:"Need",mbom:"MBOM",ebom:"EBOM"}[key];
+}
+
+function chipRow(values,activeSet,toggleFn,cls){
+  cls = cls || '';
+  var parts = values.map(function(v){
+    var isActive = activeSet.has(v);
+    var onclick = toggleFn + "('" + v + "')";
+    return chip(v, isActive, cls, onclick);
+  });
+  return '<div class="sb-chips">' + parts.join('') + '</div>';
+}
+function mbomEbomChipRow(activeSet,setName){
+  var parts = ['Y','N'].map(function(v){
+    var label = v==='Y' ? 'Available' : 'Missing';
+    var isActive = activeSet.has(v);
+    var onclick = "toggleChip('" + setName + "','" + v + "')";
+    return chip(label, isActive, v==='N'?'warn':'', onclick);
+  });
+  return '<div class="sb-chips">' + parts.join('') + '</div>';
+}
+function buildSidebar(){
+  const rows=getScopedRows();
+  const uniq=k=>[...new Set(rows.map(d=>d[k]).filter(Boolean))];
+  let html="";
+
+  html+=sbGroup('cat','Category',fCat.size?[...fCat].join(', '):'All',
+    chipRow(uniq('cat'), fCat, "toggleChipCat"));
+
+  html+=sbGroup('mbom','MBOM',fMbom.size?[...fMbom].map(v=>v==='Y'?'Available':'Missing').join(', '):'All',
+    mbomEbomChipRow(fMbom,'fMbom'));
+
+  html+=sbGroup('ebom','EBOM',fEbom.size?[...fEbom].map(v=>v==='Y'?'Available':'Missing').join(', '):'All',
+    mbomEbomChipRow(fEbom,'fEbom'));
+
+  html+=sbGroup('stage','Build Stage',fStage.size?[...fStage].join(', '):'All',
+    chipRow(uniq('stage'), fStage, "toggleChipStage"));
+
+  html+=sbGroup('need','Need',fNeed.size?[...fNeed].join(', '):'All',
+    chipRow(uniq('need'), fNeed, "toggleChipNeed"));
+
+  html+=sbGroup('refonly','Reference-code rows',fRefOnly?'Only flagged':'All',
+    '<div class="sb-chips">' + chip('Reference code used', fRefOnly, 'warn', 'toggleRefOnly()') + '</div>');
+
+  html+=sbGroup('search','Search',fSearch||'',
+    `<input type="text" class="sb-search" placeholder="FERT / project / description" value="${fSearch}" oninput="setSearch(this.value)">`);
+
+  html+=`<div style="padding:10px 14px;"><button class="btn btn-secondary btn-sm" style="width:100%" onclick="clearFilters()">Clear all filters</button></div>`;
+
+  document.getElementById('sidebarBody').innerHTML=html;
+}
+function toggleChipCat(v){ toggleChip('fCat',v); }
+function toggleChipStage(v){ toggleChip('fStage',v); }
+function toggleChipNeed(v){ toggleChip('fNeed',v); }
+
+function toggleChip(setName,val){
+  const map={fCat:fCat,fStage:fStage,fNeed:fNeed,fMbom:fMbom,fEbom:fEbom};
+  const s=map[setName];
+  if(!s)return;
+  if(s.has(val))s.delete(val); else s.add(val);
+  render();
+}
+function toggleRefOnly(){ fRefOnly=!fRefOnly; render(); }
+function setSearch(v){ fSearch=v; render(); }
+function clearFilters(){
+  fCat=new Set();fStage=new Set();fNeed=new Set();fMbom=new Set();fEbom=new Set();fRefOnly=false;fSearch="";
+  render();
+}
+
+// ══ MBOM chip fix (built cleanly, no regex hacking) ══
+function npiField(d,key,editable){
+  const locked=submitted[cycle] && !(isRefRow(d)); // once submitted, only ref rows keep any editability
+  const disabled = !editable || (submitted[cycle]);
+  return `<input type="number" class="npi-input" data-id="${d.id}" data-key="${key}" value="${d[key]}" ${disabled?'disabled':''} onchange="updateVal(${d.id},'${key}',this.value)">`;
+}
+function updateVal(id,key,val){
+  const d=NPI_DATA.find(x=>x.id===id);
+  if(!d)return;
+  d[key]=Number(val)||0;
+  render();
+}
+function updateRef(id,val){
+  const d=NPI_DATA.find(x=>x.id===id);
+  if(!d)return;
+  d.ref=val;
+  render();
+}
+
+function renderHeader(){
+  return `<tr>
+    <th class="left">Category</th><th class="left">Project</th><th class="left">Engine</th>
+    <th class="left">FERT</th><th class="left">FERT Description</th>
+    <th>EBOM</th><th>MBOM</th><th class="left">Reference FERT Code</th>
+    <th>W1</th><th>W2</th><th>W3</th><th>W4</th><th>Month Plan</th>
+    <th>Oct 26</th><th>Nov 26</th>
+    <th class="left">Build Stage</th><th class="left">Need</th><th class="left">Mkt Approval / Liquidation</th><th>Mkt Qty</th><th class="left">Remarks</th>
+  </tr>`;
+}
+function renderRow(d){
+  const ref=isRefRow(d);
+  const monthPlan=d.w1+d.w2+d.w3+d.w4;
+  const editableQty = !submitted[cycle];
+  const refEditable = ref; // reference code stays editable even post-submit (freeze rule)
+  return `<tr class="${ref?'added':''}">
+    <td class="left">${d.cat}</td>
+    <td class="left">${d.proj}</td>
+    <td class="left">${d.eng}</td>
+    <td class="left" style="font-family:var(--mono)">${d.fert||'<span class="p1-ph">—</span>'}</td>
+    <td class="left fert-desc" title="${d.desc}">${d.desc}${ref?'<span class="ref-badge">REF</span>':''}</td>
+    <td class="${d.ebom==='Y'?'mbom-y':'mbom-n'}">${d.ebom}</td>
+    <td class="${d.mbom==='Y'?'mbom-y':'mbom-n'}">${d.mbom}</td>
+    <td class="left">${ref?`<input type="text" class="ref-input" value="${d.ref}" ${refEditable?'':'disabled'} onchange="updateRef(${d.id},this.value)">`:'<span class="p1-ph">n/a</span>'}</td>
+    <td>${npiField(d,'w1',editableQty)}</td>
+    <td>${npiField(d,'w2',editableQty)}</td>
+    <td>${npiField(d,'w3',editableQty)}</td>
+    <td>${npiField(d,'w4',editableQty)}</td>
+    <td style="font-weight:600">${monthPlan}</td>
+    <td>${npiField(d,'m2',editableQty)}</td>
+    <td>${npiField(d,'m3',editableQty)}</td>
+    <td class="left">${d.stage}</td>
+    <td class="left">${d.need}</td>
+    <td class="left">${d.mkt||'—'}</td>
+    <td>${d.mktQty}</td>
+    <td class="left" style="font-size:10px;color:var(--grey)">${d.remarks||''}</td>
+  </tr>`;
+}
+
+function render(){
+  buildSidebar();
+  const rows=applyFilters(getScopedRows());
+  document.getElementById('npiHead').innerHTML=renderHeader();
+  document.getElementById('npiBody').innerHTML=rows.map(renderRow).join('');
+  document.getElementById('resultCount').innerHTML=`Showing <strong>${rows.length}</strong> of ${NPI_DATA.length} NPI lines · ${cycle}`;
+  document.getElementById('wbSub').textContent=`S&OP-${cycle} · week-wise current month + Oct/Nov forward · ${submitted[cycle]?'Submitted — quantities locked':'Open for entry'}`;
+
+  const refRows=rows.filter(isRefRow);
+  const banner=document.getElementById('alertBanner');
+  if(refRows.length){
+    banner.style.display='block';
+    banner.innerHTML=`<strong>${refRows.length} line${refRows.length>1?'s':''} flagged with a reference FERT code</strong> — MBOM not yet available. Quantities lock once ${cycle} is submitted; only the reference/FERT code stays editable until the real FERT is released.`;
+  } else {
+    banner.style.display='none';
+  }
+
+  const submitBtn=document.getElementById('submitBtn');
+  const reopenBtn=document.getElementById('reopenBtn');
+  if(submitted[cycle]){
+    submitBtn.style.display='none';
+    reopenBtn.style.display='inline-flex';
+  } else {
+    submitBtn.style.display='inline-flex';
+    reopenBtn.style.display='none';
+  }
+
+  const totW1=rows.reduce((a,d)=>a+d.w1,0), totW2=rows.reduce((a,d)=>a+d.w2,0),
+        totW3=rows.reduce((a,d)=>a+d.w3,0), totW4=rows.reduce((a,d)=>a+d.w4,0),
+        totMP=rows.reduce((a,d)=>a+d.w1+d.w2+d.w3+d.w4,0),
+        totM2=rows.reduce((a,d)=>a+d.m2,0), totM3=rows.reduce((a,d)=>a+d.m3,0);
+  document.getElementById('npiSumBar').innerHTML=
+    `<span>Total — ${rows.length} lines</span><span>W1 ${totW1}</span><span>W2 ${totW2}</span><span>W3 ${totW3}</span><span>W4 ${totW4}</span><span><strong>Month Plan ${totMP}</strong></span><span>Oct 26 ${totM2}</span><span>Nov 26 ${totM3}</span>`;
+}
+
+function renderReport(){
+  // Read-only consolidated view: NPI demand rolled up by Category, positioned as it would sit
+  // alongside other verticals' demand in the combined report (transcript: "along with the other
+  // demand of other verticals, you want to see the NPI demand also for the next poll").
+  const rows=NPI_DATA;
+  const cats=[...new Set(rows.map(d=>d.cat))];
+  let html=`<thead><tr><th class="left">Vertical / Source</th><th>Month Plan (current)</th><th>Oct 26</th><th>Nov 26</th></tr></thead><tbody>`;
+  cats.forEach(c=>{
+    const rs=rows.filter(d=>d.cat===c);
+    const mp=rs.reduce((a,d)=>a+d.w1+d.w2+d.w3+d.w4,0), m2=rs.reduce((a,d)=>a+d.m2,0), m3=rs.reduce((a,d)=>a+d.m3,0);
+    html+=`<tr><td class="left">${c} — NPI</td><td>${mp}</td><td>${m2}</td><td>${m3}</td></tr>`;
+  });
+  const tmp=rows.reduce((a,d)=>a+d.w1+d.w2+d.w3+d.w4,0), tm2=rows.reduce((a,d)=>a+d.m2,0), tm3=rows.reduce((a,d)=>a+d.m3,0);
+  html+=`<tr class="subtotal"><td class="left"><strong>NPI Total</strong></td><td><strong>${tmp}</strong></td><td><strong>${tm2}</strong></td><td><strong>${tm3}</strong></td></tr>`;
+  html+=`<tr><td class="left" style="font-size:10px;color:var(--grey)" colspan="4">Visibility only — no moderation cascade. NPI demand feeds into the combined supply plan alongside Private/COCO/IB/IS demand; netting stays outside the app in Phase 0.</td></tr>`;
+  html+=`</tbody>`;
+  document.getElementById('reportTable').innerHTML=html;
+}
+
+setCycle('1A');
+</script>
+</body>
+</html>
